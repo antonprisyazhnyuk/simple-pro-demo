@@ -1,0 +1,1166 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- ⛔ NOINDEX — не опция, а требование паспорта гига. Это демо-копия страниц живого
+       simple-pro.com; попав в индекс, она станет ДУБЛЕМ сайта клиента, чьё SEO ведёт
+       его собственный подрядчик. Мета стоит на КАЖДОЙ странице сборки и работает
+       независимо от того, куда её положили. Второй контур — code/robots.txt, но он
+       читается только из КОРНЯ домена: ляжет сборка в подкаталог проекта Pages —
+       робот его не увидит вовсе, и эта строка останется единственной защитой.
+       Снимать только вместе с решением «сайт уезжает клиенту как боевой». -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>Шкаф вытяжной химический — Simple PRO</title>
+  <link rel="icon" href="assets/figma/s-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/block-01-first-screen.css">
+  <link rel="stylesheet" href="css/blocks.css">
+  <link rel="stylesheet" href="css/mobile.css">
+  <!-- модуль футера: ПОСЛЕ mobile.css — его em-словарь (в т.ч. .btn--primary)
+       обязан выигрывать у одноимённых правил сборки, специфичность равная -->
+  <link rel="stylesheet" href="../nav/nav.css">
+  <link rel="stylesheet" href="../footer/footer.css">
+  <!-- DEBUG:vw-badge — вырезать при сборке -->
+  <link rel="stylesheet" href="debug.css">
+  <!-- /DEBUG:vw-badge -->
+</head>
+<body>
+
+<!-- ═══ ХЕДЕР — МОДУЛЬ (code/nav/). Разметка/стили/скрипт живут в модуле, продуктовая
+     на них ССЫЛАЕТСЯ. Врезано 21.07 взамен встроенного .site-header (73 строки).
+     Режим — направленный (канон свода v8); дев-тумблер стенда СОЗНАТЕЛЬНО не перенесён,
+     nav.js без data-nav-mode сам берёт directional. Ветку «всегда полный» в модуле
+     не удаляем до слова клиента. ═══ -->
+  <header class="nav-header">
+    <!-- Лого-колонка на два ряда. На узком деске (≤ точки слома полного лого) она
+         ИСЧЕЗАЕТ целиком, а знак S уходит первым чипом в верхний ряд (см. .menu-btn--logo-s):
+         ряд категорий получает всю ширину. Состав хедера при этом не меняется. -->
+    <a class="nav-logo" href="#" aria-label="Simplepro — на главную">
+      <img src="../assets/figma/header-logo.svg" alt="Simplepro">
+    </a>
+    <div class="nav-rows">
+      <div class="nav-row-top">
+        <div class="row-left">
+          <!-- S-квадрат: живёт ТОЛЬКО на узком деске, когда лого-колонка исчезла.
+               Высота = высоте чипа верхнего ряда (28-базис в em), стоит первым, слева от Региона. -->
+          <a class="menu-btn menu-btn--logo-s" href="#" aria-label="Simplepro — на главную">
+            <img src="../assets/figma/s-logo.svg" alt="Simplepro">
+          </a>
+          <!-- Регион: чип + дропдаун на панели мега-меню (список перенесён с продуктовой).
+               Глиф — inline-svg на currentColor: в <img> внешний CSS не проникает,
+               а на hover бокс инвертируется и глиф обязан стать белым. -->
+          <div class="region-wrap">
+            <button class="menu-btn menu-btn--suffix" type="button" data-region-btn
+                    aria-haspopup="listbox" aria-expanded="false">
+              <span data-region-label>Регион</span>
+              <span class="suffix-box">
+                <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.75 9 11.25l4.5-4.5"/></svg>
+              </span>
+            </button>
+            <div class="nav-mega-menu" role="listbox" aria-label="Выбор региона" data-region-menu></div>
+          </div>
+        </div>
+        <nav class="row-middle" aria-label="Разделы сайта">
+          <a class="menu-btn" href="#"><span class="special-dot" aria-hidden="true"></span>Лабораторные пространства</a>
+          <a class="menu-btn" href="#">Компания</a>
+          <a class="menu-btn" href="#">Проекты</a>
+          <a class="menu-btn" href="#">Гарантии</a>
+          <a class="menu-btn" href="#">Цены</a>
+          <a class="menu-btn" href="#">Контакты</a>
+        </nav>
+        <div class="row-right">
+          <!-- поиск: hover/фокус раскрывает строку ВЛЕВО до лого; строка absolute,
+               поэтому раскладку ряда не двигает и переполнения дать не может -->
+          <div class="search-wrap" data-search>
+            <input class="search-field" type="search" placeholder="Поиск по каталогу" aria-label="Поиск по каталогу" tabindex="-1">
+            <button class="menu-btn menu-btn--icon" type="button" aria-label="Поиск" data-search-btn>
+              <span class="icon-box"><img src="../assets/figma/header-zoom.svg" alt=""></span>
+            </button>
+          </div>
+          <!-- контакты ТЕКСТОМ с копи-кнопками на любой деск-ширине: ступени «текст→иконка» нет -->
+          <button class="menu-btn menu-btn--suffix menu-btn--tight" type="button" data-copy="+78006004069" aria-label="Скопировать телефон">
+            +7 (800) 600 40 69
+            <span class="suffix-box">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.009 12.553a1.8 1.8 0 0 1-.759-1.303V3.75c0-.825.675-1.5 1.5-1.5h7.5c.563 0 .869.289 1.125.75M5.25 7.25a2 2 0 0 1 2-2h6.5a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2h-6.5a2 2 0 0 1-2-2z"/></svg>
+            </span>
+          </button>
+          <button class="menu-btn menu-btn--suffix menu-btn--tight" type="button" data-copy="info@simple-pro.com" aria-label="Скопировать email">
+            info@simple-pro.com
+            <span class="suffix-box">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.009 12.553a1.8 1.8 0 0 1-.759-1.303V3.75c0-.825.675-1.5 1.5-1.5h7.5c.563 0 .869.289 1.125.75M5.25 7.25a2 2 0 0 1 2-2h6.5a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2h-6.5a2 2 0 0 1-2-2z"/></svg>
+            </span>
+          </button>
+          <a class="menu-btn menu-btn--icon" href="#" aria-label="Telegram" data-brand-chip="tg">
+            <img data-brand src="../assets/figma/icon-tg.svg" alt="">
+          </a>
+          <a class="menu-btn menu-btn--icon" href="#" aria-label="MAX" data-brand-chip="max">
+            <img data-brand src="../assets/figma/icon-max.svg" alt="">
+          </a>
+          <button class="menu-btn menu-btn--icon" type="button" aria-label="Избранное">
+            <span class="icon-box"><img src="../assets/figma/header-heart.svg" alt=""></span>
+          </button>
+          <button class="menu-btn menu-btn--icon menu-btn--cart" type="button" aria-label="Корзина">
+            <span class="icon-box"><img src="../assets/figma/header-cart.svg" alt=""></span>
+          </button>
+        </div>
+      </div>
+      <nav class="nav-row-cats" aria-label="Каталог" data-cats></nav>
+    </div>
+  </header>
+
+  <!-- ============ nav-bottom-bar (моб): белая floating-плашка ============ -->
+  <!-- состав: бургер · лого | конверт · tg · MAX · корзина (20.07: гео-пин убран, MAX добавлен).
+       Две связки, распор только МЕЖДУ ними — не россыпь по всей ширине.
+       Канон 21.07 (моб-макет Frame 1000005299, 360): поле бара 8 · кнопка 40×40, глиф 24 ·
+       лого СЛОВЕСНОЕ 91×20 (знак S в баре отменён) · правая связка ровно 160 = 4×40 БЕЗ гэпов. -->
+  <div class="nav-bottom-bar">
+    <div class="bar-group">
+      <button class="bar-btn bar-btn--burger" type="button" data-burger aria-label="Меню" aria-expanded="false">
+        <svg class="icon-burger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
+      <a class="bar-logo-link" href="#" aria-label="Simplepro — на главную"><img class="bar-logo" src="../assets/figma/header-logo.svg" alt="Simplepro"></a>
+    </div>
+    <div class="bar-group bar-group--icons">
+      <a class="bar-btn" href="mailto:info@simple-pro.com" aria-label="Email">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+      </a>
+      <a class="bar-btn" href="#" aria-label="Telegram"><img src="../assets/figma/icon-tg.svg" alt=""></a>
+      <a class="bar-btn" href="#" aria-label="MAX"><img src="../assets/figma/icon-max.svg" alt=""></a>
+      <button class="bar-btn bar-btn--cart" type="button" aria-label="Корзина">
+        <img src="../assets/figma/header-cart.svg" alt="">
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ nav-menu-sheet (моб-меню: bottom-sheet, два экрана) ============ -->
+  <div class="nav-menu-sheet" role="dialog" aria-modal="true" aria-label="Меню">
+    <div class="sheet-panel" data-panel-root>
+      <div class="sheet-search">
+        <input type="search" placeholder="Поиск">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg>
+      </div>
+      <nav class="sheet-list" aria-label="Каталог" data-root-list></nav>
+      <a class="sheet-banner" href="#">
+        <img src="../assets/figma/adv-pic2.png" alt="">
+        <span class="banner-row">
+          Лабораторные пространства
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>
+        </span>
+      </a>
+      <nav class="sheet-secondary" aria-label="Разделы сайта" data-secondary-list></nav>
+    </div>
+    <div class="sheet-panel" data-panel-cat hidden>
+      <button class="sheet-back" type="button">
+        <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>
+        Назад
+      </button>
+      <h4 class="sheet-cat-title" data-cat-title></h4>
+      <div class="sheet-hero"><img data-cat-hero src="../assets/figma/adv-pic1.png" alt=""></div>
+      <nav class="sheet-list" data-cat-list></nav>
+    </div>
+  </div>
+
+  <!-- рыба-контент стенда nav сюда НЕ переносится: у продуктовой свой контент. -->
+
+  <!-- ⚠ Весь док ниже — ТОЛЬКО СТЕНД, в клиентский архив не тащить. -->
+
+<main>
+
+<!-- Блок 1–2: первый экран (шторка-рендер → галерея → панель с табами → CTA) -->
+<section class="product-hero" id="productHero">
+  <!-- Крошки переехали сюда из .site-header (21.07): их прежний дом — фикс-слой
+       встроенного хедера — снят вместе с ним. У модуля крошек нет вовсе, а терять их
+       нельзя — это BreadcrumbList-семантика, SEO-регресс. Хост — .product-hero
+       (position: relative), посадка прежняя. -->
+  <nav class="breadcrumbs" aria-label="Хлебные крошки">
+  <!-- «Вернуться» на мобе схлопывается в канон-стрелку «←» (моб-канон 2173 §4: вместо крошек).
+       Текст завёрнут в спан, чтобы прятать ЕГО, а не ссылку: имя для скринридера остаётся. -->
+  <a href="#" class="back"><img src="assets/figma/crumb-arrow-left.svg" alt="" width="12" height="12"><span class="back-label">Вернуться</span></a>
+  <a href="#" class="crumb">Главная</a>
+  <span class="sep"><img src="assets/figma/crumb-dot.svg" alt="" width="8" height="16"></span>
+  <a href="#" class="crumb">Каталог</a>
+  <span class="sep"><img src="assets/figma/crumb-dot.svg" alt="" width="8" height="16"></span>
+  <a href="#" class="crumb">Вытяжные шкафы</a>
+  <span class="sep"><img src="assets/figma/crumb-dot-dark.svg" alt="" width="8" height="16"></span>
+  <span class="current">Шкаф вытяжной химический</span>
+  </nav>
+ <div class="hero-curtain">
+  <div class="hero-media">
+    <img src="assets/figma/hero-first-screen.jpg" alt="Лабораторное пространство Simple PRO" class="hero-photo">
+  </div>
+ </div>
+
+ <div class="hero-stage">
+  <div class="hero-gallery">
+    <div class="gallery-body">
+      <div class="gallery-rail" aria-label="Изображения товара">
+        <button class="thumb is-selected" type="button" aria-current="true" aria-label="Общий вид"><img src="assets/figma/product-photo-main.png" alt="Шкаф вытяжной химический — общий вид"></button>
+        <button class="thumb" type="button" aria-label="Ракурс 2"><img src="assets/figma/slot1-thumb.png" alt="Шкаф вытяжной химический — ракурс 2"></button>
+        <button class="thumb" type="button" aria-label="Ракурс 3"><img src="assets/figma/slot2-overlay.jpg" alt="Шкаф вытяжной химический — ракурс 3"></button>
+        <button class="thumb" type="button" aria-label="Ракурс 4"><img src="assets/figma/slot3-thumb.png" alt="Шкаф вытяжной химический — ракурс 4"></button>
+        <button class="thumb" type="button" aria-label="Вид сбоку"><img src="assets/gallery/shvd.jpg" alt="Шкаф вытяжной химический — вид сбоку"></button>
+        <button class="thumb" type="button" aria-label="Ракурс 6"><img src="assets/figma/slot6-overlay.png" alt="Шкаф вытяжной химический — ракурс 6"></button>
+        <!-- 3D-слот: канон-иконка (кольцо-ассет + ЖИВОЙ текст), а не красная кнопка-круг (№7г).
+             Текст живой, а не запечён в ассет: он должен ехать за кеглем вместе с рейкой. -->
+        <button class="thumb is-3d" id="open3d" type="button" aria-label="3D-модель">
+          <img class="thumb-3d-ring" src="assets/figma/icon-3d-ring.svg" alt="" aria-hidden="true">
+          <span class="thumb-3d-label" aria-hidden="true">3d</span>
+        </button>
+      </div>
+      <div class="gallery-view">
+        <div class="gallery-main" id="galleryMain">
+          <img src="assets/figma/product-photo-main.png" alt="Шкаф вытяжной химический">
+          <div class="viewer-3d" id="viewer3d" data-frames="15" hidden>
+            <span class="hint">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12a10 10 0 0 0 10 10M2 12A10 10 0 0 1 12 2M2 12h4m12 0h4"/></svg>
+              Двигайте мышью — модель вращается
+            </span>
+          </div>
+        </div>
+        <!-- Подсказка «крутите пальцем» — ТОЛЬКО моб (на деске подсказка своя, пилюлей внутри
+             вьювера). Показывает/прячет её js/app.js вместе с 3D-вьювером; здесь она лежит
+             ровно ПОД областью вьювера, чтобы не спорить с самим кадром за место. -->
+        <p class="viewer-hint" hidden>крутите пальцем</p>
+        <div class="gallery-caption">
+          <span>Шкаф вытяжной химический ШВП</span>
+          <span>*Тумбы и другие доп. опции не входят в базовую комплектацию</span>
+        </div>
+      </div>
+    </div>
+    <!-- Точки-индикатор свайп-карусели фото (моб-канон 2173, узел 2173:120880: 40×4, гэп 12,
+         по центру, 12 под фото). Живут только на мобе: на деске карусели нет — есть рейка.
+         Число точек = числу ФОТО-слайдов рейки (3D-слот на мобе не слайд, см. mobile.css).
+         ⚠ Подсветку активной точки врезает хаб в js/app.js — спека сдана в отчёте М2. -->
+    <div class="gallery-dots" id="galleryDots" aria-hidden="true">
+      <span class="on"></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+ </div>
+
+ <div class="hero-panel-layer">
+  <div class="hero-panels">
+    <div class="panel-card">
+    <div class="panel-head">
+    <div class="title-row">
+      <h1 class="title">Шкаф вытяжной химический</h1>
+      <div class="price-row">
+        <span class="cap">базовая комплектация</span>
+        <span class="price-line"><span class="from">от</span> <span class="val">198 640 ₽</span></span>
+      </div>
+    </div>
+    <!-- №7д, КРАСНАЯ ПРАВКА АНТОНА (21.07 ночь, по стенду: «это пиздец»): разведение ссылок
+         и кнопок в ДВА ряда отклонено глазами. Канон — ОДИН ряд: слева синяя строка ссылок,
+         справа сердечко + «Конструктор». Высоту ряда задают КНОПКИ (44), ссылки выравниваются
+         ПО НИЗУ кнопок — это `align-items: flex-end` у .panel-bottom-row.
+         ⚠ Отсюда и другая ТОЧКА ОТСЧЁТА равенства: считаем не от чернил ссылок (внутри ряда
+         над ними висит пустая половина — она в каноне и есть), а от КРОМОК РЯДА:
+         [низ чернил заголовочного блока ↔ верх ряда] = [низ ряда ↔ верх табов]. -->
+    <div class="panel-bottom-row">
+      <div class="doc-links">
+        <a href="#">Презентация изделия</a>
+        <a href="#">Паспорт</a>
+        <a href="#">Рассчитать срок доставки</a>
+      </div>
+      <button class="btn btn--inverse btn--icon fav-btn" aria-label="В избранное" aria-pressed="false"><img src="assets/figma/icon-heart-outline.svg" alt="" width="20" height="20"></button>
+      <a href="#constructor" class="btn btn--inverse constructor-link"><span class="lbl-full">Онлайн конструктор</span><span class="lbl-short">Конструктор</span></a>
+    </div>
+    </div><!-- /.panel-head -->
+
+    <!-- границы ряда табов — свои border-block у .tabs-nav (заменили panel-divider'ы) -->
+    <div class="tabs-nav" role="tablist">
+      <button class="tab-btn is-active" data-tab="descr" role="tab" aria-selected="true">Описание</button>
+      <button class="tab-btn" data-tab="sizes" role="tab" aria-selected="false">Размеры</button>
+      <button class="tab-btn" data-tab="base" role="tab" aria-selected="false">Базовая комплектация</button>
+      <button class="tab-btn" data-tab="extra" role="tab" aria-selected="false">Доп комплектация</button>
+      <button class="tab-btn" data-tab="d3" role="tab" aria-selected="false">3D вид</button>
+    </div>
+
+    <div class="tab-panels">
+      <div class="tab-panel is-active" data-panel="descr" role="tabpanel">
+        <p>Шкаф вытяжной химический ШВП рекомендуется для проведения работ с особо агрессивными химическими веществами, включая неорганические концентрированные кислоты (соляную, серную, азотную, плавиковую) и их пары. Также может использоваться в условиях повышенной влажности, допускается прямой контакт с водой и другими жидкостями — в вытяжной камере отсутствуют детали, подвергающиеся коррозии.</p>
+        <p>Вытяжная камера шкафа (верхняя часть) изготовлена из монолитного листового полипропилена, который обладает крайне высокой химической стойкостью. Рабочая камера имеет три зоны вытяжки — сверху, посередине и снизу рабочего объёма.</p>
+        <p>Нижняя часть — прочный металлический каркас с полимерным покрытием серого цвета. В каркасе предусмотрены регулируемые опоры в диапазоне 0–30 мм для компенсации неровностей пола.</p>
+        <p>Шкаф может комплектоваться подкатными полипропиленовыми тумбами с запатентованной беспетлевой системой открывания дверей, что предотвращает коррозию и обеспечивает безопасное хранение агрессивных химических реагентов.</p>
+      </div>
+
+      <div class="tab-panel" data-panel="sizes" role="tabpanel">
+        <dl class="spec-list">
+          <dt>Ширина, мм</dt><dd>960 / 1260 / 1560 / 1860</dd>
+          <dt>Глубина, мм</dt><dd>765</dd>
+          <dt>Высота, мм</dt><dd>2300</dd>
+          <dt>Материал столешницы</dt><dd>Полипропилен, GranTec, Lab HPL</dd>
+        </dl>
+      </div>
+
+      <div class="tab-panel" data-panel="base" role="tabpanel">
+        <dl class="spec-list">
+          <dt>Вытяжная камера из монолитного полипропилена</dt><dd>✓</dd>
+          <dt>Три зоны вытяжки</dt><dd>✓</dd>
+          <dt>Рабочая поверхность (выбор материала)</dt><dd>✓</dd>
+          <dt>Металлический каркас, опоры 0–30 мм</dt><dd>✓</dd>
+          <dt>Подъёмный экран, стекло триплекс 6 мм</dt><dd>✓</dd>
+          <dt>Светодиодный светильник 18 Вт (IP-65)</dt><dd>✓</dd>
+          <dt>Брызгозащищённые розетки 220 В, 16 А</dt><dd>2 шт</dd>
+          <dt>Электромонтажная коробка с дифавтоматом</dt><dd>✓</dd>
+        </dl>
+      </div>
+
+      <div class="tab-panel" data-panel="extra" role="tabpanel">
+        <dl class="spec-list">
+          <dt>Регулятор скорости вентилятора</dt><dd>26 630 ₽</dd>
+          <dt>Монитор воздушного потока</dt><dd>48 750 ₽</dd>
+          <dt>Взрывозащищённый светильник</dt><dd>24 870 ₽</dd>
+          <dt>Тумбы подкатные полипропиленовые</dt><dd>49 090 ₽</dd>
+          <dt>Дополнительный блок розеток</dt><dd>8 230 ₽</dd>
+          <dt>Нагревательная панель</dt><dd>19 720 ₽</dd>
+        </dl>
+      </div>
+
+      <div class="tab-panel" data-panel="d3" role="tabpanel">
+        <!-- Формулировка device-neutral НАРОЧНО: прежняя («открыта слева… двигайте мышью»)
+             была верна только на деске, а с возвратом 3D в моб-состав таб живёт и на телефоне,
+             где галерея сверху, а вращают пальцем. Одна подпись на оба устройства. -->
+        <p class="muted">3D-модель открыта в галерее — вращайте её мышью или пальцем. Слот «3D» в ленте кадров делает то же самое.</p>
+      </div>
+    </div>
+
+    <hr class="panel-divider">
+    <div class="cta-zone">
+      <span class="lead">Пришлите заявку или пригласите в тендер:</span>
+      <!-- Модификаторы групп заведены под МОБ-раскладку (email во всю ширину, телеграм и макс
+           в ряд пополам — состав первого экрана 2219:132737). На деске правил у них нет
+           вовсе: ряд там собирается флексом .cta-zone, и модификаторы инертны. Через
+           :nth-of-type то же самое молча ломалось бы при любой перестановке групп. -->
+      <div class="cta-group cta-group--email">
+        <a href="mailto:info@simple-pro.com" class="btn btn--primary email-btn">info@simple-pro.com</a>
+        <button class="btn btn--primary btn--icon copy-btn" data-copy="info@simple-pro.com" aria-label="Копировать адрес">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+      <div class="cta-group cta-group--tg">
+        <a href="#" class="btn btn--secondary"><img class="btn__icon" src="assets/figma/icon-tg.svg" alt="">Telegram</a>
+        <button class="qr-btn qr-btn--secondary" aria-label="QR-код Telegram"><img src="assets/figma/icon-qr.svg" alt="" width="24" height="24"></button>
+      </div>
+      <div class="cta-group cta-group--max">
+        <a href="#" class="btn btn--secondary"><img class="btn__icon" src="assets/figma/icon-max.svg" alt="">Max</a>
+        <button class="qr-btn qr-btn--secondary" aria-label="QR-код Max"><img src="assets/figma/icon-qr.svg" alt="" width="24" height="24"></button>
+      </div>
+    </div>
+    </div>
+  </div>
+ </div>
+</section>
+
+<!-- ═══════════════ БЛОК 3: линейка моделей (full-bleed, без заголовка/стрелок — донор) ═══════════════ -->
+<section class="section section--carousel">
+  <div class="model-row" id="modelRow">
+    <!-- фон — ЧИСТЫЙ рендер (*-clean.jpg, без запечённого тега и вотермарок); имя модели
+         несёт живой .model-tag, поэтому alt пустой: дубль имени для скринридера — шум -->
+    <a href="#" class="model-card"><img src="assets/figma/model-lk900-clean.jpg" alt=""><span class="model-tag">ЛК-900 ШВП</span></a>
+    <a href="#" class="model-card"><img src="assets/figma/model-lk1200-clean.jpg" alt=""><span class="model-tag">ЛК-1200 ШВП</span></a>
+    <a href="#" class="model-card"><img src="assets/figma/model-lk1500-clean.jpg" alt=""><span class="model-tag">ЛК-1500 ШВП</span></a>
+    <a href="#" class="model-card"><img src="assets/figma/model-lk1800-clean.jpg" alt=""><span class="model-tag">ЛК-1800 ШВП</span></a>
+  </div>
+</section>
+
+<!-- ═══════════════ БЛОК 4: преимущества ═══════════════ -->
+<!-- full-bleed вместо .container: рельс должен ехать до края экрана, поле 36/28 держат
+     шапка и сам рельс (иначе край контейнера режет карточки при прокрутке) -->
+<section class="section section--adv">
+  <div class="section-head">
+    <h2>Преимущества</h2>
+    <div class="arrow-nav arrow-nav--adv" data-scroll="advStrip advStripMob">
+      <button class="arrow-btn" data-dir="-1" aria-label="Назад"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button>
+      <button class="arrow-btn" data-dir="1" aria-label="Вперёд"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></button>
+    </div>
+  </div>
+  <div class="adv-strip" id="advStrip">
+    <!-- лейаут донора 18:9499: карточки-блоки РАЗНОЙ ширины (756/288/912/756), гэп 96, скролл по блокам -->
+    <div class="adv-card ac-duo"><!-- 18:9500: тексты в распор + фото-портрет 404×720 -->
+      <div class="ac-texts">
+        <div class="ac-txt"><h4>Не проливается</h4><p>Противопроливочные бортики в ВШ для предотвращения пролива химикатов.</p></div>
+        <div class="ac-txt"><h4>Легко мыть</h4><p>Все раковины в вытяжных шкафах располагаются / крепятся снизу рабочей поверхности. Это позволяет легко «смахнуть» пролившиеся жидкости со столешницы в раковину.</p></div>
+      </div>
+      <div class="ac-photo ac-photo--tall"><img src="assets/figma/adv-pic1.png" alt=""></div>
+    </div>
+    <div class="adv-card ac-solo"><!-- 18:9501: квадрат-фото + текст -->
+      <div class="ac-photo ac-photo--sq"><img src="assets/figma/adv-pic2.png" alt=""></div>
+      <div class="ac-txt"><h4>Удобная уборка</h4><p>Есть роликовые опоры у тумб в вытяжных шкафах, что помогает проводить влажную уборку под шкафами и иметь лёгкий доступ к канализационным системам. У вытяжных шкафов съёмный верхний экран для удобной очистки стекла.</p></div>
+    </div>
+    <div class="adv-card ac-wide"><!-- 18:9502: [фото 520² + подпись строго под ним] + текст-колонка -->
+      <div class="ac-col">
+        <div class="ac-photo ac-photo--big"><img src="assets/figma/adv-pic3.png" alt=""></div>
+        <div class="ac-txt ac-txt--under"><h4>Легко мыть</h4><p>Все раковины в вытяжных шкафах располагаются / крепятся снизу рабочей поверхности. Это позволяет легко «смахнуть» пролившиеся жидкости со столешницы в раковину.</p></div>
+      </div>
+      <!-- ⚠ ЯКОРЬ: правится ИМЕННО .ac-txt--side. Сама строка текста встречается в файле
+           трижды (тут, в четвёртой карточке и в моб-ряду) — слепая замена задела бы все три.
+           Хвост «У вытяжных шкафов съёмный верхний экран…» сверен по кадру макета
+           research/figma-drops/adv-cards-set-2184.png: там он стоит ВМЕСТЕ с «и у вытяжных
+           шкафов», то есть повтор — рыба донора, а не наша опечатка. Не приглаживал. -->
+      <div class="ac-txt ac-txt--side"><h4>Удобная уборка</h4><p>Есть роликовые опоры у тумб в вытяжных шкафах и у вытяжных шкафов, что помогает проводить влажную уборку под шкафами и иметь лёгкий доступ к канализационным системам. У вытяжных шкафов съёмный верхний экран для удобной очистки стекла.</p></div>
+    </div>
+    <div class="adv-card ac-duo"><!-- 18:9503: как первая (донор повторяет паттерн) -->
+      <div class="ac-texts">
+        <div class="ac-txt"><h4>Удобная уборка</h4><p>Есть роликовые опоры у тумб в вытяжных шкафах и у вытяжных шкафов, что помогает проводить влажную уборку под шкафами и иметь лёгкий доступ к канализационным системам.</p></div>
+        <div class="ac-txt"><h4>Легко мыть</h4><p>Все раковины в вытяжных шкафах располагаются / крепятся снизу рабочей поверхности.</p></div>
+      </div>
+      <div class="ac-photo ac-photo--tall"><img src="assets/figma/adv-pic4.png" alt=""></div>
+    </div>
+    <!-- ПЯТАЯ карточка набора (2184:28330, «1692 wide» по составу Антона): состав стал 5/5.
+         CSS (.ac-panorama/.ac-photo--pano) уже лежал в blocks.css со смены 2 — не хватало
+         только разметки. Фото — тот же ассет донора, другой кроп даёт object-fit: cover. -->
+    <div class="adv-card ac-panorama"><!-- 2184:28330: фото-панорама 1224×720 + колонка из двух подписей -->
+      <div class="ac-photo ac-photo--pano"><img src="assets/figma/adv-pic4.png" alt=""></div>
+      <div class="ac-texts">
+        <div class="ac-txt"><h4>Удобная уборка</h4><p>Есть роликовые опоры у тумб в вытяжных шкафах и у вытяжных шкафов, что помогает проводить влажную уборку под шкафами и иметь лёгкий доступ к канализационным системам. У вытяжных шкафов съёмный верхний экран для удобной очистки стекла.</p></div>
+        <div class="ac-txt"><h4>Удобная уборка</h4><p>Есть роликовые опоры у тумб в вытяжных шкафах и у вытяжных шкафов, что помогает проводить влажную уборку под шкафами и иметь лёгкий доступ к канализационным системам. У вытяжных шкафов съёмный верхний экран для удобной очистки стекла.</p></div>
+      </div>
+    </div>
+  </div>
+  <!-- МОБ-ряд (донор 18:7617): единые карточки фото-248 + тайтл + текст; тексты — те же, из полосы выше -->
+  <div class="adv-strip adv-strip--mob" id="advStripMob">
+    <div class="adv-mcard">
+      <img src="assets/figma/adv-pic1.png" alt="">
+      <div><h4>Не проливается</h4><p>Противопроливочные бортики в ВШ для предотвращения пролива химикатов.</p></div>
+    </div>
+    <div class="adv-mcard">
+      <img src="assets/figma/adv-pic2.png" alt="">
+      <div><h4>Удобная уборка</h4><p>Есть роликовые опоры у тумб в вытяжных шкафах, что помогает проводить влажную уборку под шкафами и иметь лёгкий доступ к канализационным системам. У вытяжных шкафов съёмный верхний экран для удобной очистки стекла.</p></div>
+    </div>
+    <div class="adv-mcard">
+      <img src="assets/figma/adv-pic3.png" alt="">
+      <div><h4>Легко мыть</h4><p>Все раковины в вытяжных шкафах располагаются / крепятся снизу рабочей поверхности. Это позволяет легко «смахнуть» пролившиеся жидкости со столешницы в раковину.</p></div>
+    </div>
+    <div class="adv-mcard">
+      <img src="assets/figma/adv-pic4.png" alt="">
+      <div><h4>Удобная уборка</h4><p>Есть роликовые опоры у тумб в вытяжных шкафах и у вытяжных шкафов, что помогает проводить влажную уборку под шкафами и иметь лёгкий доступ к канализационным системам.</p></div>
+    </div>
+    <!-- ПЯТАЯ моб-карточка: моб-ряд отстал от десктопного набора. Канон-фрейм моба
+         (Frame 1000005556) содержит ПЯТЬ инстансов, живой ряд держал четыре — состав
+         разъехался с десктопом, где 5/5 закрыт сегодня врезкой .ac-panorama.
+         CSS общий (.adv-mcard), сверх ничего не нужно. -->
+    <div class="adv-mcard">
+      <img src="assets/figma/adv-pic4.png" alt="">
+      <div><h4>Удобная уборка</h4><p>Есть роликовые опоры у тумб в вытяжных шкафах и у вытяжных шкафов, что помогает проводить влажную уборку под шкафами и иметь лёгкий доступ к канализационным системам. У вытяжных шкафов съёмный верхний экран для удобной очистки стекла.</p></div>
+    </div>
+  </div>
+  <div class="adv-strip-progress"><span id="advProgressFill"></span></div>
+</section>
+
+<!-- ═══════════════ БЛОК 5: видеообзор (заголовок под слайдами, донорские обложки) ═══════════════ -->
+<section class="section section--video">
+  <div class="video-strip">
+    <div class="video-card">
+      <div class="video-poster" data-embed="https://rutube.ru/play/embed/e78b378542d7ced407e220461b919adc" style="background-image:url('assets/figma/video-poster-overlay.jpg')">
+        <button class="play-btn" aria-label="Смотреть видео"><svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M 8.261 2.894 L 55.317 26.422 A 4 4 0 0 1 55.317 33.578 L 8.261 57.106 A 4 4 0 0 1 2.472 53.528 L 2.472 6.472 A 4 4 0 0 1 8.261 2.894 Z"/></svg></button>
+      </div>
+    </div>
+    <div class="video-card">
+      <div class="video-poster" data-embed="https://rutube.ru/play/embed/a100f0993f38202b28e8664392b2674a" style="background-image:url('assets/figma/video-poster-overlay.jpg')">
+        <button class="play-btn" aria-label="Смотреть видео"><svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M 8.261 2.894 L 55.317 26.422 A 4 4 0 0 1 55.317 33.578 L 8.261 57.106 A 4 4 0 0 1 2.472 53.528 L 2.472 6.472 A 4 4 0 0 1 8.261 2.894 Z"/></svg></button>
+      </div>
+    </div>
+  </div>
+  <div class="video-foot">
+    <div class="video-foot-head"><h2>Видеообзор</h2></div>
+    <p>Бесплатно подготовим полный 3D-макет будущей лаборатории. Эргономично расставим вытяжные шкафы и островные столы. Наш эксперт учтет точки подключения воды, электричества, вытяжной вентиляции, чтобы потом не пришлось переделывать. В течение 5 рабочих дней вы получите первые эскизы вашей лаборатории с мебелью. Согласовывать проект с руководством будет легче.</p>
+    <p>Бесплатно подготовим полный 3D-макет будущей лаборатории. Эргономично расставим вытяжные шкафы и островные столы. Наш эксперт учтет точки подключения воды, электричества, вытяжной вентиляции, чтобы потом не пришлось переделывать. В течение 5 рабочих дней вы получите первые эскизы вашей лаборатории с мебелью. Согласовывать проект с руководством будет легче.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ БЛОК 6: УТП «Надёжность» ═══════════════ -->
+<section class="section section--utp">
+  <!-- data-ring — ЖИВАЯ развилка перелива кольца на выбор Антона (сдача 20.07):
+       spin = один полный оборот хвоста, turn = доворот на 150° с возвратом.
+       Выбрал — оставить один вариант и вычистить второй из blocks.css. -->
+  <div class="utp" id="utpBlock" data-ring="spin">
+    <div class="utp-title">
+      <h2>Надежность,<br>проверенная<br>временем</h2><!-- рыба донора, без «ё» -->
+    </div>
+    <div class="utp-scroll"><!-- десктоп: display:contents (grid-areas живут); моб: скролл-ряд -->
+    <div class="utp-card utp-card--delivery">
+      <span class="utp-card-ic"><img class="utp-card-icon" src="assets/figma/utp-icon-delivery.svg" alt=""></span>
+      <h5>Доставка заказа</h5>
+      <p>Мы настолько уверены в качестве своей продукции что даем самую большую гарантию на рынке лабораторной мебели. 76% выпускаемой мебели - это повторные заказы наших клиентов.</p>
+      <a href="#" class="utp-card-link">Рассчитать срок доставки</a>
+    </div>
+    <div class="utp-card utp-card--terms">
+      <span class="utp-card-ic"><img class="utp-card-icon" src="assets/figma/utp-icon-time.svg" alt=""></span>
+      <h5>Сроки</h5>
+      <p>Мы настолько уверены в качестве своей продукции что даем самую большую гарантию на рынке лабораторной мебели. 76% выпускаемой мебели - это повторные заказы наших клиентов. Мы считаем, что гарантия — это основной критерий качества и надежности нашей продукции. Гарантия указана в договоре. Если что то сломалось, вы всегда сможете написать нам рекламацию.</p>
+    </div>
+    <div class="utp-card utp-card--warranty">
+      <span class="utp-card-ic"><img class="utp-card-icon" src="assets/figma/utp-icon-5years.svg" alt=""></span>
+      <h5>Гарантия 5 лет</h5>
+      <p>Мы настолько уверены в качестве своей продукции что даем самую большую гарантию на рынке лабораторной мебели. 76% выпускаемой мебели - это повторные заказы наших клиентов. Мы считаем, что гарантия — это основной критерий качества и надежности нашей продукции. Гарантия указана в договоре. Если что то сломалось, вы всегда сможете написать нам рекламацию.</p>
+    </div>
+    </div>
+    <span class="utp-watermark" id="utpWatermark">simplepro</span>
+  </div>
+</section>
+
+
+<!-- ═══════════════ БЛОК 7: спроектируйте свою лабораторию ═══════════════ -->
+<section class="offer-section">
+  <!-- донор 18:9529: заголовок одной строкой на всю ширину, «свою» — красным.
+       .seg--N перекликаются с .offer-card--N: ховер карточки зажигает свой сегмент
+       (правила :has() в blocks.css) — номера сегмента и карточки обязаны совпадать. -->
+  <h2 class="offer-title" aria-label="Спроектируйте свою лабораторию">
+    <span class="seg seg--1">Спроектируйте</span>
+    <span class="seg seg--2">свою</span>
+    <span class="seg seg--3">лабораторию</span>
+  </h2>
+
+  <div class="offer-grid">
+    <div class="offer-card offer-card--1">
+      <div class="offer-head">
+        <h5>Бесплатный онлайн<br>проект лаборатории</h5>
+        <span class="num">01</span>
+      </div>
+      <div class="offer-pic">
+        <img src="assets/figma/lab-card-photo-base.jpg" alt="">
+        <img class="ovl" src="assets/figma/lab-card1-lineart-overlay.png" alt="">
+      </div>
+      <div class="offer-text">
+        <p>Запланируем с вашей командой онлайн конференцию (ВКС). В ходе обсуждения с общим экраном, наш специалист подберет мебель под ваши задачи и расставит в помещении.</p>
+        <p>Вы получите:<br>– план помещения с расставленной мебелью и размерами.<br>– 3D изображения ваших помещений с трех ракурсов.<br>– смету на выбранную вами мебель, сроки поставки и сборки.</p>
+      </div>
+    </div>
+
+    <div class="offer-card offer-card--2">
+      <div class="offer-head">
+        <h5>Бесплатная<br>3D визуализация</h5>
+        <span class="num">02</span>
+      </div>
+      <div class="offer-pic">
+        <img src="assets/figma/lab-card-photo-base.jpg" alt="">
+        <img class="ovl ovl--multiply" src="assets/figma/lab-card2-red-walkway-overlay.png" alt="">
+      </div>
+      <div class="offer-text">
+        <p>Бесплатно подготовим полный 3D-макет будущей лаборатории. Эргономично расставим вытяжные шкафы и островные столы. Наш эксперт учтет точки подключения воды, электричества, вытяжной вентиляции, чтобы потом не пришлось переделывать. В течение 5 рабочих дней вы получите первые эскизы вашей лаборатории с мебелью. Согласовывать проект с руководством будет легче.</p>
+        <p>Пришлите чертеж помещения, можно от руки, с размерами. Не забудьте указать двери, окна, радиаторы, точки подключения воды и вентиляции.</p>
+      </div>
+    </div>
+
+    <div class="offer-card offer-card--3">
+      <div class="offer-head">
+        <!-- ✅ РЕШЕНО 20.07 по прецеденту Антона (латинские «o» в меню): орфографический
+             брак донора у СЕБЯ не воспроизводим — пишем верно, клиенту отдаём отдельной
+             находкой. В доноре 18:9529 стоит «фирменом» (одна «н») — это его опечатка,
+             не наш замысел. Откат — одно слово. -->
+        <h5>Дизайн лаборатории<br>в фирменном стиле</h5>
+        <span class="num">03</span>
+      </div>
+      <div class="offer-pic">
+        <img src="assets/figma/lab-card-photo-base.jpg" alt="">
+        <img class="ovl ovl--multiply" src="assets/figma/lab-card2-red-walkway-overlay.png" alt="">
+        <img class="ovl" src="assets/figma/lab-card3-corporate-overlay.png" alt="">
+      </div>
+      <div class="offer-text">
+        <p>Запланируем с вашей командой онлайн конференцию (ВКС). В ходе обсуждения с общим экраном, наш специалист подберет мебель под ваши задачи и расставит в помещении.</p>
+        <p>Вы получите:<br>– план помещения с расставленной мебелью и размерами.<br>– 3D изображения ваших помещений с трех ракурсов.<br>– смету на выбранную вами мебель, сроки поставки и сборки.</p>
+      </div>
+    </div>
+  </div>
+  <!-- МОБ: дот-индикатор скролл-ряда офферов (донор 18:7148, полоски 40×4) -->
+  <div class="offer-dots" id="offerDots" aria-hidden="true"><span class="on"></span><span></span><span></span></div>
+
+  <!-- CTA-плашка (канон №2), состав по слову Антона 20.07 — расходится с донором 18:9529
+       в трёх местах, идём за Антоном: (1) над третьей группой ЕСТЬ лейбл «Помощь эксперта»
+       (у донора его нет), (2) email-кнопка подписана адресом, а не рыбой «Кнопка»,
+       (3) третья группа — ДВЕ двойные кнопки [Telegram|QR] и [Max|QR] вместо
+       «Помощь эксперта»+expand. Донор оставлен только на геометрию/цвета. -->
+  <div class="cta-bar" id="ctaBar1">
+    <h4>Пришлите заявку<br>или пригласите в тендер:</h4>
+    <div class="cta-bar-groups">
+      <div class="cta-field">
+        <span class="lbl">Телефон</span>
+        <!-- ⚠ НОМЕРА — МАКЕТНАЯ РЫБА (слово Антона): механика под реальные данные,
+             но с живого сайта ничего не тащим. data-region-phone читает инлайн-скрипт внизу. -->
+        <div class="phone-box" data-region-phone>
+          <button type="button" class="region-chip" data-region-btn aria-haspopup="listbox" aria-expanded="false">
+            <span data-region-label>Регион</span>
+            <span class="chev"><img src="assets/figma/cta-icon-chevron-down.svg" alt="" width="18" height="18"></span>
+          </button>
+          <a href="tel:+78006004069" class="phone-link" data-region-tel>+7 (800) 600 40 69</a>
+          <button class="copy-plain copy-btn" data-copy="+7 (800) 600 40 69" data-region-copy aria-label="Копировать телефон">
+            <img src="assets/figma/cta-icon-copy.svg" alt="" width="18" height="18">
+          </button>
+          <ul class="region-drop" data-region-menu role="listbox" aria-label="Выбор региона" hidden></ul>
+        </div>
+      </div>
+      <div class="cta-field">
+        <span class="lbl">Email</span>
+        <div class="dbl">
+          <a href="mailto:info@simple-pro.com" class="btn btn--primary email-btn">info@simple-pro.com</a>
+          <button class="btn btn--primary btn--icon copy-btn" data-copy="info@simple-pro.com" aria-label="Копировать адрес">
+            <img src="assets/figma/cta-icon-send.svg" alt="" width="24" height="24">
+          </button>
+        </div>
+      </div>
+      <div class="cta-field">
+        <span class="lbl">Помощь эксперта</span>
+        <div class="cta-field-row">
+          <div class="dbl">
+            <a href="#" class="btn btn--secondary"><img src="assets/figma/cta-icon-telegram.svg" alt="" width="24" height="24">Telegram</a>
+            <button class="qr-btn qr-btn--secondary" aria-label="QR-код Telegram">
+              <img src="assets/figma/icon-qr.svg" alt="" width="24" height="24">
+            </button>
+          </div>
+          <div class="dbl">
+            <a href="#" class="btn btn--secondary btn--max"><img src="assets/figma/icon-max.svg" alt="" width="24" height="24">Max</a>
+            <button class="qr-btn qr-btn--secondary" aria-label="QR-код Max">
+              <img src="assets/figma/icon-qr.svg" alt="" width="24" height="24">
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════ БЛОК 8: конструктор (ЖИВОЙ) ═══════════════ -->
+<section class="constructor-section" id="constructor">
+  <h2 class="constructor-title">Конструктор шкафа</h2>
+  <div class="constructor" id="constructorRoot">
+    <div class="constructor-steps">
+
+      <!-- Шаг 1: слева материалы (семпл + «?»), справа 6 колонок фото+цены (донор 18:9611) -->
+      <div class="cstep">
+        <div class="cstep-head"><span class="cstep-num">Шаг 1</span><span class="cstep-title">Выберите ширину и материал рабочей поверхности</span></div>
+        <div class="matrix" id="matrix"><!-- строит app.js: ссылка «Сравнить…», строки материалов, фото-колонки, радио-цены --></div>
+      </div>
+
+      <!-- Шаг 2: заголовок = донорская рыба (дубль шага 1) -->
+      <div class="cstep">
+        <div class="cstep-head"><span class="cstep-num">Шаг 2</span><span class="cstep-title">Выберите ширину и материал рабочей поверхности</span></div>
+        <div class="mcell-row">
+          <label class="mcell"><input type="radio" class="radio" name="worktop" checked><span>2300/950</span></label>
+          <label class="mcell"><input type="radio" class="radio" name="worktop"><span>2300/950</span></label>
+          <label class="mcell"><input type="radio" class="radio" name="worktop"><span>2300/950</span></label>
+          <label class="mcell"><input type="radio" class="radio" name="worktop"><span>2300/950</span></label>
+          <label class="mcell"><input type="radio" class="radio" name="worktop"><span>2300/950</span></label>
+        </div>
+      </div>
+
+      <!-- Шаг 3: тумбы -->
+      <div class="cstep">
+        <div class="cstep-head"><span class="cstep-num">Шаг 3</span><span class="cstep-title">Выберите тумбы</span></div>
+        <p class="clabel">Материал</p>
+        <div class="mcell-row">
+          <label class="mcell"><input type="radio" class="radio" name="cab-mat" checked><span>ЛДСП</span></label>
+          <label class="mcell"><input type="radio" class="radio" name="cab-mat"><span>Сталь</span></label>
+        </div>
+        <p class="clabel">Тип</p>
+        <div class="type-cards">
+          <label class="type-card">
+            <span class="tphoto"><img src="assets/figma/constructor-photo-base.jpg" alt=""><img src="assets/figma/constructor-tumba-overlay.png" alt=""></span>
+            <span class="tname"><input type="radio" class="radio" name="cab-type" checked><span>Подкатные</span></span>
+          </label>
+          <label class="type-card">
+            <span class="tphoto"><img src="assets/figma/constructor-photo-base.jpg" alt=""><img src="assets/figma/constructor-tumba-overlay.png" alt=""></span>
+            <span class="tname"><input type="radio" class="radio" name="cab-type"><span>Встраиваемые</span></span>
+          </label>
+          <label class="type-card">
+            <span class="tphoto"><img src="assets/figma/constructor-photo-base.jpg" alt=""><img src="assets/figma/constructor-tumba-overlay.png" alt=""></span>
+            <span class="tname"><input type="radio" class="radio" name="cab-type"><span>Подвесные</span></span>
+          </label>
+        </div>
+        <p class="clabel">Размер</p>
+        <div class="const-cards" id="cabinets"><!-- карточки 288 со степперами — app.js --></div>
+      </div>
+
+      <!-- Шаг 4: заголовок = донорская рыба (дубль шага 1), 8 карточек 2×4 -->
+      <div class="cstep">
+        <div class="cstep-head"><span class="cstep-num">Шаг 4</span><span class="cstep-title">Выберите ширину и материал рабочей поверхности</span></div>
+        <div class="const-cards" id="sinks"><!-- app.js --></div>
+        <button class="show-more" id="sinksMore">Показать еще</button>
+      </div>
+
+    </div>
+
+    <!-- Панель «Ваш заказ» (донор: белая, 480px, сворачивается) -->
+    <aside class="order-panel" id="orderPanel">
+      <div class="order-head">
+        <h4 class="order-title">Ваш заказ</h4>
+        <button class="order-toggle" id="orderToggle" aria-label="Свернуть">
+          <img src="assets/figma/constructor-icon-order-collapse.svg" alt="" width="20" height="20">
+        </button>
+      </div>
+      <div class="order-body">
+        <div class="order-sep"></div>
+        <p class="order-label">Наименования</p>
+        <div id="orderLines"><!-- app.js --></div>
+      </div>
+      <div class="order-sep"></div>
+      <div class="order-qty">
+        <span class="order-label">Количество комплектов</span>
+        <div class="stepper" data-role="sets">
+          <button data-step="-1" aria-label="минус"><img src="assets/figma/constructor-icon-minus.svg" alt="" width="16" height="16"></button>
+          <input type="text" value="1" id="setsInput" readonly aria-label="Количество комплектов">
+          <button data-step="1" aria-label="плюс"><img src="assets/figma/constructor-icon-plus.svg" alt="" width="16" height="16"></button>
+        </div>
+      </div>
+      <div class="order-sep"></div>
+      <div class="order-total">
+        <span class="order-label">Итого</span>
+        <span class="sum" id="orderTotal">0 ₽</span>
+      </div>
+      <div class="order-actions">
+        <a href="#" class="btn btn--secondary btn--order"><img src="assets/figma/constructor-icon-telegram.svg" alt="" width="18" height="18">Помощь эксперта</a>
+        <button class="btn btn--primary btn--order" id="addToCart"><img src="assets/figma/constructor-icon-cart.svg" alt="" width="18" height="18">В корзину</button>
+      </div>
+    </aside>
+  </div>
+</section>
+
+
+<!-- ═══════════════ БЛОК 9: сравнительная таблица ═══════════════ -->
+<section class="cmp-section">
+  <div class="cmp-head">
+    <h3 class="cmp-title">Сравнительная таблица вытяжных шкафов</h3>
+    <div class="arrow-nav arrow-nav--red" data-scroll="cmpWrap">
+      <button class="arrow-btn" data-dir="-1" aria-label="Назад"><img src="assets/figma/table-icon-header-btn1.svg" alt="" width="20" height="20"></button>
+      <button class="arrow-btn" data-dir="1" aria-label="Вперёд"><img src="assets/figma/table-icon-header-btn2.svg" alt="" width="20" height="20"></button>
+    </div>
+  </div>
+  <div class="cmp-wrap" id="cmpWrap">
+    <table class="cmp-table" id="cmpTable"><!-- строит app.js: секция A с мерджами, «Показать еще», секция B --></table>
+  </div>
+</section>
+
+
+<!-- ═══════════════ БЛОК 10: дизайн лабораторий ═══════════════ -->
+<section class="labs-section" id="labsDesign">
+  <div class="labs-grid">
+    <div class="labs-intro">
+      <h2 class="labs-title">Дизайн<br>лабораторий</h2>
+      <div class="labs-text">
+        <p>К лабораторному помещению предъявляется много технических требований, но это не означает, что лаборатория не может быть красивой.</p>
+        <p>Мы собрали дизайны лабораторий с нашей мебелью. Вдохновляйтесь! Если вам нужен фирменный дизайн, напишите нам, и мы поможем.</p>
+      </div>
+      <div class="arrow-nav arrow-nav--dark" data-scroll="labsStrip">
+        <button class="arrow-btn" data-dir="-1" aria-label="Назад"><img src="assets/figma/labsdesign-icon-arrow-prev.svg" alt="" width="20" height="20"></button>
+        <button class="arrow-btn" data-dir="1" aria-label="Вперёд"><img src="assets/figma/labsdesign-icon-arrow-next.svg" alt="" width="20" height="20"></button>
+      </div>
+    </div>
+    <div class="case-strip" id="labsStrip">
+      <!-- слайд 1: base + main-overlay; тамбы base + thumbN-overlay -->
+      <div class="case-slide">
+        <div class="slide-head"><h3>Название проекта</h3><span class="slide-desc">Описание проекта в две строчки, </span></div>
+        <div class="slide-media">
+          <div class="layer-pic slide-photo">
+            <img src="assets/figma/labsdesign-photo-base.jpg" alt="">
+            <img src="assets/figma/labsdesign-slide1-main-overlay.png" alt="">
+          </div>
+          <div class="slide-thumbs">
+            <div class="layer-pic thumb"><img src="assets/figma/labsdesign-photo-base.jpg" alt=""><img src="assets/figma/labsdesign-slide1-thumb1-overlay.png" alt=""></div>
+            <div class="layer-pic thumb"><img src="assets/figma/labsdesign-photo-base.jpg" alt=""><img src="assets/figma/labsdesign-slide1-thumb2-overlay.png" alt=""></div>
+            <div class="layer-pic thumb"><img src="assets/figma/labsdesign-photo-base.jpg" alt=""><img src="assets/figma/labsdesign-slide1-thumb3-overlay.png" alt=""></div>
+          </div>
+        </div>
+      </div>
+      <!-- слайд 2: 3 слоя (переиспользует overlay слайда 1 средним) -->
+      <div class="case-slide">
+        <div class="slide-head"><h3>Название проекта</h3><span class="slide-desc">Описание проекта в две строчки, </span></div>
+        <div class="slide-media">
+          <div class="layer-pic slide-photo">
+            <img src="assets/figma/labsdesign-photo-base.jpg" alt="">
+            <img src="assets/figma/labsdesign-slide1-main-overlay.png" alt="">
+            <img src="assets/figma/labsdesign-slide2-main-overlay.png" alt="">
+          </div>
+          <div class="slide-thumbs">
+            <div class="layer-pic thumb"><img src="assets/figma/labsdesign-photo-base.jpg" alt=""><img src="assets/figma/labsdesign-slide1-thumb1-overlay.png" alt=""><img src="assets/figma/labsdesign-slide2-thumb1-overlay.png" alt=""></div>
+            <div class="layer-pic thumb"><img src="assets/figma/labsdesign-photo-base.jpg" alt=""><img src="assets/figma/labsdesign-slide1-thumb2-overlay.png" alt=""><img src="assets/figma/labsdesign-slide2-thumb2-overlay.png" alt=""></div>
+            <div class="layer-pic thumb"><img src="assets/figma/labsdesign-photo-base.jpg" alt=""><img src="assets/figma/labsdesign-slide1-thumb3-overlay.png" alt=""><img src="assets/figma/labsdesign-slide2-thumb3-overlay.png" alt=""></div>
+          </div>
+        </div>
+      </div>
+      <!-- слайд 3: 3 слоя (main-overlay слайда 1 средним; thumb2 переиспользует слой слайда 2 — так в доноре) -->
+      <div class="case-slide">
+        <div class="slide-head"><h3>Название проекта</h3><span class="slide-desc">Описание проекта в две строчки, </span></div>
+        <div class="slide-media">
+          <div class="layer-pic slide-photo">
+            <img src="assets/figma/labsdesign-photo-base.jpg" alt="">
+            <img src="assets/figma/labsdesign-slide1-main-overlay.png" alt="">
+            <img src="assets/figma/labsdesign-slide3-main-overlay.png" alt="">
+          </div>
+          <div class="slide-thumbs">
+            <div class="layer-pic thumb"><img src="assets/figma/labsdesign-photo-base.jpg" alt=""><img src="assets/figma/labsdesign-slide1-thumb1-overlay.png" alt=""><img src="assets/figma/labsdesign-slide3-thumb1-overlay.png" alt=""></div>
+            <div class="layer-pic thumb"><img src="assets/figma/labsdesign-photo-base.jpg" alt=""><img src="assets/figma/labsdesign-slide1-thumb2-overlay.png" alt=""><img src="assets/figma/labsdesign-slide2-thumb2-overlay.png" alt=""></div>
+            <div class="layer-pic thumb"><img src="assets/figma/labsdesign-photo-base.jpg" alt=""><img src="assets/figma/labsdesign-slide1-thumb3-overlay.png" alt=""><img src="assets/figma/labsdesign-slide3-thumb3-overlay.png" alt=""></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- панель «3D Max и DAE модели для дизайнеров» -->
+  <div class="bim-panel">
+    <img class="bim-photo" src="assets/figma/labsdesign-bim-panel-photo.jpg" alt="">
+    <div class="bim-card">
+      <div class="bim-card-text">
+        <h4>3D Max и DAE модели для дизайнеров</h4>
+        <p>Скачать бесплатные 3D модели всей нашей продукции в формате <span class="lnk">3D max</span> и <span class="lnk">DAE</span>.</p>
+        <div class="bim-actions"><!-- канон walkthrough: пара «Скачать» TG + Max, тёмные -->
+          <a href="#" class="btn btn--secondary btn--order"><img src="assets/figma/cta-icon-telegram.svg" alt="" width="18" height="18">Скачать</a>
+          <a href="#" class="btn btn--secondary btn--order"><img src="assets/figma/icon-max.svg" alt="" width="18" height="18">Скачать</a>
+        </div>
+      </div>
+      <div class="bim-qr"><img src="assets/figma/labsdesign-qr-code.png" alt="QR" width="88" height="88"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════ БЛОК 11: тендер ═══════════════ -->
+<section class="tender-section" id="tender">
+  <div class="tender-body">
+    <h2 class="tender-title">Пригласите в тендер</h2>
+    <!-- №15-моб: .tender-visual переехал ИЗ соседей .tender-body ВНУТРЬ него, сразу после
+         заголовка. Причина не косметическая: моб-канон требует флешку МЕЖДУ заголовком и
+         карточками В ПОТОКЕ, а order/grid-area переставляют только прямых соседей одного
+         контейнера — пока визуал был соседом .tender-body, а заголовок лежал на уровень
+         глубже, встать между ними было физически нечем.
+         Деск-картинку держит grid-template-areas у .tender-body (visual слева на всю
+         высоту) — DOM-порядок там роли не играет; на мобе грид разбирается в поток, и
+         позицию задаёт именно этот DOM-порядок. -->
+    <div class="tender-visual">
+      <img class="tender-ellipse" src="assets/figma/tender-ellipse-decoration.svg" alt="">
+      <img class="tender-rutoken" src="assets/figma/tender-rutoken.png" alt="">
+    </div>
+    <div class="tender-grid"><!-- порядок донора: [1 день · 44-фз] / [под ключ · полный пакет] -->
+      <div class="tender-card"><div class="num">1 день</div><p>Готовим тендерное предложение в течение дня. Предоставим спецификацию в удобном для сравнения формате Excel.</p></div>
+      <div class="tender-card"><div class="num">44-ФЗ</div><p>Участвуем в корпоративных тендерах и закупках по 44-ФЗ и 223-ФЗ. Сопровождаем в подготовки тендера и его проведения.</p></div>
+      <div class="tender-card"><div class="num">Под ключ</div><p>Осуществляем комплексную поставку «под ключ» — доставка, разгрузка, монтаж, вывоз строительного мусора, гарантия 5 лет в договоре — всё в одном пакете, без скрытых расходов. Один менеджер с нашей стороны.</p></div>
+      <div class="tender-card"><div class="num">Полный пакет</div><p>Предоставляем полный пакет документов на продукцию: выписку из реестра МИНПРОМТОРГ, декларацию, сертификат соответствия, коды КТРУ, протоколы испытания устойчивости к хим. реактивам и др.</p></div>
+    </div>
+    <!-- CTA-плашка донора: заголовок Geologica (не display), телефон-бокс с СЕРОЙ рамкой; email в демо чистый info@ (канон) -->
+    <div class="cta-bar cta-bar--plain">
+      <h4 class="cta-plain-title">Пришлите заявку или пригласите в тендер:</h4>
+      <div class="cta-bar-groups">
+        <div class="cta-field">
+          <span class="lbl">Телефон</span>
+          <!-- №15д: регион-дроп сведён к эталону «Спроектируйте». Расхождение оказалось не
+               «работает по-разному», а «в тендере не был подключён вовсе»: чип был <span>,
+               ни одного data-region-*, списка не было. Механика — универсальный инлайн-скрипт
+               внизу файла, он навешивается на ЛЮБОЙ [data-region-phone] и правок не потребовал.
+               Серая рамка бокса (.phone-box--grey) — донор-решение 18:9906, к дропу отношения
+               не имеет, оставлена. -->
+          <div class="phone-box phone-box--grey" data-region-phone>
+            <button type="button" class="region-chip" data-region-btn aria-haspopup="listbox" aria-expanded="false">
+              <span data-region-label>Регион</span>
+              <span class="chev"><img src="assets/figma/tender-icon-chevron-down.svg" alt="" width="18" height="18"></span>
+            </button>
+            <a href="tel:+78006004069" class="phone-link phone-link--plain" data-region-tel>+7 (800) 600 40 69</a>
+            <button class="copy-plain copy-btn" data-copy="+7 (800) 600 40 69" data-region-copy aria-label="Копировать телефон">
+              <img src="assets/figma/tender-icon-copy-phone.svg" alt="" width="18" height="18">
+            </button>
+            <ul class="region-drop" data-region-menu role="listbox" aria-label="Выбор региона" hidden></ul>
+          </div>
+        </div>
+        <div class="cta-field">
+          <span class="lbl">Email</span><!-- донор-моб 18:9913: у email есть лейбл; на десктопе скрыт -->
+          <div class="dbl">
+            <a href="mailto:info@simple-pro.com" class="btn btn--primary email-btn">info@simple-pro.com</a>
+            <button class="btn btn--primary btn--icon copy-btn" data-copy="info@simple-pro.com" aria-label="Копировать адрес">
+              <img src="assets/figma/tender-icon-copy-email.svg" alt="" width="24" height="24">
+            </button>
+          </div>
+        </div>
+        <div class="cta-field"><!-- вердикт Антона 10.07: пара Telegram+Max вместо «Помощь эксперта».
+             21.07: обе пары сведены в ОДНУ группу (.cta-field-row) по образцу блока 7 — раньше стояли
+             двумя самостоятельными полями через межгрупповой гэп, и группа не читалась.
+             21.07 (скрин Антона): добавлен лейбл — в тендере были подписаны только Телефон и Email.
+             Паритет двух CTA-полос обязателен: состав, лейблы, группировка один в один. -->
+          <span class="lbl">Помощь эксперта</span>
+          <div class="cta-field-row">
+            <div class="dbl">
+              <a href="#" class="btn btn--secondary"><img src="assets/figma/tender-icon-telegram.svg" alt="" width="24" height="24">Telegram</a>
+              <button class="qr-btn qr-btn--secondary" aria-label="QR-код Telegram">
+                <img src="assets/figma/icon-qr.svg" alt="" width="24" height="24">
+              </button>
+            </div>
+            <div class="dbl">
+              <a href="#" class="btn btn--secondary btn--max"><img src="assets/figma/icon-max.svg" alt="" width="24" height="24">Max</a>
+              <button class="qr-btn qr-btn--secondary" aria-label="QR-код Max">
+                <img src="assets/figma/icon-qr.svg" alt="" width="24" height="24">
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════ БЛОК 12: примеры проектов ═══════════════ -->
+<section class="labs-section projects-section" id="projects">
+  <div class="labs-grid">
+    <div class="labs-intro">
+      <h2 class="labs-title">Примеры наших<br>проектов</h2>
+      <div class="labs-text"><!-- вводный текст донора идентичен блоку 10 (рыба-копипаст макета) -->
+        <p>К лабораторному помещению предъявляется много технических требований, но это не означает, что лаборатория не может быть красивой.</p>
+        <p>Мы собрали дизайны лабораторий с нашей мебелью. Вдохновляйтесь! Если вам нужен фирменный дизайн, напишите нам, и мы поможем.</p>
+      </div>
+      <div class="arrow-nav arrow-nav--red" data-scroll="projStrip">
+        <button class="arrow-btn" data-dir="-1" aria-label="Назад"><img src="assets/figma/projects-icon-arrow-prev.svg" alt="" width="20" height="20"></button>
+        <button class="arrow-btn" data-dir="1" aria-label="Вперёд"><img src="assets/figma/projects-icon-arrow-next.svg" alt="" width="20" height="20"></button>
+      </div>
+    </div>
+    <div class="case-strip" id="projStrip">
+      <!-- слайд 1: base + overlay1 + shared -->
+      <div class="case-slide">
+        <div class="slide-head"><h3>Название проекта</h3><span class="slide-desc">Описание проекта в две строчки, </span></div>
+        <div class="slide-media">
+          <div class="layer-pic slide-photo">
+            <img src="assets/figma/projects-photo-base.jpg" alt="">
+            <img src="assets/figma/projects-slide1-main-overlay1.png" alt="">
+            <img src="assets/figma/projects-shared-overlay.png" alt="">
+          </div>
+          <div class="slide-thumbs">
+            <div class="layer-pic thumb"><img src="assets/figma/projects-photo-base.jpg" alt=""><img src="assets/figma/projects-slide1-thumb1-overlay.png" alt=""><img src="assets/figma/projects-shared-overlay.png" alt=""></div>
+            <div class="layer-pic thumb"><img src="assets/figma/projects-photo-base.jpg" alt=""><img src="assets/figma/projects-slide1-thumb2-overlay.png" alt=""><img src="assets/figma/projects-shared-overlay.png" alt=""></div>
+            <div class="layer-pic thumb"><img src="assets/figma/projects-photo-base.jpg" alt=""><img src="assets/figma/projects-slide1-thumb3-overlay.png" alt=""><img src="assets/figma/projects-shared-overlay.png" alt=""></div>
+          </div>
+        </div>
+      </div>
+      <!-- слайд 2: main 4 слоя (по донору), тамбы 3 слоя -->
+      <div class="case-slide">
+        <div class="slide-head"><h3>Название проекта</h3><span class="slide-desc">Описание проекта в две строчки, </span></div>
+        <div class="slide-media">
+          <div class="layer-pic slide-photo">
+            <img src="assets/figma/projects-photo-base.jpg" alt="">
+            <img src="assets/figma/projects-slide1-main-overlay1.png" alt="">
+            <img src="assets/figma/projects-slide2-main-overlay1.png" alt="">
+            <img src="assets/figma/projects-slide2-main-overlay2.png" alt="">
+          </div>
+          <div class="slide-thumbs">
+            <div class="layer-pic thumb"><img src="assets/figma/projects-photo-base.jpg" alt=""><img src="assets/figma/projects-slide1-thumb1-overlay.png" alt=""><img src="assets/figma/projects-slide2-thumb1-overlay.png" alt=""></div>
+            <div class="layer-pic thumb"><img src="assets/figma/projects-photo-base.jpg" alt=""><img src="assets/figma/projects-slide1-thumb2-overlay.png" alt=""><img src="assets/figma/projects-slide2-thumb2-overlay.png" alt=""></div>
+            <div class="layer-pic thumb"><img src="assets/figma/projects-photo-base.jpg" alt=""><img src="assets/figma/projects-slide1-thumb3-overlay.png" alt=""><img src="assets/figma/projects-slide2-thumb3-overlay.png" alt=""></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- две BIM-плашки в общем сером контейнере -->
+  <div class="bim-panel bim-panel--pair">
+    <div class="bim-card">
+      <div class="bim-card-text">
+        <h4>BIM-проекты типовых лабораторий</h4>
+        <p>Проектировщики могут бесплатно скачать готовые BIM-проекты минимальной лаборатории по и масштабировать под свои задачи.</p>
+        <p>Готовые BIM-проекты типовых лабораторий: Аналитическая, Микробиологическая, Химическая, Университетская, Школьная.</p><!-- рыба донора как есть -->
+        <div class="bim-actions">
+          <a href="#" class="btn btn--secondary btn--order"><img src="assets/figma/cta-icon-telegram.svg" alt="" width="18" height="18">Скачать</a>
+          <a href="#" class="btn btn--secondary btn--order"><img src="assets/figma/icon-max.svg" alt="" width="18" height="18">Скачать</a>
+        </div>
+      </div>
+      <div class="bim-qr"><img src="assets/figma/projects-qr-code.png" alt="QR" width="88" height="88"></div>
+    </div>
+    <div class="bim-card">
+      <div class="bim-card-text">
+        <h4>BIM-модели лабораторной мебели</h4>
+        <p>Мы разработали и поддерживаем в актуальном состоянии полный комплект BIM-моделей лабораторной мебели. Модели содержат точки подключения инженерных коммуникаций.</p>
+        <p>Можно бесплатно скачать семейства BIM-моделей в форматах Autodesk Revit и Компас Renga.</p>
+        <div class="bim-actions">
+          <a href="#" class="btn btn--secondary btn--order"><img src="assets/figma/cta-icon-telegram.svg" alt="" width="18" height="18">Скачать</a>
+          <a href="#" class="btn btn--secondary btn--order"><img src="assets/figma/icon-max.svg" alt="" width="18" height="18">Скачать</a>
+        </div>
+      </div>
+      <div class="bim-qr"><img src="assets/figma/projects-qr-code.png" alt="QR" width="88" height="88"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════ БЛОК 13: наше производство ═══════════════ -->
+<section class="prod-section" id="production">
+  <img class="prod-watermark" src="assets/figma/prod-logo-simplepro-watermark.svg" alt="">
+  <div class="prod-top">
+    <h2 class="prod-title">Наше производство</h2>
+    <div class="prod-video">
+      <div class="video-poster" data-embed="https://rutube.ru/play/embed/7faf8f2f2021d8023c2ea2a4f98b2c16">
+        <img class="pv-layer" src="assets/figma/prod-video-cover-photo.jpg" alt="">
+        <img class="pv-layer" src="assets/figma/prod-video-cover-overlay.jpg" alt="">
+        <button class="play-btn" aria-label="Смотреть видео"><svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M 8.261 2.894 L 55.317 26.422 A 4 4 0 0 1 55.317 33.578 L 8.261 57.106 A 4 4 0 0 1 2.472 53.528 L 2.472 6.472 A 4 4 0 0 1 8.261 2.894 Z"/></svg></button>
+      </div>
+    </div>
+  </div>
+  <div class="prod-cols">
+    <div>
+      <p>Мы считаем, что хорошие условия изготовления дают хорошее качество продукции, а это то, что, действительно, важно для вас.</p>
+      <p>Наш организованный технологический цикл позволяет реализовать заказ за 15 дней. Пообещали — сделали.</p>
+    </div>
+    <div>
+      <p>Мы гордимся, что создали лучшее производство в сегменте лабораторной мебели. Это подтверждают конкуренты, дилеры и партнеры, которые были в наших цехах.</p>
+      <p>Площадь нашего производства 4200 м2 — это самое большое производство лабораторной мебели в России.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ═══ БЛОК 14: ФУТЕР — МОДУЛЬ (code/footer/). Разметка/стили/скрипт живут в модуле,
+     продуктовая на них ССЫЛАЕТСЯ. Врезано 21.07 взамен встроенного футера:
+     17 имён классов совпадали один-в-один, сосуществовать физически не могли. ═══ -->
+  <footer class="site-footer" id="footSection">
+    <img class="footer-watermark" src="assets/figma/footer-right-logo-watermark.svg" alt="">
+    <div class="footer-grid">
+      <form class="status-panel" aria-labelledby="sp-title">
+        <p class="sp-title" id="sp-title">Проверить статус заказа</p>
+        <div class="sp-fields">
+          <label class="sp-field" for="sp-order">Номер счета ( все цифры и буквы )
+            <input id="sp-order" name="order" type="text" placeholder="Ф-004143-Л01" required autocomplete="off">
+          </label>
+          <label class="sp-field" for="sp-email">Email (указанный в заказе)
+            <input id="sp-email" name="email" type="email" placeholder="Ваш email" required autocomplete="email">
+          </label>
+        </div>
+        <button class="btn btn--primary sp-btn" type="submit">Посмотреть</button>
+      </form>
+      <nav class="footer-cols" aria-label="Разделы сайта">
+        <div class="footer-col">
+          <button class="fc-title" type="button">Лабораторная мебель</button>
+          <div class="fc-list">
+            <a href="#">Вытяжные шкафы</a><a href="#">Столы лабораторные</a><a href="#">Шкафы лабораторные</a><a href="#">Мойки лабораторные</a><a href="#">Кабинеты химии / физики</a><a href="#">Тумбы</a><a href="#">Стулья лабораторные</a><a href="#">Раздевалки</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">Проекты</button>
+          <div class="fc-list">
+            <a href="#">Образование</a><a href="#">Фармацевтика</a><a href="#">Пищевая</a><a href="#">Металлургия и ГОК</a><a href="#">Нефть и газ</a><a href="#">Наука</a><a href="#">Энергетика</a><a href="#">Химическая</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">О компании</button>
+          <div class="fc-list">
+            <a href="#">Партнерам</a><a href="#">Центральный офис и завод</a><a href="#">Дилеры</a><a href="#">Где посмотреть мебель</a><a href="#">Производство</a><a href="#">Вакансии</a><a href="#">СОУТ</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">Материалы</button>
+          <div class="fc-list">
+            <a href="#">Применяемые материалы</a><a href="#">Полезное</a><a href="#">Скачать карту выставки</a><a href="#">Проектировщикам</a><a href="#">BIM модели Revit</a><a href="#">BIM модели Renga</a><a href="#">Дизайнерам 3D модели</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">Покупателю</button>
+          <div class="fc-list">
+            <a href="#">Цены</a><a href="#">Сроки изготовления</a><a href="#">Доставка</a><a href="#">Гарантийные обязательства</a><a href="#">Сертификаты</a><a href="#">Отзывы</a><a href="#">Как заказать</a>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <div class="footer-row2">
+      <p class="footer-copy">© 2002-2026 Simplepro</p>
+      <div class="footer-row2-cols">
+        <div class="footer-contacts">
+          <p class="fc-title">Контакты</p>
+          <div class="fc-pairs">
+            <div class="fc-pair"><span class="k">Email</span><span class="v">info@simple-pro.com</span></div>
+            <div class="fc-pair"><span class="k">Регионы</span><span class="v">+7 (800) 350 60 36</span></div>
+            <div class="fc-pair"><span class="k">Москва</span><span class="v">+7 (495) 646 80 57</span></div>
+            <div class="fc-pair"><span class="k">СПб</span><span class="v">+7 (812) 448 13 97</span></div>
+          </div>
+        </div>
+        <div class="footer-legal">
+          <span>ООО «СпецБалтМебель»</span><span>ИНН 7804158696</span><span>ОГРН 1027802485457</span>
+        </div>
+        <div class="footer-links">
+          <a href="#">Договор оферты</a><a href="#">Стандарт «ISO 9001»</a><a class="pd-link" href="#">Обработка персональных данных</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+
+<!-- Моб-слой: нижняя навигация + бургер-меню каталога (десктоп прячет через CSS/JS) -->
+<!-- #mobMenu снят 21.07: собственная моб-навигация страницы заменена моб-манифестацией модуля nav (nav-bottom-bar + nav-menu-sheet). Два фикс-бара друг на друге давали перекрытие 64px — замер разбора. -->
+
+<!-- Лайтбокс главной картинки галереи (фуллскрин-оверлей, светлый фон) -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Просмотр изображений товара" hidden>
+  <!-- Рейка фулвью (№14г) ПУСТАЯ НАРОЧНО: app.js клонирует в неё миниатюры рейки панели
+       при первом открытии. Прописать их сюда руками = второй источник правды, который
+       разъедется при первой же смене фотографий товара. -->
+  <div class="lightbox-rail" id="lightboxRail" aria-label="Изображения товара"></div>
+  <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Закрыть">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <!-- ⚠ БЕЗ атрибута src: пустой src="" резолвится в URL СТРАНИЦЫ, браузер честно пытается
+       её загрузить как картинку и роняет ошибку в консоль на каждой загрузке (поймано
+       Safari-смоком 21.07). Реальный src подставляет app.js при открытии лайтбокса. -->
+  <img class="lightbox-img" id="lightboxImg" alt="">
+  <!-- №14в: центр фулвью для кейсов — кадр СЛОЁНЫЙ (база + оверлей проекта + общий блик),
+       одним <img> его не показать, поэтому второй бокс рядом. Пустой и hidden в покое;
+       наполняет и чистит app.js (в закрытии — обязательно чистит, иначе слои всплывут
+       поверх обычной картинки панели при следующем открытии). -->
+  <div class="lightbox-layers" id="lightboxLayers" hidden></div>
+</div>
+
+<script src="js/app.js" defer></script>
+<!-- Регион-дроп CTA-полосы блока 7. Подход переиспользован из nav-модуля
+     (nav/nav.js, buildRegion): открытие кликом по чипу, Esc и клик-мимо закрывают,
+     панель лежит поверх соседей. Живёт инлайном, а не в js/app.js, потому что app.js
+     вне зоны этой смены; когда бригадир сведёт зоны — переехать туда одним куском.
+     Номера — МАКЕТНАЯ РЫБА (слово Антона): 495/812 заведомо пустые, с живого сайта
+     ничего не взято; 8-800 оставлен как в доноре 18:9529. -->
+<script>
+(() => {
+  const REGIONS = [
+    { name: "Москва",           tel: "+7 (495) 000 00 00" },
+    { name: "Санкт-Петербург",  tel: "+7 (812) 000 00 00" },
+    { name: "Регионы",          tel: "+7 (800) 600 40 69" },
+  ];
+  document.querySelectorAll("[data-region-phone]").forEach((box) => {
+    const btn   = box.querySelector("[data-region-btn]");
+    const label = box.querySelector("[data-region-label]");
+    const menu  = box.querySelector("[data-region-menu]");
+    const tel   = box.querySelector("[data-region-tel]");
+    const copy  = box.querySelector("[data-region-copy]");
+    if (!btn || !label || !menu || !tel) return;
+
+    const close = () => { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); };
+    const open  = () => { menu.hidden = false; btn.setAttribute("aria-expanded", "true"); };
+
+    REGIONS.forEach((r) => {
+      const item = document.createElement("li");
+      const b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("role", "option");
+      b.setAttribute("aria-selected", "false");
+      b.textContent = r.name;
+      b.addEventListener("click", () => {
+        label.textContent = r.name;
+        tel.textContent = r.tel;
+        /* href и data-copy едут за номером — иначе «скопировать» отдаст чужой */
+        tel.href = "tel:" + r.tel.replace(/[^\d+]/g, "");
+        if (copy) copy.dataset.copy = r.tel;
+        menu.querySelectorAll("button").forEach((el) => el.setAttribute("aria-selected", String(el === b)));
+        close();
+        btn.focus();
+      });
+      item.append(b);
+      menu.append(item);
+    });
+
+    btn.addEventListener("click", (e) => { e.stopPropagation(); menu.hidden ? open() : close(); });
+    document.addEventListener("click", (e) => { if (!box.contains(e.target)) close(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  });
+})();
+</script>
+<script src="../nav/nav.js"></script>
+<script src="../footer/footer.js"></script>
+<!-- DEBUG:vw-badge — вырезать при сборке -->
+<div class="debug-vw-badge" id="debugVwBadge" aria-hidden="true"></div>
+<script src="debug.js" defer></script>
+<!-- /DEBUG:vw-badge -->
+</body>
+</html>

@@ -1,0 +1,565 @@
+/* Simple PRO — карточка товара · МОБИЛЬНЫЙ СЛОЙ (≤720px).
+   Порт донорского css/adaptive.css в rem-канон продуктовой (px→rem, hex→var(), классы продуктовой).
+   Подключается ПОСЛЕДНИМ — переопределяет десктоп только внутри @media (max-width: 45rem).
+   Порог 45rem = 720 — тот же, что у about, листинга и nav-модуля: между манифестациями
+   не должно быть ширины, на которой нет ни одной из них (выше 720 работает rem-зум
+   десктопного лейаута из tokens.css). Брейкпоинты стенда пишем в rem, как у соседей:
+   rem в @media считается от НАЧАЛЬНОГО кегля браузера (16), а не от html { font-size },
+   поэтому rem-зум полосы 721–1230 пороги НЕ двигает.
+   Владелец файла — мобилка-поток (субагент). index.html/app.js правит только диспетчер.
+   Блоки 1–2 (hero/галерея/карточка) и 3–14 — здесь. */
+
+@media (max-width: 45rem) { /* = 720 */
+  /* ── моб-база (нужна блокам 3–14; хедер/hero — диспетчер) ──
+     донор-паддинг 12 (--pad-x) и для .container (--gutter), иначе контент 312 вместо 336;
+     mob-лесенка кеглей заголовков блоков 3–14 (клампы блоков дают 44 — сажаем на 30/36) */
+  :root { --pad-x: 0.75rem; --gutter: 0.75rem; --mob-header-h: 4rem;
+    /* Тач-минимум моб-канона (principles.md: «тач-цели ≥48px»). Одно число на весь моб-слой
+       и переменной — иначе правка расползётся по трём десяткам правил и рассинхронится
+       (идиома соседа: listing/css/mobile.css). Ниже, в §ТАЧ-МИНИМУМ, оно раздаётся всем
+       контролам страницы разом. */
+    --tap-min: 3rem;
+  }
+  .section { padding-block: 2.5rem; }
+  h2, .constructor-title { font-size: 1.875rem !important; line-height: 2.25rem !important; letter-spacing: -0.01875rem; }
+  .labs-title, .prod-title, .tender-title, .utp-title h2, .cmp-title, .offer-title { font-size: 1.875rem !important; line-height: 2.25rem !important; }
+
+  /* ═══════════════ БЛОКИ 1–2: мобильный hero (первый экран + карточка товара) ═══════════════
+     Десктопный hero — фикс-хедер плюс скролл-сцена на 280vh (шторка-рендер, залипающая
+     галерея, панель-параллакс). На мобиле app.js глушит скролл-трансформацию и вешает
+     .expanded, но десктопные позиционирования остаются в силе — распускаем их в простой
+     вертикальный поток: рендер → галерея → карточка с табами → CTA. */
+
+  /* ── Хедер (эталон моб-first 2051:99723): ВЕРХНЕГО ХЕДЕРА НЕТ — сразу hero-картинка.
+     Вся навигация в нижнем прилипшем баре. Сам десктоп-хедер прятать больше не нужно:
+     он стал модулем code/nav/ и уходит в свою моб-манифестацию сам.
+     ⚠ А ВОТ КРОШКИ ПРЯТАТЬ НАДО ЯВНО. Раньше они лежали ВНУТРИ .site-header и исчезали
+     вместе с ним «за компанию»; после врезки 21.07 они переехали в .product-hero — и
+     на мобиле всплыли поверх рендер-баннера с обрезкой справа (регресс, скрин Антона 404px).
+     Моб-донор крошек не показывает вовсе.
+     С МОБ-КАНОНОМ (principles.md §4: «вместо крошек — стрелка ← назад», кадр product-full)
+     цепочку НЕ прячем целиком, а разбираем: уходят звенья и разделители, остаётся ровно
+     одно живое звено «← Вернуться». Так BreadcrumbList-семантика (SEO) сохраняется в DOM,
+     а на экране — канонная стрелка. Из фикс-слоя выводим в поток: сверху моб-хедера нет,
+     стрелка встаёт первой строкой страницы НАД рендер-баннером — ровно как в кадре канона. */
+  .breadcrumbs {
+    position: static; z-index: auto;
+    width: auto; max-width: none;
+    padding: 0.5rem var(--pad-x); background: none; border-radius: 0;
+    font-size: 0.9375rem;
+  }
+  .breadcrumbs .crumb, .breadcrumbs .sep, .breadcrumbs .current { display: none; }
+  /* ширина по содержимому (не на всю строку) — тап-цель, а не полоса; высота = тач-минимум */
+  .breadcrumbs .back {
+    min-height: var(--tap-min); height: auto; padding: 0 0.75rem;
+    gap: 0.5rem; border-radius: var(--r-4);
+  }
+
+  /* ── Нижняя навигация (fixed-бар) + бургер-меню каталога (донор 18:7628) ──
+     контейнеры #mobNav/#mobMenu показывает app.js (§11b); десктоп держит их hidden */
+  body { padding-bottom: var(--mob-header-h); } /* карман под фикс-бар нижней навигации */
+  .mob-nav {
+    position: fixed; inset: auto 0 0 0; z-index: 70;
+    display: flex; justify-content: space-around; align-items: stretch;
+    height: var(--mob-header-h); padding: 0 0.5rem;
+    background: var(--bg-page); border-top: var(--hairline) solid var(--border-default);
+  }
+  .mob-nav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem;
+    background: none; border: 0; padding: 0.375rem 0;
+    font-size: 0.625rem; color: var(--text-secondary); white-space: nowrap;
+  }
+  .mob-nav-item img, .mob-nav-item svg { width: 1.375rem; height: 1.375rem; flex: none; }
+  .mob-nav-item:hover, .mob-nav-item[aria-expanded="true"] { color: var(--action-primary); }
+  .mob-nav-item--cart { color: var(--action-primary); }
+
+  /* меню каталога — лист поверх контента от верха экрана до нижней навигации */
+  .mob-menu {
+    position: fixed; inset: 0 0 var(--mob-header-h) 0; z-index: 65;
+    overflow-y: auto; background: var(--bg-page);
+  }
+  .mob-menu-head {
+    padding: 1rem var(--pad-x) 0.5rem;
+    font-family: "Simplepro Display", sans-serif; font-weight: 700; text-transform: uppercase;
+    font-size: 1.25rem; color: var(--grey-90);
+  }
+  .mm-cats { display: flex; flex-direction: column; padding: 0 var(--pad-x) 1rem; }
+  .mm-cats a {
+    padding: 0.875rem 0; border-bottom: var(--hairline) solid var(--border-default);
+    font-size: 1rem; color: var(--text-primary);
+  }
+  .mm-cats a:last-child { border-bottom: 0; }
+  .mm-cats a:hover { color: var(--action-primary); }
+
+  /* ── Сцена в простой поток: снимаем 280vh, sticky и абсолютные слои.
+     Хедера сверху нет — рендер-баннер начинается от самого верха экрана. */
+  .product-hero { height: auto; padding-top: 0; }
+  .hero-curtain { height: auto; }
+  .hero-media { position: static; height: auto; aspect-ratio: 12 / 10; } /* рендер-баннер во всю ширину */
+  .hero-stage { position: static; height: auto; overflow: visible; padding-top: 1.5rem; }
+  .hero-panel-layer { position: static; pointer-events: auto; }
+
+  /* ── Галерея → МОБ-КАНОН (principles.md §4, кадр product-full): кадр товара + ТОЧКИ-
+     индикатор под ним, рейки миниатюр НЕТ. Рейку не сносим, а переодеваем: те же шесть
+     кнопок остаются живыми переключателями кадра (обработчик app.js §3 висит на них),
+     но рисуются полосками — активная красная, остальные серые. Сам кадр листается свайпом
+     (app.js §3d, только моб) — точки едут за ним.
+     .gallery-view распускаем в contents: её коробка на мобе не нужна, а детям (кадр и
+     подпись) нужен ОБЩИЙ поток с точками — иначе точки не поставить МЕЖДУ кадром и
+     подписью (в DOM подпись лежит ВНУТРИ .gallery-view, порядком её оттуда не вывести).
+     Заодно снимается кап канон-ширины (--photo-canon, №7д): его нижняя ступень 476 резала
+     бы кадр у верхней кромки моб-полосы (720) при доступных ~688. */
+  .hero-gallery { position: static; inset: auto; width: 100%; padding: 0 var(--pad-x); gap: 0.75rem; }
+  .gallery-body { position: relative; flex-direction: column; gap: 0.75rem; }
+  .gallery-view { display: contents; }
+  .gallery-main { order: 1; width: 100%; max-width: none; touch-action: pan-y; } /* pan-y — вертикальный скролл странице, горизонталь свайпу */
+  .gallery-caption { order: 3; }
+  .gallery-rail { order: 2; flex-direction: row; align-items: center; width: 100%; height: auto; gap: 0; overflow: visible; }
+  /* Точка = ТАЧ-ЦЕЛЬ, а не полоска: высота = тач-минимум, ширина = доля ряда (на самой
+     узкой точке 320 контент 296 / 6 = 49.3 ≥ 48). Видимая полоска рисуется ::after ВНУТРИ
+     цели с боковым отступом — поэтому у ряда gap: 0. Поставишь gap — он съест ширину,
+     и на 320 цель уедет под 48 (замер: gap 8 → 41.3). */
+  .gallery-rail .thumb {
+    position: relative; flex: 1 1 0; min-width: 0; width: auto; height: var(--tap-min);
+    aspect-ratio: auto; padding: 0; background: none; border: 0; border-radius: 0; overflow: visible;
+  }
+  .gallery-rail .thumb img { display: none; }
+  .gallery-rail .thumb::after {
+    content: ""; position: absolute; left: 0.125rem; right: 0.125rem; top: 50%;
+    height: 0.25rem; margin-top: -0.125rem; border-radius: var(--r-pill);
+    background: var(--grey-30-brand);
+  }
+  .gallery-rail .thumb.is-selected::after { background: var(--action-primary); }
+  /* 3D — НЕ точка: кадров товара шесть, точек тоже обязано быть шесть. Бейдж уходит поверх
+     кадра в правый верхний угол; коробка отсчёта — .gallery-body (relative выше), кадр в ней
+     первый и во всю ширину, поэтому top/right попадают ровно в угол фото.
+     --slot переопределяем ВМЕСТЕ с размером: от него считается кегль живого текста «3d».
+     Поставишь только width — кольцо сожмётся, а текст останется десктопным. */
+  .gallery-rail .thumb.is-3d {
+    --slot: var(--tap-min);
+    position: absolute; top: 0.75rem; right: 0.75rem; z-index: 2;
+    width: var(--slot); height: var(--slot); flex: none; margin: 0;
+    /* подложка нужна ИМЕННО на мобе: на деске слот стоит на белой странице и прозрачен,
+       здесь он лёг ПОВЕРХ фото — серое кольцо на сером кадре товара не читается */
+    background: var(--bg-page); border-radius: 50%;
+  }
+  .gallery-rail .thumb.is-3d::after { content: none; }
+
+  /* ── Карточка товара: панель из sticky-плашки фикс-высоты — в статичный блок во всю ширину.
+     Поля даёт .hero-panels, сама карточка без своих полей/фона/радиуса (фон = страница). */
+  /* поле панели = --pad-x (12), то же, что у галереи выше: левые кромки кадра и текста
+     карточки обязаны стоять на одной линии (в кадре канона они совпадают). Было 1rem —
+     кадр и текст расходились на 4px. */
+  .hero-panels { position: static; width: 100%; max-width: none; height: auto; margin: 0; padding: 1.5rem var(--pad-x) 2rem; }
+  .hero-panels .panel-card { overflow: visible; }
+  .product-hero .panel-card { padding: 0; background: transparent; border-radius: 0; }
+  /* Компенсация кап-высоты (№7а) — связь ДЕСКТОПНАЯ: «заголовок ↔ верх рейки». На мобе рейка
+     лежит строкой ПОД фото, линии рядом с заголовком нет, и сдвиг вверх беспричинен.
+     ⚠ Селектор ПОВТОРЯЕТ .expanded не для красоты: подключение mobile.css последним тут
+     не спасает — специфичность бьёт порядок, и правило с двумя классами проигрывало
+     десктопному с тремя (отмена молча не срабатывала, −26px оставались на всех моб-точках). */
+  .product-hero.expanded .panel-card { margin-top: 0; }
+  /* заголовок и цена в столбик: название во всю ширину, ниже «базовая комплектация» слева и цена справа */
+  .title-row { flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
+  .panel-card .title { min-height: 0; }
+  .price-row { flex-direction: row; align-items: baseline; justify-content: space-between; width: 100%; }
+  /* нижний ряд: доки-ссылки во всю ширину, ниже — избранное + «Конструктор» (обводочная
+     во всю оставшуюся строку). Порядок канона first-1 «ссылки → Онлайн конструктор →
+     заявка/CTA» держится сам разметкой: ряд стоит НАД табами и CTA-зоной. */
+  .panel-bottom-row { gap: 0.75rem; }
+  .doc-links { flex: 1 1 100%; gap: 0 1rem; }
+  /* ссылки-доки — тоже тач-цели (в кадре канона это отдельная строка ссылок): растим
+     каждую до тач-минимума по высоте, ширина по тексту */
+  .doc-links a { display: inline-flex; align-items: center; min-height: var(--tap-min); }
+  .product-hero.expanded .panel-bottom-row .fav-btn { margin-left: 0; }
+  /* height/min-height десктопа (2.75rem = 44) гасим ЯВНО: без height:auto кнопка остаётся
+     44-й, потому что у десктопного правила специфичность выше нашего .btn-минимума. */
+  .panel-bottom-row .constructor-link { flex: 1 1 auto; margin-left: 0; height: auto; min-height: var(--tap-min); }
+  /* ТАБЫ по моб-канону (§4): простой текстовый ряд с переносом, актив выделен риской.
+     Полоса h44 десктопа отпущена (в 336 пять табов не строятся в одну строку физически),
+     кегль сажаем 18→15 — та же моб-лесенка, что у заголовков блоков выше;
+     высота таба = тач-минимум. */
+  .tabs-nav { gap: 0.25rem 1rem; height: auto; flex-wrap: wrap; padding-block: 0; }
+  .tab-btn { min-height: var(--tap-min); padding-block: 0; font-size: 0.9375rem; letter-spacing: -0.01em; }
+  /* Риска актива — ПОД ТЕКСТОМ, а не по низу тач-зоны. На деске .tab-btn растянут на полосу
+     h44 и риска у его низа ложится ЗАПОДЛИЦО на нижнюю границу ряда (block-01, §tabs) — там
+     низ кнопки и есть линия. На мобе ряд переносится в 2–3 строки, нижняя граница уехала
+     на 100+px вниз, а кнопка выросла до тач-минимума 48 — риска у низа отрывалась от чернил
+     и читалась отдельным штрихом. ЗАМЕР 360: текст 15px занимает 15.5…31.5 от верха кнопки,
+     риска стояла на 47 — зазор 15.5px. Отсчёт ведём от ЦЕНТРА кнопки (текст центрирован
+     align-items: center, к низу коробки он не привязан): 50% + 0.75rem = 36 → зазор 4.5px,
+     как в кадре канона product-full. bottom гасим — иначе оба края заданы и высота 2px врёт. */
+  .tab-btn.is-active::after { top: calc(50% + 0.75rem); bottom: auto; }
+  /* КОНТЕНТ ПОТОКОМ (канон §4: «раскрыт потоком, без внутренней скролл-зоны»).
+     На деске .tab-panels — растущая зона со СВОИМ вертикальным скроллом внутри карточки
+     фикс-высоты; на мобе карточка в потоке, и внутренний скролл превращается в шторку,
+     которой канон не знает. Снимаем и скролл, и flex-рост. */
+  .tab-panels { flex: none; min-height: 0; overflow: visible; }
+
+  /* ── CTA-мессенджеры (донор 2051:99641): столбик во всю ширину, у каждой строки кнопка +
+     квадратная иконка (копирование/QR) справа ── */
+  /* Канон first-1/product-full: CTA СТОЛБИКОМ во всю ширину — email красная, ниже тёмные
+     мессенджеры. Порядок в DOM уже канонный (email → Telegram → Max), столбик даёт
+     flex-direction: column; высоту строк держит тач-минимум. */
+  .cta-zone { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+  .cta-zone .lead { max-width: none; margin: 0 0 0.25rem; }
+  .cta-zone .btn { min-height: var(--tap-min); }
+  .cta-group { display: flex; width: 100%; flex: none; }
+  .cta-group .btn:not(.btn--icon) { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .cta-group .btn--icon, .cta-group .qr-btn { flex: none; }
+  /* QR НА МОБЕ СНИМАЕМ (вердикт Антона №29-②, 30.07: «на хера там qr коды на мобилке — я хз»).
+     Прежняя строка выше (.btn--icon,.qr-btn{flex:none}) только позиционировала QR, но не гасила —
+     гашение было заведено ТОЛЬКО в .cta-field .dbl (моб-виджет CTA-плашки блоков 7/11), герой
+     .cta-group этот код не наследует: другая секция, другое дерево классов. Копи-кнопку email
+     (.copy-btn) не трогаем — селектор бьёт только .qr-btn, приёмка №43 (боевой случай) требует
+     их раздельного гашения. Образец — product-card/css/mobile.css:370. */
+  .cta-group .qr-btn { display: none; }
+
+  /* Поле широких блоков (3/4/5/6) на мобе — 12 по донорам: 18:8688 карточки на left:12,
+     18:7617 и 18:7606 заголовки на left:12. Совпадает с моб-значением --gutter выше,
+     поэтому снятие .container с блоков 4/5/6 мобилку не двигает. */
+  .section--carousel, .section--adv, .section--video, .section--utp { --edge-pad: 0.75rem; }
+
+  /* Тот же обвал — трём секциям, которые донашивали десктопное поле (замер @360 до правки:
+     конструктор 28/28, производство 28/28, сравнительная 28/0), пока соседи давно стояли
+     на 12. Портировано с продуктовой (mobile.css §моб-поле страницы) по queue-hub №2 —
+     у стола аналога не было вовсе. Канон моб-поля страницы один и живёт одной строкой,
+     а не переписыванием padding у каждой секции.
+     Побочно и НАРОЧНО: рельс .const-cards читает --edge-pad своим scroll-padding-inline,
+     то есть снап карточек едет вместе с полем и не расходится с ним. */
+  .constructor-section, .prod-section, .cmp-section { --edge-pad: 0.75rem; }
+  /* Сравнительная на деске СПЕЦИАЛЬНО full-bleed вправо (рельс таблицы уходит за экран,
+     см. blocks.css) — из-за этого на мобе она читалась как 28 слева / 0 справа, таблица
+     упиралась в кромку. Возвращаем правое поле тем же приёмом, что и .labs-section ниже:
+     значение берём из --edge-pad, чтобы стороны не могли разъехаться поодиночке. */
+  .cmp-section { padding-right: var(--edge-pad); }
+
+  /* блок 3: линейка — квадраты 176 скролл-рядом, гэп 4. Поля донора 18:8688 (кадр 360×232,
+     карточки 176 на top:28 left:12): бок 12, вертикаль 28 — по вертикали моб совпал с тем,
+     что стояло, изменился только бок (был общий --pad-x). Кегль тега падает до пола
+     клампа 13 = замер тега на моб-доноре; остальное в теге — em, ужимается само. */
+  .section--carousel { padding-block: 1.75rem; }
+  .model-card { flex: 0 0 11rem; height: 11rem; }
+  .model-row { gap: 0.25rem; }
+
+  /* блок 4: преимущества — моб-ряд единых карточек 248 (фото 248 r4 + 28 + тайтл 20/24 + 8 + текст 15/18);
+     десктоп-полоса и прогресс скрыты; стрелки 36 красные gap 4 (донор 18:7617) */
+  #advStrip, .adv-strip-progress { display: none; }
+  .section-head { flex-wrap: wrap; }
+  /* ⚠ ПЕРЕНОС ШАПКИ на 320 И 360 (перемерено 22.07, было записано «320-only» — неверно).
+     Стрелки выросли с донорских 36 до тач-минимума 48 (правило ниже), и ряд стал шире:
+     заголовок «Преимущества» 226 + мин-gap 24 (из .section-head) + стрелки 100 (48+4+48)
+     = 350. Доступно: 320→296, 360→336 — переносится; 375→351, 390→366 — влезает
+     (на 375 с запасом ровно 1px). Тач-минимум канона сильнее донорской геометрии, поэтому
+     перенос принимаем и чиним ТОЛЬКО его следствие: без margin-left:auto стрелки на второй
+     строке висли слева от края, такого положения канону нет нигде. Секционный скоуп
+     (.section--adv), общий .section-head не трогаю. */
+  .section--adv .arrow-nav--adv { margin-left: auto; }
+  .adv-strip--mob { display: flex; gap: 1rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 0; }
+  .adv-mcard { flex: 0 0 15.5rem; display: flex; flex-direction: column; gap: 1.75rem; }
+  .adv-mcard img { width: 15.5rem; height: 15.5rem; object-fit: cover; border-radius: var(--r-4); }
+  .adv-mcard h4 {
+    font-family: "Simplepro Display", "Geologica", sans-serif; font-weight: 700;
+    font-size: 1.25rem; line-height: 1.5rem; letter-spacing: -0.0075em; color: var(--grey-60-brand); margin: 0 0 0.5rem;
+  }
+  /* вес 400 — тот же канон-флаг «≤17px → Regular», что и в .ac-txt p (blocks.css, задача №8);
+     15px тут тоже подпадает под ≤17, применяю для согласованности деск/моб внутри блока 4 */
+  .adv-mcard p { font-weight: 400; font-size: 0.9375rem; line-height: 1.125rem; letter-spacing: -0.01em; color: var(--grey-60-brand); margin: 0; }
+  .arrow-nav--adv { gap: 0.25rem; }
+  /* 36 донора → тач-минимум 48 (моб-канон сильнее донорского числа: стрелка — палец, не мышь) */
+  .arrow-nav--adv .arrow-btn { width: var(--tap-min); height: var(--tap-min); border-radius: var(--r-4); }
+
+  /* блок 5: видео (донор 18:7606) — заголовок СВЕРХУ, затем постер+текст ×2:
+     контейнеры распускаем в contents и пересобираем порядком в flex-секции */
+  section:has(> .video-strip) { display: flex; flex-direction: column; }
+  .video-strip, .video-foot, .video-foot-head { display: contents; }
+  .video-card { flex: none; width: 100%; }
+  .video-foot-head h2 { order: 1; margin: 0 0 1.25rem; }
+  .video-strip .video-card:first-child { order: 2; }
+  .video-foot p:nth-of-type(1) { order: 3; margin: 1.25rem 0 1.5rem; }
+  .video-strip .video-card:last-child { order: 4; }
+  .video-foot p:nth-of-type(2) { order: 5; margin: 1.25rem 0 0; }
+  /* letter-spacing -0.01em — тот же канон-флаг «≤17px → тесная трекинг», что и .adv-mcard p (блок 4, та же
+     пара 15/18): без него абзац на 336 ломается в 11 строк (198), с ним — ровно 10 (180) = эталон h936. Замер _scratch/diag-m3v-linewrap.js. */
+  .video-foot p { flex: none; font-weight: 300; font-size: 0.9375rem; line-height: 1.125rem; letter-spacing: -0.01em; color: var(--grey-60-brand); } /* flex:none — иначе базовый flex-basis 320 становится высотой */
+
+  /* блок 6: УТП — скролл-ряд карточек 264×336 (pad 16, тайтл 20/24, текст 13/16,
+     ссылка у низа, бейдж 64 сверху-справа), вотермарка на всю ширину внизу (донор 18:7141) */
+  .utp { display: flex; flex-direction: column; padding: 2.5rem 0.75rem 7.0625rem; gap: 1.25rem; overflow: visible; }
+  .utp-scroll { display: flex; gap: 0.75rem; overflow-x: auto; scrollbar-width: none; }
+  .utp-card { flex: 0 0 16.5rem; height: 21rem; padding: 1rem; display: flex; flex-direction: column; }
+  .utp-card h5 { font-size: 1.25rem; line-height: 1.5rem; max-width: 10rem; margin: 0; } /* 160 = 264 − паддинги − бейдж 64: «Доставка заказа» ломается в 2 строки как в доноре */
+  .utp-card p { font-size: 0.8125rem; line-height: 1rem; letter-spacing: -0.0075em; }
+  /* подчёркивание НЕ снимаем: это живой <a>, а подчёркиванием в доме помечены ровно они */
+  /* тач-зона у ссылки растёт вверх (align-items: flex-end) — чернила остаются на прежней
+     линии у низа карточки, палец получает свои 48 */
+  .utp-card-link { font-size: 0.8125rem; line-height: 1rem; display: inline-flex; align-items: flex-end; min-height: var(--tap-min); }
+  /* позицию/размер держит обёртка-слой (в ней же живёт кольцо), img внутри тянется на 100% */
+  .utp-card-ic { width: 4rem; top: 1rem; right: 1rem; }
+  .utp-watermark { width: 21rem; left: 0.75rem; bottom: 1.25rem; max-width: calc(100% - 1.5rem); }
+
+  /* блок 7: офферы — скролл-ряд 292 (тайтл 20/24 + номер 13, пик 140, текст 13/16),
+     дот-индикатор 40×4 по центру (донор 18:7148) */
+  .offer-section { padding: 2rem 0.75rem; }
+  .offer-title { justify-content: flex-start; gap: 0 0.5rem; margin-bottom: 1rem; white-space: normal; flex-wrap: wrap; }
+  .offer-title .seg--1 { flex: 1 1 100%; } /* донор-перенос: «Спроектируйте» / «свою лабораторию» */
+  .offer-grid { display: flex; gap: 0.75rem; overflow-x: auto; scrollbar-width: none; margin-bottom: 0.75rem; }
+  .offer-grid::-webkit-scrollbar { display: none; }
+  .offer-card { flex: 0 0 18.25rem; padding: 1rem; gap: 1rem; border-radius: var(--r-8); }
+  .offer-head h5 { font-size: 1.25rem; line-height: 1.5rem; }
+  .offer-head .num { font-size: 0.8125rem; }
+  .offer-pic { height: 8.75rem; flex: none; }
+  .offer-text { gap: 0.75rem; }
+  .offer-text p { font-size: 0.8125rem; line-height: 1rem; letter-spacing: -0.0075em; }
+  .offer-dots { display: flex; gap: 0.75rem; justify-content: center; margin: 0 0 1.25rem; }
+  .offer-dots span { width: 2.5rem; height: 0.25rem; border-radius: var(--r-pill); background: var(--grey-30-brand); }
+  .offer-dots span.on { background: var(--action-primary); }
+
+  /* CTA-плашка → моб-виджет 18:10022 (общая блокам 7 и 11): колонка pad 16 gap 12, лейбл 17/20,
+     телефон h36 серая рамка/тёмный номер, email и пары на всю ширину без копи/QR */
+  .cta-bar { flex-direction: column; align-items: stretch; gap: 0.75rem; padding: 1rem; border-radius: var(--r-8); }
+  .cta-bar h4 { font-size: 1.0625rem; line-height: 1.25rem; max-width: none; }
+  .cta-bar-groups { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+  .cta-field { gap: 0.5rem; }   /* зазор лейбл↔контрол = 8 и на мобе (вердикт Антона 29.07) */
+  /* wrap+gap — идиома листинга (listing/css/mobile.css §.phone-box): на канонных 360/390
+     ряд лежит одной строкой, а ниже канона (320) флекс переносит копи-кнопку на вторую
+     строку вместо того, чтобы молча сплющить её в 8×26. min-height обязателен вместе с
+     wrap: с прибитой высотой перенесённая строка вываливается за рамку бокса.
+     ⚠ Порядок: gap ПЕРЕД row-gap — шорткат сбрасывает row-gap. */
+  .phone-box { height: auto; min-height: var(--tap-min); border-color: var(--grey-20);
+               flex-wrap: wrap; gap: var(--sp-8); row-gap: 0; }
+  /* тач-минимум — здесь, а не в общем своде в хвосте файла: у номера уже есть своё
+     моб-правило, второй селектор про тот же узел был бы дублем */
+  .phone-link { flex: 1; font-size: 0.9375rem; color: var(--grey-60-brand); display: inline-flex; align-items: center; min-height: var(--tap-min); }
+  /* КОПИ-ИКОНКА У ТЕЛЕФОНА НА МОБЕ ВИДНА. Здесь стояло `display: none` с обоснованием
+     по замеру НА 320 (ряд [регион 85.8 + номер 160.2 + копи 48 + поля] = 306.6 при
+     доступных 264, scrollWidth 335 против 320). Замер был верный, но мерил ширину,
+     которой в каноне гига нет: канон 1920/1440/1280/360 (16.06). Пере-замер 02.08 на
+     КАНОННЫХ ширинах со снятым гашением и полной идиомой листинга:
+       @360 — ряд [чип 85.8 + gap 8 + номер 152.2 + gap 8 + копи 48], правый край копи
+              331 при правом краю бокса 332, scrollWidth страницы 360;
+       @390 — то же, номер 182.2, scrollWidth страницы 390.
+     ⛔ Мерить ЗАДАННОЙ шириной, а НЕ разностью `scrollWidth − window.innerWidth`: под
+     мобильной эмуляцией визуальный вьюпорт растягивается вслед за контентом, и эта
+     разность на мобе не краснеет НИКОГДА (дым 02.08: вброс блока 900 на странице 360 дал
+     innerWidth 900 и разность 0 при реальном выпирании 540). Старое обоснование на 320
+     тоже опиралось на неё — потому и сверено заново честной метрикой.
+     Оба числа — один в один листинг на тех же ширинах. Скролла нет, ужимать номер не
+     пришлось, контент не тронут. А на 320 ряд теперь не выпирает, а ПЕРЕНОСИТСЯ
+     (flex-wrap выше) — форма задана, а не отдана флексу на сплющивание.
+     Геометрия — точная копия листинга: отрицательное поле справа съедает собственный
+     паддинг бокса, иначе строка теряет ещё 10px там, где их и так нет. */
+  .phone-box .copy-plain {
+    width: var(--tap-min); height: var(--tap-min); margin-right: -0.625rem; margin-left: auto;
+    align-items: center; justify-content: center;
+  }
+  .cta-field-row { flex-direction: column; gap: 0.75rem; }
+  .cta-field .dbl { gap: 0; }
+  .cta-field .dbl .btn { height: auto; min-height: var(--tap-min); flex: 1; }
+  /* КОПИ-КНОПКА EMAIL НА МОБЕ ВИДНА (слово Антона 30.07 №29-②: «емейл – с кнопкой
+     копировать»). До 31.07 один селектор гасил заодно копи и QR; на продуктовой и листинге
+     это разделили в П2, а стол остался — правка доехала до двух страниц из четырёх
+     (находка приёмщика 31.07). Здесь третья; четвёртая (about) в зоне бригады Б.
+     Размер квадрата даёт моб-свод этого файла (--tap-min 48), своих чисел не нужно. */
+  .cta-field .dbl .qr-btn { display: none; }
+  /* углы оставшейся кнопке НЕ возвращаем: с канона 21.07 сегменты самостоятельные,
+     десктопной «сварки» нет — она приходит со своими r-4 сама (компенсация снята). */
+
+  /* блок 8: конструктор — одна колонка, шаги со скроллом внутри (донор 18:7182):
+     тайтл шага 15/18 при чипе, радио-плитки 164×36/13 в 2 колонки */
+  .constructor { grid-template-columns: 1fr; }
+  .cstep-head { margin-bottom: 1rem; }
+  .cstep-title { font-size: 0.9375rem; line-height: 1.125rem; letter-spacing: -0.01em; }
+  /* плитка-радио — тач-цель целиком (сам <input class="radio"> 16×16 внутри неё):
+     36 донора → тач-минимум, height:auto обязателен (десктопный clamp даёт фикс-высоту) */
+  .mcell { height: auto; min-height: var(--tap-min); font-size: 0.8125rem; padding: 0 0.5rem; }
+  .mcell-row .mcell { width: 10.25rem; }
+  .compare-link { font-size: 0.8125rem; line-height: 1rem; max-width: 8.125rem; }
+  /* 4 колонки вместо 6 донорских — у островного стола ровно четыре ширины (см. blocks.css §Шаг 1).
+     --mx-sticky-w объявлена здесь НАРОЧНО: ширина липкой колонки и вычет снапа обязаны быть
+     ОДНИМ числом — разойдутся, и снап начнёт прижимать колонку цен ПОД подпись материала.
+     Контракт скопирован с продуктовой (mobile.css §Матрица шага 1) — до 29.07 у стола снапа
+     не было ВООБЩЕ: замер @390 давал scrollLeft 0 при snap-type none, рельс гулял свободно
+     и замирал серединой числа. */
+  .matrix {
+    overflow-x: auto; --mx-sticky-w: 10rem;
+    grid-template-columns: var(--mx-sticky-w) repeat(4, 7rem); gap: 0.25rem;
+    /* mandatory, а не proximity: рельс обязан ВСЕГДА замирать на границе колонки */
+    scroll-snap-type: x mandatory;
+    /* вычет = ширине липкой колонки: снап-позицией считается не левый край рельса,
+       а правый край подписи, поэтому колонка цен встаёт ровно из-под неё, а не под неё */
+    scroll-padding-inline-start: var(--mx-sticky-w);
+  }
+  /* .mx-photo своей height больше нет (задача №12): квадрат теперь держит aspect-ratio
+     из blocks.css, а 7rem ширины ячейки-фото у .matrix выше — этого достаточно, высота сама
+     подтянется. Липкая колонка названий столешниц (донор: свайпаются только фото+цены,
+     подписи материалов стоят — тот же приём, что прибитая колонка строк в таблице блока 9).
+     Фон ОБЯЗАН быть непрозрачным и совпадать с секцией — иначе сквозь подпись просвечивают
+     уезжающие столбцы цен под ней; z-index — чтобы подпись рисовалась поверх скролла. */
+  .mx-link, .mat-row { position: sticky; left: 0; z-index: 1; background: var(--grey-20); }
+  /* Снап-цели матрицы — ТОЛЬКО уезжающие ячейки (колонки 2–5). Липкие ячейки первой колонки
+     (правило строкой выше) целями быть не должны: их снап-позиция считается от НЕприклеенного
+     места и увела бы рельс. */
+  .mx-photo, .mx-price { scroll-snap-align: start; }
+  /* scroll-snap — без него лента гуляла произвольной прокруткой и повисала серединой карточки
+     на краю экрана (визуально «обрезано»); тот же приём, что .model-row/.adv-card (blocks.css).
+     scroll-padding-inline = var(--edge-pad): секция конструктора на мобиле стоит на нём же
+     (не на --pad-x, см. firstCardLeft в замере) — без совпадения снап прижимает первую
+     карточку к самому краю экрана, без поля. */
+  .const-cards { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--edge-pad); gap: 0.75rem; scrollbar-width: none; }
+  .const-cards::-webkit-scrollbar { display: none; }
+  .const-card { flex: 0 0 11rem; scroll-snap-align: start; }
+  /* .cprice-row.flex-wrap своего больше нет: перенос ряда теперь в базовом правиле
+     (blocks.css, та же задача №12) — работает и на десктопе, и здесь, дубль убран. */
+  .type-cards { flex-wrap: nowrap; overflow-x: auto; }
+  .type-card { flex: 0 0 8.75rem; }
+  .type-card .tphoto { height: 8.25rem; }
+  .order-panel { position: static; }
+  .order-line { flex-wrap: wrap; }
+  .order-actions { flex-wrap: wrap; }
+  /* ряд «Количество комплектов» — в ту же обойму переносов. ЗАМЕР: степпер вырос под
+     тач-минимум (28+32+28 → 48+48+48 = 150), и вместе с лейблом-нерушимой строкой ряд
+     давал min-content 301.5 при доступных на 320 — 264: панель распирала весь конструктор
+     за экран (scrollWidth 335). С переносом лейбл встаёт строкой выше степпера. */
+  .order-qty { flex-wrap: wrap; }
+
+  /* блок 9: таблица со скроллом 1:1: лейбл 88/12, ячейки 112/13, фото 82,
+     без стрелок в шапке (донор 18:8428 — лейбл+8×112 = 1008) */
+  .cmp-head { flex-wrap: wrap; gap: 0.75rem; }
+  .cmp-head .arrow-nav { display: none; }
+  /* «Показать ещё»/«Свернуть» — на мобе была сжата в огрызок (INBOX ③, 21.07): width:100%
+     тянуло кнопку не на ширину ряда, а на ширину ЕЁ ЯЧЕЙКИ — 5.5rem прибитой колонки-лейбла
+     (th.lbl ниже), в её строке остальные td пустые. Чиним тем же приёмом, что глитч бейджа
+     выше: кнопка уходит из потока (position:absolute) — ширина считается от содержимого,
+     а не от узкой родительской ячейки; закреплённость получает от sticky th.lbl-родителя,
+     едет с ним единым куском при свайпе ленты, как и все остальные строки. */
+  /* Подложка под абсолютную «Показать ещё» — иначе строка схлопывается.
+     ⚠ ИМЕННО height, не min-height: у ячейки таблицы min-height браузером игнорируется
+     (CSS 2.1: высота ячейки — это и есть минимум). Замер до правки: строка 24px при
+     кнопке 44 — низ кнопки резался краем .cmp-wrap (у него overflow-x:auto, а значит
+     и по вертикали clip). С height: 48 строка и кнопка совпали. */
+  .cmp-btn-row th.lbl { height: var(--tap-min); }
+  /* Посадка кнопки — ОТ ВЕРХА ячейки, без центрирования и без унаследованного margin-top.
+     ЗАМЕР: при top:50% + translateY(-50%) низ кнопки уходил на 12px ниже дна .cmp-wrap и
+     срезался его клипом (у абсолюта внутри table-cell отсчёт 50% берётся не от ячейки).
+     Ячейка и кнопка теперь одной высоты (48) — совмещение верхних кромок точное. */
+  .cmp-section .show-more { position: absolute; left: 0; top: 0; margin-top: 0; white-space: nowrap; }
+  .cmp-table th.lbl { min-width: 5.5rem; max-width: 5.5rem; font-size: 0.75rem; line-height: 0.875rem; padding-right: 0.5rem; }
+  .cmp-table td { min-width: 7rem; max-width: 7rem; padding: 0.5rem; font-size: 0.8125rem; line-height: 1rem; }
+  .col-photo { width: 5.125rem; height: 5.125rem; }
+
+  /* блоки 10/12: кейсы вертикальным стеком, без стрелок, интро/описания 13/16,
+     тайтл кейса 17/20 (донор 18:7042) */
+  .labs-section .arrow-nav { display: none; }
+  .labs-intro p { font-size: 0.8125rem; line-height: 1rem; }
+  .slide-head p { font-size: 0.8125rem; line-height: 1rem; }
+  .labs-grid { grid-template-columns: 1fr; gap: 1.5rem; min-width: 0; max-width: 100%; }
+  .labs-intro { height: auto; gap: 1rem; min-width: 0; max-width: 100%; }
+  .labs-text { min-width: 0; max-width: 100%; }
+  .case-strip { flex-direction: column; gap: 0.75rem; overflow: visible; padding-right: 0; } /* гэп карточек 12 канона (было 24) — листание/точки вне зоны №14е, стек остаётся как есть */
+  /* на мобе рельс не уходит за экран — правое поле возвращается; поле здесь СВОЁ (12,
+     стандартный моб-контент 336 = 360 − 2×12), а не общий --edge-pad (28) — иначе фото
+     336 канона не влезло бы в контейнер (360 − 2×28 = 304 < 336), см. замер задачи №14е. */
+  .labs-section { --edge-pad: 0.75rem; padding-right: var(--edge-pad); }
+  .case-slide { width: 100%; }
+  .slide-media { flex-direction: column; }
+  .slide-photo { width: 100%; height: auto; aspect-ratio: 336 / 188; } /* канон 336×188 — на 360 (контент 336) высота считается сама; height:auto ОБЯЗАТЕЛЕН — десктопное правило держит явный height:var(--photo-h), и это вместе с aspect-ratio без height:auto раздувало intrinsic-ширину до 600 (height×ratio) и ломало грид на всю карусель */
+  /* МОБ-КАНОН (principles.md §6: «карусель свайпом + точки»): рейка миниатюр 72×40 уходит
+     теми же полосками, что в галерее первого экрана — одна идиома точек на страницу,
+     а не два языка. Кадры переключаются кликом по точке (app.js §3e), полоски — индикатор:
+     активная красная, остальные серые. Вертикальный скролл столбца (overflow-y десктопа)
+     снимаем — это внутренняя скролл-зона, канон таких на мобе не держит. */
+  .slide-thumbs { flex-direction: row; width: auto; gap: 0; overflow: visible; }
+  .slide-thumbs .thumb {
+    position: relative; flex: 1 1 0; min-width: 0; width: auto; height: var(--tap-min);
+    background: none; border-radius: 0; overflow: visible;
+  }
+  .slide-thumbs .thumb img { display: none; }
+  .slide-thumbs .thumb::after {
+    content: ""; position: absolute; left: 0.125rem; right: 0.125rem; top: 50%;
+    height: 0.25rem; margin-top: -0.125rem; border-radius: var(--r-pill);
+    background: var(--grey-30-brand);
+  }
+  /* рамку-обводку активной миниатюры гасим ЯВНО: у полоски она рисовалась бы прямоугольником
+     вокруг тач-зоны 48 (outline не знает про ::after), активность несёт цвет полоски */
+  .slide-thumbs .thumb.is-active { outline: 0; }
+  /* СТАРТОВАЯ точка. В разметке кейсов активной миниатюры нет вовсе (.is-active ставит только
+     клик, app.js §3e) — рейке это было незаметно, а ряд точек без единой красной читается как
+     сломанный. Даём первую точку активной ПО УМОЛЧАНИЮ и снимаем умолчание, как только
+     в ряду появился настоящий выбор (:has — та же идиома, что section:has(> .video-strip)
+     ниже по файлу). Порядок правил важен: .is-active идёт последним при равной специфичности. */
+  .slide-thumbs .thumb:first-child::after { background: var(--action-primary); }
+  .slide-thumbs:has(.is-active) .thumb:first-child::after { background: var(--grey-30-brand); }
+  .slide-thumbs .thumb.is-active::after { background: var(--action-primary); }
+  .slide-head { flex-direction: column; gap: 0.25rem; }
+  .slide-head h3 { font-size: 1.0625rem; line-height: 1.25rem; }
+  .bim-panel { flex-direction: column; margin-right: 0; }
+  .bim-photo { width: 100%; max-width: none; height: 15rem; }
+  .bim-card { flex-direction: column; }
+  .bim-qr { display: none; } /* донор моб: без QR */
+
+  /* блок 11: тендер — №15-моб (снят display:none 21.07, слово лида: моб-фрейм макета
+     2184:37598 показывает флешку МЕЖДУ заголовком и карточками — старое правило пряталось
+     от подрезанного декора при АБСОЛЮТНОМ позиционировании флешки внутри узкой секции;
+     теперь флешка — блок В ПОТОКЕ со своим overflow:hidden (см. .tender-visual ниже),
+     обрезка декора живёт там, секции она больше не нужна). */
+  .tender-section { display: block; position: relative; padding: 2rem 0.75rem 0.75rem; }
+  /* .tender-body на деске — grid с именованными area (визуал слева на всю высоту);
+     на мобе стекаем детей в DOM-порядке (заголовок → визуал → карточки → CTA, см.
+     разметку §15-моб). display:flex/column вместо голого block НАРОЧНО — старый мобильный
+     .tender-body уже жил flex-колонкой (наследовал display:flex из деск-правила, mobile.css
+     override трогал только position/z-index) с gap:1.5rem МЕЖДУ ВСЕМИ детьми поверх их
+     собственных margin — это давало зазор карточки↔CTA 12(margin грида)+24(gap)=36px.
+     Если бы тут стоял голый block, соседские margin схлопнулись бы (collapse) и тот же
+     зазор упал бы до 12px — регресс, которого замер не просил. Держим flex, чтобы
+     существующая пара «грид→cta» осталась той же, а флешке отдельный margin-bottom
+     не нужен — gap колонки уже даёт по 24px с обеих сторон. */
+  .tender-body { display: flex; flex-direction: column; gap: 1.5rem; position: relative; z-index: 1; }
+  .tender-title { max-width: 13.75rem; margin-bottom: 0; }
+  /* Флешка — карточка на всю ширину контента (336 = 360 − 2×12, тот же контент-колумн,
+     что у заголовка/карточек), пропорция из Figma-узла «флещка рутокен 1» мобильного
+     фрейма 2184:37477 (340.24×363.84, см. отчёт §15-моб) — тем же aspect-ratio держим
+     форму на 320/360/375/390 без замера каждой ширины отдельно. Радиус — общий r8 карточек
+     тендера (было 1.5rem 0 0 1.5rem — левый угол секции на деске, на мобе секция не режет
+     ничего своим краем, нужен обычный «карточный» радиус со всех сторон). */
+  .tender-visual { display: block; width: 100%; aspect-ratio: 340.24 / 363.84; border-radius: var(--r-8); }
+  /* дуги-декора (ellipse) в мобильном Figma-фрейме нет — только флешка (замер §15-моб) */
+  .tender-ellipse { display: none; }
+  .tender-grid { grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+  .tender-card { padding: 1rem; border-radius: var(--r-8); }
+  .tender-card .num { font-size: 1.0625rem; line-height: 1.25rem; }
+  .tender-card p { font-size: 0.8125rem; line-height: 1rem; }
+  .cta-plain-title { display: none; }
+
+  /* блок 13: производство — стек (донор 18:7130). Десктоп теперь grid (задача №17,
+     см. blocks.css), не flex — на стеке просто схлопываем два трека в один, зазор
+     между заголовком и обложкой держит тот же gap, что раньше был на flex-row. */
+  .prod-top { grid-template-columns: 1fr; gap: 1.5rem; }
+  .prod-video { width: 100%; }
+  .prod-cols { grid-template-columns: 1fr; margin-left: 0; gap: 0; }
+
+  /* блок 14 (моб-футер) переехал в модуль code/footer/ — его моб-манифестацию
+     держит footer.css со своим порогом; здесь правил футера больше нет. */
+
+  /* ═══════════════ ТАЧ-МИНИМУМ (моб-канон: цель ≥48 по МЕНЬШЕЙ стороне) ═══════════════
+     Свод стоит В ХВОСТЕ ФАЙЛА нарочно: минимум обязан бить и десктопные числа канона
+     (44/36/28 — мышиные), и блочные моб-правила выше, а при равной специфичности
+     побеждает тот, кто ниже. Поштучные цели (точки галереи и кейсов, крошка-стрелка,
+     табы, плитки конструктора, ссылки-доки) свои 48 получили по месту — здесь общий
+     свод для остальных контролов страницы.
+     ⚠ Высоту гасим парой height:auto + min-height: у половины доноров стоит ФИКС height,
+     и один min-height его не пересилит (замер: .show-more оставался 44 при min-height 48). */
+  .btn { min-height: var(--tap-min); }
+  .btn--icon { width: var(--tap-min); min-width: var(--tap-min); }
+  .btn--order { min-height: var(--tap-min); }
+  .qr-btn { width: var(--tap-min); height: var(--tap-min); }
+  .show-more { height: auto; min-height: var(--tap-min); } /* подложка строки таблицы под неё — выше, у .cmp-btn-row */
+  .order-toggle { width: var(--tap-min); height: var(--tap-min); }
+  .play-btn { width: var(--tap-min); height: var(--tap-min); }
+  button.region-chip { min-height: var(--tap-min); }
+  .copy-plain { width: var(--tap-min); height: var(--tap-min); align-items: center; justify-content: center; }
+  /* степпер: круглые ±48 и поле счётчика той же высоты — в карточке 176 ряд (48+48+48)
+     помещается, цена уезжает строкой выше собственным flex-wrap (blocks.css) */
+  .stepper button { width: var(--tap-min); height: var(--tap-min); }
+  .stepper input { width: var(--tap-min); min-height: var(--tap-min); }
+}

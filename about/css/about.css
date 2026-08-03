@@ -1,0 +1,1190 @@
+/* Simple PRO — страница «О компании» (макет 2192:42616, 1920).
+   Токены/шрифты/сброс/rem-зум полосы 721–1230 приезжают из ../product-card/css/tokens.css,
+   канон-кнопки — из ../product-card/css/components.css. Своих hex и px здесь нет
+   (исключение канона — --hairline). Все размеры rem/%/vw.
+
+   СЕТКА МАКЕТА. Кадр 1920, боковое поле 36, контент 1848 = 4 колонки по 444 через гэп 24.
+   Все привязки страницы («текст с третьей колонки», «видео со второй») выражены через
+   эту сетку, а не через магические отступы. */
+
+:root {
+  /* Боковое поле about. Своя кривая 20→36 совпадала с каноном только на краях (36 на 1920,
+     12 на мобе), а в середине расходилась: замер свип-аудита 29.07 дал 27 на 1440 (канон 36)
+     и 24 на 1280 (канон 28). Приведено к канон-кривой дома (№12) — той же, что у продуктовой. */
+  --about-pad: clamp(1.75rem, calc(-2.25rem + 5vw), 2.25rem);  /* 28→36, моб-ступень в mobile.css */
+  --about-col-gap: 1.5rem;                        /* 24 */
+  --about-max: 115.5rem;                          /* 1848 — контент кадра 1920 */
+  --about-block: clamp(3.5rem, 10.4vw, 12.5rem);  /* вертикальный ритм между секциями: замер 200 (макет 4×) */
+
+  /* ТИПО-ШКАЛА КОРПУСА — ТРИ СТУПЕНИ НА ВСЮ СТРАНИЦУ.
+     Блоки собирались по отдельности, и каждый принёс свою ступень: херо/директор 17,
+     экскурсия/лид 15.9, тендер/подписи цифр 15, лейбл CTA 12 (замер 1920/375 до правки:
+     17·15.9·15·14 и 16.1·15·13·12). Разнобой в четыре кегля был самым заметным швом
+     между блоками, а на мобе продающий текст тендера выходил мельче вводного на ¼.
+     Своих clamp'ов не заводим — ступени берём из tokens.css:
+       --about-fs-body  = --fs-p2 (16→17)  корпус: всё, что читают текстом;
+       --about-fs-2nd   = --fs-p3 (15→16)  вторичное: подписи под фото, должность;
+       --about-fs-caption = --fs-p5 (12→14) подпись/служебное: лейбл поля, счётчик кадров.
+     Подпись под ЦИФРОЙ производства ушла из вторичной ступени в корпусную 22.07: канон
+     узла 2192:42637 — 17, ровно --fs-p2 (вторичная давала 15.9).
+     Четвёртая ступень (--fs-p4) со страницы ушла — она и держала шов.
+     Псевдонимы, а не прямые --fs-*: переставить ступень блоку — одна правка здесь,
+     и в правилах читается РОЛЬ текста, а не номер кегля. */
+  --about-fs-body:    var(--fs-p2);
+  --about-fs-2nd:     var(--fs-p3);
+  --about-fs-caption: var(--fs-p5);
+
+  /* Цифра производства — своя ступень, потому что она НЕ текст: канон-стиль узла 2192:42633
+     называется «1920/heading/h1». Берём рейку h1 целиком (верх = канонные 52) и поднимаем
+     ей ПОЛ до 44 — низ h1 (40) считан под длинный заголовок страницы на 320, а тут четыре
+     знака. Подробности и замеры — у .stat-item-num (§5). */
+  --about-fs-stat: max(var(--fs-h1), 2.75rem);
+
+  /* Ритм абзацев в текстовых КОЛОНКАХ страницы (херо, слово директора).
+     Было 3.75rem (60) при интерлиньяже 25.5 — 2.35 строки между абзацами: шесть абзацев
+     директора читались как шесть отдельных реплик. 20 = 0.78 интерлиньяжа на 1920 и
+     0.83 на 375 — внутри ориентира 0.6–1.0. Ритм МЕЖДУ секциями не тронут (--about-block).
+     Внутри карточек-панелей (экскурсия, тендер) абзацы стоят теснее — там свой,
+     карточный ритм var(--sp-16) = 0.63 интерлиньяжа. */
+  --about-p-gap: var(--sp-20);
+
+  /* Верх вордмарка от верха первого экрана — канон кадров step3/step4 (278 при 1920).
+     Одна ручка на три вещи: поле пина, вертикаль маски фото-слоя и приземление сцены. */
+  --about-hero-top: clamp(6rem, 14.5vw, 17.375rem);
+}
+
+/* ── общая 4-колоночная полоса страницы ── */
+.about-grid {
+  width: min(100% - 2 * var(--about-pad), var(--about-max));
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--about-col-gap);
+}
+
+/* ============================================================
+   1. ХЕРО
+   ============================================================ */
+/* Верхнее поле херо переехало С СЕКЦИИ НА ПИН — иначе фото-слой сцены (top:0 пина)
+   начинался бы ниже этого поля и не закрывал верх экрана. Само значение при переезде
+   ВЫРОСЛО до макетного: канон первого экрана (кадры step3/step4 секции 2222:138436)
+   ставит верх вордмарка на y=278 при кадре 1920, а стояло 57.6 — вордмарк лез ПОД
+   фикс-хедер (замер до правки: хедер 0…116, вордмарк 57.6…462.6, перекрытие 58).
+   14.5vw = 278.4 на 1920 (потолок 17.375rem = 278 держит его на широких экранах),
+   на полосе 721–1230 vw и rem едут вместе (tokens.css: html{font-size:1.25vw}). */
+.about-hero { padding-block: 0 var(--about-block); }
+.about-hero-pin { padding-block-start: var(--about-hero-top); }
+
+/* Полоса херо — ЯВНО две строки: вотермарк и текстовый блок.
+   row-gap гасим: вертикальный ритм «вотермарк → H1» задаёт margin-bottom вотермарка
+   (замер макета), а ряд-гэп сетки добавлял к нему ещё 24 сверху — это и был лишний зазор. */
+.about-hero .about-grid {
+  grid-template-rows: auto auto;
+  row-gap: 0;
+}
+
+/* Вотермарк-вордмарк во всю полосу (макет: 1848×405 на y=298).
+   Маска, а не <img>: экспорт идёт с preserveAspectRatio="none" (грабля дома —
+   такой SVG тянется в любой бокс), поэтому пропорцию держит aspect-ratio на боксе,
+   а краску даёт фон-токен. */
+.about-hero-watermark {
+  /* ПРИБИТ К ОКНУ, не к секции (слово Антона: «лого должно оставаться статичным»).
+     Раньше был грид-элементом и уезжал вместе с херо: на 4000 уходил в минус 1769.
+     Геометрию (left/width/top) считает JS от слота и от высоты окна, здесь только
+     режим и краска. Прежний transform по --about-hold-y снят: он держал позицию
+     ОТНОСИТЕЛЬНО ПИНА, а пин уезжает — в этом и был баг. */
+  position: fixed;
+  left: var(--wm-left, 0);
+  width: var(--wm-w, 100%);
+  top: var(--wm-top, 0);
+  margin: 0;
+  transform: none;
+  z-index: 0;
+  display: block;
+  /* aspect-ratio — фолбэк, пока JS не посчитал; как только --wm-h есть, высоту берём
+     ИЗ НЕЁ. Иначе вордмарк округляет высоту сам (364), а маска сцены берёт --wm-h (365),
+     и коробки расходятся на пиксель — этого хватает, чтобы на кромке букв проступил
+     второй контур. Один источник высоты — один контур. */
+  aspect-ratio: 1848 / 405;
+  height: var(--wm-h, auto);
+  background-color: var(--grey-10);
+  -webkit-mask-image: url("../../assets/figma/prod-logo-simplepro-watermark.svg");
+  -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: 100% 100%;
+  mask-image: url("../../assets/figma/prod-logo-simplepro-watermark.svg");
+  mask-repeat: no-repeat; mask-position: center; mask-size: 100% 100%;
+}
+/* Слот вордмарка: держит МЕСТО в гриде херо. Геометрия — копия того, что было
+   у .about-hero-watermark, пока он лежал в потоке (ширина полосы, пропорция
+   макета 1848×405, тот же нижний отступ до H1). Снесёшь слот — грид схлопнется
+   в одну строку и заголовок подпрыгнет вверх на высоту логотипа. */
+.about-hero-wm-slot {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1848 / 405;
+  margin-bottom: clamp(2.5rem, 5vw, 6.0625rem);
+}
+.about-hero-text { grid-column: 3 / -1; grid-row: 2; }
+.about-hero-title {
+  max-width: 34.75rem;                 /* 556 */
+  margin-bottom: clamp(2rem, 3.1vw, 3.75rem);
+  color: var(--grey-60-brand);
+}
+.about-hero-body { max-width: 27.75rem; }   /* 444 — колонка макета */
+.about-hero-body p {
+  font-weight: 300;
+  font-size: var(--about-fs-body);
+  line-height: 1.5;
+  color: var(--grey-60-brand);
+  margin-bottom: var(--about-p-gap);
+}
+.about-hero-body p:last-child { margin-bottom: 0; }
+
+/* ============================================================
+   1a. СЦЕНА ПЕРВОГО ЭКРАНА (макет-секция 2222:138436, кадры step1…step4)
+   ------------------------------------------------------------
+   ЧТО ЭТО. Одна прибитая сцена: фото цеха во весь экран → фото уменьшается, кадр
+   всё равно фулскрин → фото маскируется в вордмарк (белый фон, фото сквозь буквы,
+   снизу заголовок) → вордмарк становится светло-серым, фото уходит → дальше контент
+   страницы идёт ПОВЕРХ вордмарка. Последний пункт держит статика вордмарка (§7 ниже);
+   сцена не заводит второй логотип, а ЗАКАНЧИВАЕТСЯ его макетной позицией — и ровно
+   с этой позиции статика его подхватывает, без скачка на стыке.
+
+   ИДИОМА — home/js/block4.js: длинный ТРЕК (.about-hero-track) + липкий ПИН
+   (.about-hero-pin). Своего велосипеда нет: JS считает одно число p (0…1) и кладёт
+   его в переменные ниже, вся геометрия — здесь.
+
+   ПОЧЕМУ ПИН ОБЁРНУТ В .about-hero-scene. Липкий узел ограничен коробкой-родителем.
+   Родителем без обёртки была бы сама секция — и пин съезжал бы ещё и на её нижнее
+   поле (--about-block, 200 на 1920), съедая ритм до «Слова директора». Обёртка даёт
+   пину ровно трек и ни пикселем больше.
+
+   ЧТО СЛОМАЕТСЯ ПРИ СНОСЕ. Ничего: при --intro-track:0 распорка схлопывается, пин
+   перестаёт быть липким, фото-слои не показываются (их включает только data-scene="on"
+   от живого JS) — и херо ровно тот, что был до врезки. Именно так он и живёт на мобе
+   и под reduced-motion, поэтому «слой поверх слоя» не рождается.
+   ============================================================ */
+
+/* Коробка-ограничитель липкого пина: трек + сам пин, ничего больше.
+   container-type НЕ для медиазапросов — он даёт единицу cqw, то есть «ширина этой
+   коробки» ДЛИНОЙ, а не процентом (зачем — см. грабля маски ниже). */
+.about-hero-scene { container-type: inline-size; }
+.about-hero-pin { position: relative; }
+.about-hero-track { height: var(--intro-track, 0rem); }
+
+/* Фото-слой = окно во весь экран. inset-block-start:0 — верх ПИНА, то есть верх кадра,
+   пока пин прилип: шапка (fixed) ложится поверх фото, как на кадрах step1/step2.
+   overflow:hidden несущий — без него наезд масштаба распирал бы документ по горизонтали. */
+.about-hero-photo {
+  display: none;                       /* включает только живой JS (см. ниже) */
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 100vh;
+  height: 100svh;                      /* svh, как у шторки продуктовой; vh — фолбэк */
+  overflow: hidden;
+  pointer-events: none;
+}
+.about-hero-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* 1 = object-fit:cover, то есть «панорама целиком, кадр фулскрин». Наезд идёт
+     ОТ большего к 1: на кадрах макета step1 крупнее step2 ровно в 1.76 раза
+     (замер сопоставлением кадров, см. отчёт), эту величину JS и проматывает. */
+  transform: scale(var(--intro-scale, 1));
+}
+
+/* СОСТОЯНИЯ 1–2: фото без маски. Гаснет, пока белое сходится к логотипу. */
+.about-hero-photo--full { opacity: var(--intro-full-o, 1); }
+
+/* СОСТОЯНИЕ 3: то же фото, обрезанное маской-вордмарком ТОЧНО ПО КОРОБКЕ
+   .about-hero-watermark — поэтому размер и вертикаль маски считаются той же
+   арифметикой, что и грид (--about-pad/--about-max/--about-hero-top), а не замером
+   из JS: при любой ширине буквы совпадают с серым вордмарком пиксель в пиксель.
+   Файл маски — ТОТ ЖЕ, что у вотермарка (канон-ассет): вторая копия вордмарка
+   гарантированно разъехалась бы с первой.
+
+   ⚠ ГРАБЛЯ, НА КОТОРУЮ УЖЕ НАСТУПИЛИ: ширина вордмарка НЕ имеет права быть процентом.
+   В mask-size проценты разрешаются по РАЗНЫМ осям — первое значение от ширины коробки,
+   второе от её высоты. Первая редакция считала высоту как `calc(min(100% - 2*pad, max)
+   * 405/1848)`, и 100% во втором слоте оказалось высотой экрана: замер 1920×960 дал
+   маску 1848×194.6 вместо 1848×405, фото-буквы встали вдвое ниже серых (видно на кадре).
+   Поэтому cqw — ДЛИНА, одинаковая в обоих слотах, и берётся она с той же коробки, от
+   которой считает свою ширину грид. Строка на vw оставлена ФОЛБЭКОМ для браузеров без
+   cq-единиц: там маска промахнётся на ширину полосы прокрутки, а не растянется на экран. */
+.about-hero-photo--word {
+  /* НИКАКОЙ СВОЕЙ АРИФМЕТИКИ. Коробку маски задаёт тот же --wm-left/--wm-top/--wm-w,
+     что и у серого вордмарка (пишет js/about.js в :root). Раньше здесь считалось
+     независимо (center var(--about-hero-top)) — и после того, как вордмарк прибили
+     к центру окна, две коробки разъехались: на состояниях 3–4 в кадре было ДВА лого
+     (замер лида на 1728: фото-маска верх 0 h 900 против вордмарка верх 268 h 364).
+     Фолбэк оставлен на случай, если JS не доехал: тогда маска встаёт как раньше. */
+  opacity: var(--intro-word-o, 0);
+  -webkit-mask-image: url("../../assets/figma/prod-logo-simplepro-watermark.svg");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: var(--wm-w, 100%) var(--wm-h, auto);
+  -webkit-mask-position: var(--wm-left, center) var(--wm-top, var(--about-hero-top));
+  mask-image: url("../../assets/figma/prod-logo-simplepro-watermark.svg");
+  mask-repeat: no-repeat;
+  mask-size: var(--wm-w, 100%) var(--wm-h, auto);
+  mask-position: var(--wm-left, center) var(--wm-top, var(--about-hero-top));
+}
+/* @supports-переопределение --wm-w снято: коробка теперь одна и приходит из :root. */
+
+/* Заголовок и вводный текст приходят вместе с маской (кадр step3) и остаются.
+   Значение по умолчанию 1: нет JS — нет и пряток, текст на месте. */
+.about-hero-text { opacity: var(--intro-text-o, 1); }
+
+/* ДЕСК: сцена рождается. Порог 45rem — тот же, что у моб-слоя страницы и у панорамы
+   задников (§8): на мобе вордмарк 336×74, фото сквозь такие буквы — каша, поэтому
+   механика там просто не рождается, а не «рождается и гасится». */
+@media not all and (max-width: 45rem) {
+  .about-hero { --intro-track: 220svh; }
+  .about-hero-pin { position: sticky; inset-block-start: 0; }
+  .about-hero[data-scene="on"] .about-hero-photo { display: block; }
+}
+
+/* ⛔ reduced-motion: НЕ «быстрее», а СРАЗУ состояние 4 — серый вордмарк, заголовок,
+   ни фото, ни промотки. Гасим правилами, а не только в скрипте: статика держится,
+   даже если JS не доехал. Идёт после деск-блока — перебивает его при равной силе. */
+@media (prefers-reduced-motion: reduce) {
+  .about-hero { --intro-track: 0rem; }
+  .about-hero-pin { position: relative; }
+  .about-hero-track { display: none; }
+  .about-hero[data-scene="on"] .about-hero-photo { display: none; }
+}
+
+/* ============================================================
+   2. СЛОВО ДИРЕКТОРА
+   ============================================================ */
+.about-director { padding-block: 0 var(--about-block); }
+.about-director-person { grid-column: 2; }
+.about-director-text   { grid-column: 3; }
+
+/* портрет директора — экспорт узла 2192:42616→2192:42626 (574×574 = 2× от круга 287).
+   Фото УЖЕ кадрировано в круг на стороне макета, углы квадрата залиты белым
+   (#FFFFFF = --bg-page), отсюда три следствия:
+     · object-position не нужен — кроп не наш, он из фигмы (и на картинке 1:1 в боксе 1:1
+       он всё равно был бы пустышкой: cover ничего не выносит за бокс);
+     · border-radius + overflow ОБЯЗАТЕЛЬНЫ — снесёшь, и на не-белом фоне вылезут
+       белые углы квадрата;
+     · подложки и обводки нет — картинка непрозрачная, а кольца в макете не существует
+       (пиксели экспорта по краю круга — фотография, а не ровный серый). */
+.about-director-photo {
+  width: 100%;
+  max-width: 17.9375rem;               /* 287 — круг макета */
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.about-director-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.about-director-caption { margin-top: 2.625rem; }   /* 329 − 287 = 42 */
+.about-director-name {
+  font-size: var(--about-fs-body);
+  line-height: 1.75rem;                /* 28 — высота строки-бокса имени в макете */
+  font-weight: 600;
+  color: var(--grey-60-brand);
+  margin-bottom: var(--sp-8);
+}
+.about-director-role {
+  font-size: var(--about-fs-2nd);
+  line-height: 1.5rem;                 /* 24 — высота строки-бокса должности в макете */
+  font-weight: 300;
+  color: var(--text-secondary);
+  margin: 0;
+}
+.about-director-text p {
+  font-weight: 300;
+  font-size: var(--about-fs-body);
+  line-height: 1.5;
+  color: var(--grey-60-brand);
+  margin-bottom: var(--about-p-gap);   /* тот же ритм абзацев, что и в херо (единый текстовый узел в макете) */
+}
+.about-director-text p:last-child { margin-bottom: 0; }
+
+/* ============================================================
+   3. ИСТОРИЯ КОМПАНИИ — рельс
+   ============================================================ */
+.about-history { padding-block: 0 var(--about-block); }
+.about-history-title {
+  text-align: center;
+  max-width: 28.5rem;
+  margin-inline: auto;
+  margin-bottom: clamp(2.5rem, 3.1vw, 3.75rem);   /* замер: 60 до рельса */
+  color: var(--grey-60-brand);
+}
+/* Рельс по построению шире полосы (13 карточек × 220 + гэпы = 3148, было 6060 при 444 —
+   правка Антона №10 сузила карточку, сумма пересчитана): горизонтальный
+   скролл живёт ВНУТРИ него, страница по горизонтали не едет ни на одной ширине.
+   ГЕОМЕТРИЯ выражена через сетку страницы, а не магическими отступами:
+     --rail-side  — левая кромка контента (та же, что у .about-grid);
+     --rail-col   — колонка сетки (1848 − 3×24)/4 = 444 при 1920;
+     --rail-start — старт ленты «по центральной оси» = кромка + ДВЕ колонки с гэпами
+                    (36 + 2×468 = 972 при 1920 — ровно x макета 2192:42641). */
+.about-history-rail {
+  --rail-side:  max(var(--about-pad), calc((100% - var(--about-max)) / 2));
+  --rail-col:   calc((min(100% - 2 * var(--about-pad), var(--about-max)) - 3 * var(--about-col-gap)) / 4);
+  --rail-start: calc(var(--rail-side) + 2 * (var(--rail-col) + var(--about-col-gap)));
+  /* Внутренний ритм карточки: макет 40 (год→фото 72−32, фото→описание 360−320).
+     Один clamp закрывает и rem-зум полосы 721–1230 (40×W/1920 = 2.08vw), и моб-16. */
+  --history-gap: clamp(1rem, 2.1vw, 2.5rem);
+  display: flex;
+  gap: var(--about-col-gap);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-inline: var(--rail-side);
+  scroll-padding-inline: var(--rail-side);
+  padding-bottom: var(--sp-8);
+  scrollbar-width: thin;
+}
+.about-history-rail:focus-visible { outline: 0.125rem solid var(--border-focus); outline-offset: 0.125rem; }
+
+/* Лента стартует С СЕРЕДИНЫ (слово Антона) — только на десктопе: на 336 половина
+   кадра под пустоту не отдаётся. Порог 45.0625rem = 721 — стык с моб-слоем (45rem),
+   тот же, что у rem-зума в tokens.css.
+   scroll-padding-inline-start ОБЯЗАН равняться отступу: при mandatory-снапе иначе
+   браузер на загрузке подтягивает первую карточку к левому краю и «старт с середины»
+   умирает сам собой. Со снап-полем позиция покоя = scrollLeft 0, а дальше снап-сетка
+   кладёт кромку каждой карточки ровно на центральную ось. */
+@media (min-width: 45.0625rem) {
+  .about-history-rail {
+    padding-inline-start: var(--rail-start);
+    scroll-padding-inline-start: var(--rail-start);
+  }
+}
+
+/* Точки-индикатор свайп-каруселей (моб-канон п.4). Разметку строит js/about.js по
+   [data-rail] — странице про моб знать не нужно, а без JS рельс просто остаётся рельсом.
+   БАЗА — display:none: на десктопе рельсы листаются мышью/стрелками и точки не нужны;
+   показывает их только моб-слой css/mobile.css. Правило живёт здесь, а не в mobile.css,
+   потому что весь mobile.css — тело одного @media, и «выключено вне моба» там негде сказать. */
+.rail-dots { display: none; }
+
+/* Карточка года — ЕДИНЫЙ вид для ровности: ГОД → ФОТО → ОПИСАНИЕ (слово Антона).
+   Колонка на flex+gap, поля узлов обнулены: ритм держит ОДИН --history-gap, иначе
+   каждый узел тянет своё поле и порядок нельзя переставить, не переписав три правила.
+   Высоту карточки не задаём — align-items:stretch рельса ровняет все 13 по самой
+   длинной (2025), поэтому кромки фото и годов стоят в линию. */
+.history-card {
+  flex: 0 0 auto;
+  width: 13.75rem;                     /* 220 (было 444 — карточка макета): правка Антона №10 —
+                                           миниатюры мельче, чтобы в экран влезало больше вех */
+  max-width: calc(100vw - 2 * var(--about-pad));
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--history-gap);
+}
+/* Обнуление ПЕРЕД моб-слоем по специфичности (0,2,0 против 0,1,0 у mobile.css):
+   в mobile.css остались поля под старый порядок узлов — они гасятся здесь, а не
+   правкой чужого файла. Снести это правило = вернуть двойной ритм на мобе. */
+.about-history .history-card > * { margin: 0; }
+
+.history-card-year {
+  font-family: "Simplepro Display", "Geologica", sans-serif;
+  font-weight: 700;
+  font-size: var(--fs-h4);             /* 28 при 1920 — блок года 444×32 в макете */
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--action-primary);
+}
+.history-card-media {
+  aspect-ratio: 444 / 248;             /* слот года из макета */
+  border-radius: var(--r-4);
+  overflow: hidden;
+  background: var(--bg-surface);       /* светлая подложка: 8 из 13 PNG идут с живой альфой */
+}
+.history-card-media img { width: 100%; height: 100%; object-fit: cover; }
+/* «Показать целиком и НЕ увеличивать» — scale-down = contain без апскейла.
+   Две причины сходятся в одном поведении:
+     · пять позиций донора — не фото, а ГРАФИКА (скрины сайта 2007/2024, карта 2010,
+       знак ISO 2015, схема TPS 2019): слот 16:9 против донорских 4:3 срезал бы ~25 %
+       высоты и съел смысл (шапка сайта, подписи городов, нижний ярус схемы);
+     · девять кадров 2002–2020 физически существуют только в ~200×149 (крупнее на
+       сервере нет, resize_cache отдаёт 404) — растяжка в слот 444 даёт мыло ×2.2.
+   Поэтому кадр стоит в натуральную величину по центру светлой подложки; слот и высота
+   карточки при этом не меняются, лента остаётся ровной. Снимут ограничение донора
+   (клиент пришлёт оригиналы) — модификатор уходит с девяти фото, остаётся на графике. */
+.history-card-media--nocrop img { object-fit: scale-down; }
+
+.history-card-text {
+  max-width: 18.75rem;                 /* 300 — ширина описания в макете; при карточке 220
+                                           (правка Антона №10) уже не режет — текст стоит на
+                                           всю ширину карточки. Нарочно НЕ сузили колонку
+                                           текста следом за фото: уже колонка = длиннее
+                                           перенос строк = карточка выше, а цель правки —
+                                           меньше высота/ширина, а не больше. */
+  font-weight: 300;
+  font-size: var(--about-fs-2nd);      /* подпись под фото — вторичная ступень */
+  line-height: 1.5;
+  color: var(--grey-60-brand);
+}
+
+/* ============================================================
+   4. ЭКСКУРСИЯ — полноширинное фото + панель
+   ============================================================ */
+.about-excursion {
+  position: relative;
+  isolation: isolate;
+  min-height: min(60rem, 50vw);        /* 960 в кадре 1920 */
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: var(--about-pad);
+  margin-bottom: var(--about-block);
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+.about-excursion-photo {
+  position: absolute; inset: 0; z-index: -1;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.about-excursion-panel {
+  width: min(40.25rem, 100%);          /* 644 */
+  background: var(--bg-page);
+  padding: 1.5rem;
+  border-radius: var(--r-4);
+}
+/* Кегль --fs-h2 (30→44), как у соседа того же ранга .about-production-title: оба —
+   заголовки СЕКЦИЙ страницы, а не карточек внутри секции. Стоял --fs-h3 (20→36) —
+   одиночный брак, замер 02.08 давал 36 против 44 на 1920 и 20 против 30 на 390.
+   ⛔ Не путать с .tender-panel-title (:887): там h3 честный — это заголовок карточки
+   внутри тендер-секции (решение лида 02.08, трогать нельзя). */
+.about-excursion-title {
+  font-size: var(--fs-h2);
+  color: var(--grey-90);
+  margin-bottom: 1rem;
+}
+.about-excursion-panel p {
+  font-weight: 300;
+  font-size: var(--about-fs-body);
+  line-height: 1.5;
+  color: var(--grey-60-brand);
+  margin-bottom: var(--sp-16);         /* карточный ритм: 0.63 интерлиньяжа */
+}
+.about-excursion-phones {
+  margin: 0 0 var(--sp-16);
+  font-weight: 300;
+  font-size: var(--about-fs-body);
+  line-height: 1.5;
+  color: var(--grey-60-brand);
+}
+.about-excursion-phones dt { margin-bottom: var(--sp-4); }
+.about-excursion-phones dd { margin: 0 0 var(--sp-4); }
+/* ТЕЛЕФОНЫ — ССЫЛКИ, И ЭТО ВИДНО. Было color:inherit + вес 300 = ровно тот же
+   rgb(69,74,77), что у соседнего текста: единственный способ позвонить из блока на мобе
+   выглядел прозой. Оформление НЕ придумано — собрано из двух канонов страницы:
+     · цвет и ховер — как у телефона CTA-полосы (.phone-box-tel ниже: --action-primary
+       → --action-primary-hover). Красный на этой странице и есть цвет действия;
+     · подчёркивание — как у инлайн-ссылки канона (.utp-card-link в components.css:
+       цвет + text-decoration:underline). Телефон стоит ВНУТРИ текстового потока, а не
+       в обводочном боксе, поэтому одного цвета мало: различие только цветом — плохая
+       опора (дальтонизм, ч/б печать).
+   Вес 400 — тоже канон телефона (.phone-link в components.css), в потоке 300-го текста
+   он работает вторым необязательным сигналом. nowrap — чтобы номер не рвался пополам.
+   Тач-цель 48 даёт моб-слой (mobile.css §4), здесь она не нужна: на деске это текст. */
+.about-excursion-phones a {
+  color: var(--action-primary);
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 0.125rem;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+.about-excursion-phones a:hover { color: var(--action-primary-hover); }
+.about-excursion-phones a:active { color: var(--action-primary-pressed); }
+.about-excursion-addr { margin-bottom: 0; }
+
+/* ============================================================
+   5. ПРОИЗВОДСТВО — видео + текст + цифры
+   ============================================================ */
+.about-production { padding-block: 0 var(--about-block); }
+
+/* Полоса производства — ЯВНО две строки: видео (колонки 2–3) и текст (колонки 3–4).
+   Раньше вторую строку выдавало auto-placement: текст «не влезал» в первую из-за
+   пересечения по колонке 3 и переносился сам. Раскладка зависела от порядка потомков —
+   теперь она задана сеткой и порядку DOM безразлична. Числа те же (row-gap 24). */
+.about-production .about-grid {
+  grid-template-rows: auto auto;
+  row-gap: var(--about-col-gap);
+}
+.about-production-video { grid-column: 2 / 4; grid-row: 1; }   /* 912 = две колонки макета */
+.about-production-text  { grid-column: 3 / -1; grid-row: 2; margin-top: clamp(2.5rem, 4vw, 5rem); }
+
+.video-poster {
+  position: relative;
+  aspect-ratio: 912 / 512;
+  border-radius: var(--r-4);
+  overflow: hidden;
+  background: var(--grey-70);
+}
+.video-poster-layer { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.video-poster iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.video-poster-play {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 5rem; height: 5rem;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%;
+  background: var(--action-primary);
+  transition: background 0.15s ease;
+}
+.video-poster-play svg { width: 1.75rem; height: 1.75rem; fill: var(--role-primary-fg); }
+.video-poster-play:hover { background: var(--action-primary-hover); }
+.video-poster-play:active { background: var(--action-primary-pressed); }
+
+.about-production-title {
+  font-size: var(--fs-h2);
+  max-width: 43.5rem;                  /* 696 */
+  color: var(--grey-60-brand);
+  margin-bottom: clamp(1.5rem, 3.3vw, 4rem);      /* замер: 63 до лида */
+}
+.about-production-lead {
+  max-width: 34rem;                    /* 544 */
+  font-weight: 300;
+  font-size: var(--about-fs-body);
+  line-height: 1.5;
+  color: var(--grey-60-brand);
+  margin-bottom: clamp(2rem, 3.4vw, 4rem);        /* замер: 66 до цифр */
+}
+.about-production-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--about-col-gap);
+}
+/* ЦИФРА. Канон — узел 2192:42633: 52/56, Simplepro Display Bold, --action-primary,
+   стиль в макете назван «1920/heading/h1», то есть это кегль ЗАГОЛОВКА, а не подзаголовка.
+   Стояло --fs-h4 (28 на 1920) — цифра была вдвое мельче канона и на 360 сливалась с
+   подписью (замер до правки: 18 против 15, отношение 1.20 при канонных 52/17 = 3.06).
+
+   ПОЧЕМУ max(), а не голый var(--fs-h1). Верх рейки h1 — ровно канонные 52, его и берём.
+   А низ у h1 (40) подобран под ЗАГОЛОВОК СТРАНИЦЫ: длинную фразу на 320 надо во что-то
+   уложить. У цифры такого ограничения нет — «6000 М²» это семь знаков, на 360 оно занимает
+   меньше половины колонки. Поэтому пол поднят до 44: 44/16.06 = 2.74 против 2.49 у голого
+   h1, то есть цифра остаётся ЦИФРОЙ и на мобе. Своего clamp'а при этом не заводим — форма
+   кривой канонная, руками поднят один конец.
+
+   ТРЕКИНГ — В em, И ЭТО НЕ ПРИДИРКА. В макете он задан ПРОЦЕНТОМ (−1.25%), а на узле виден
+   уже вычисленным: −0.65px при кегле 52. Прибить −0.65px нельзя — кегль здесь ведётся
+   клампом, и на мобе при 44 те же −0.65px дали бы −1.48%, втрое туже канона: цифра слиплась
+   бы. −0.0125em = −1.25% на любой ширине по определению.
+
+   NOWRAP — единица измерения обязана ехать с числом. Пробел между числом и «М²»/«ДНЕЙ»/«ММ»
+   при кегле 52 в колонке 288 (1920) — первый кандидат на перенос, а «6000» отдельной строкой
+   от «М²» это не цифра, а мусор. Замер после правки, самая широкая строка «15 ДНЕЙ»:
+   186.9 из 288 на 1920 · 169.4 из 185.3 на 1280 (самое узкое место рейки) · 158.2 из 336
+   на 360. Запас есть везде, перелива 0 на всех восьми ширинах. */
+.stat-item-num {
+  font-family: "Simplepro Display", "Geologica", sans-serif;
+  font-weight: 700;
+  font-size: var(--about-fs-stat);
+  line-height: 1.077;                  /* канон 56/52 */
+  letter-spacing: -0.0125em;           /* канон −1.25% (на 52 = −0.65px) */
+  text-transform: uppercase;
+  color: var(--action-primary);
+  margin-bottom: var(--sp-16);
+  white-space: nowrap;
+}
+/* Надстрочный «²» — в макете отдельный спан 33.54 при цифре 52, то есть 0.645 кегля.
+   Держим долей (em), а не числом: кегль цифры ездит клампом, прибитое значение разъехалось
+   бы с ним на каждой ширине. Стояло 0.6 — «на глаз», мимо канона на 7%. */
+.stat-item-num sup { font-size: 0.645em; vertical-align: super; }
+/* ПОДПИСЬ. Канон — узел 2192:42637: 17/24 Geologica Light --grey-60-brand, трекинг те же
+   −0.187px при 17 = −1.1%. Ступень поэтому КОРПУСНАЯ (--fs-p2, 16→17), а не вторичная
+   (--fs-p3, 15→16, давала 15.9 на 1920). */
+.stat-item-note {
+  font-weight: 300;
+  font-size: var(--about-fs-body);     /* подпись под цифрой — корпусная ступень, канон 17 */
+  line-height: 1.5;
+  letter-spacing: -0.011em;            /* канон −1.1% (на 17 = −0.187px) */
+  color: var(--grey-60-brand);
+  margin: 0;
+}
+
+/* ============================================================
+   6. ВЫСТАВКИ — годы-табы · карусель карточек · фулвью
+   ------------------------------------------------------------
+   ЗАЧЕМ. Слово Антона: «наша карточка, принцип работы как у карточек
+   с блока Дизайн лабораторий». Механика повторена один-в-один с канона
+   продуктовой (product-card/css/blocks.css .case-strip/.slide-*,
+   product-card/js/app.js §3e «миниатюра → в большую картинку» и §5
+   «листание ровно на одну карточку», фулвью-эталон 2184:36730):
+   · рельс карточек листается ПО ОДНОЙ (стрелки — канон .btn.btn--icon,
+     своих .arrow-btn в about НЕ заводим: они живут в blocks.css продуктовой,
+     который эта страница не подключает);
+   · колонка миниатюр справа = выбор кадра большого фото, выбор ОДИНОЧНЫЙ
+     (красная обводка — канон .thumb.is-active);
+   · клик по большому кадру (и по кадру на мобе) → фулвью с рейкой слева.
+   Годы-табы = 11 наборов фото: на каждый год свой рельс, невидимые hidden.
+
+   ЧИСЛА МАКЕТА (узел 2192:42616, кадр 1920): карточка 1069×566 = шапка 912×34
+   + 20 + медиа-ряд 1069×512 (фото 912×512 + гэп 25 + колонка миниатюр 132×72,
+   шаг 84 = 72+12). ⚠ Шапка с 22.07 НИЖЕ макетной (21 вместо 34, зазор 12 вместо 20):
+   из неё снят дублирующий год, осталась служебная строка-заглушка — см. .expo-card-head.
+   Медиа-ряд числа макета держит. Ресайз-дропа 1440/1280 по этому блоку НЕТ — карточка держит
+   макетные 1069 и упирается в ширину рельса (min(…, 100%)), как было до правки;
+   ужимается сама через rem-зум полосы 768–1230 из tokens.css.
+
+   ЧТО СЛОМАЕТСЯ ПРИ СНОСЕ. Секция рассыпется в вертикальный столбец картинок
+   (рельс без display:flex), фулвью потеряет position:fixed и ляжет в поток
+   поверх текста, миниатюры потеряют состояние выбора. JS-секция «ВЫСТАВКИ»
+   в js/about.js без этого CSS не падает, но рисует не то — сносить только парой.
+   ============================================================ */
+.about-expo { padding-block: 0 var(--about-block); }
+.about-expo-title { text-align: center; color: var(--grey-60-brand); margin-bottom: 1.25rem; }  /* замер: 20 до годов-табов */
+
+/* Полоса управления: табы стоят ПО ЦЕНТРУ кадра (замер макета: ряд 779 при
+   x=571, центр 960.5), стрелки — у правой кромки контента 1848. Грид 1fr/auto/1fr
+   держит табы на оси независимо от ширины стрелок; flex+space-between сдвинул бы
+   их влево на ширину пары. */
+.about-expo-bar {
+  width: min(100% - 2 * var(--about-pad), var(--about-max));
+  margin-inline: auto;
+  margin-bottom: clamp(2rem, 3vw, 3.75rem);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--about-col-gap);
+}
+.about-expo-years {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-24);                   /* замер: 24 между инстансами кнопок-годов (бокс-в-бокс) */
+}
+.about-expo-nav { grid-column: 3; justify-self: end; display: inline-flex; gap: var(--sp-8); }
+.expo-year {
+  border: 0;
+  background: transparent;
+  padding: var(--sp-10) var(--sp-4);
+  font-family: "Simplepro Display", "Geologica", sans-serif;
+  font-weight: 700;
+  font-size: var(--fs-h6);
+  letter-spacing: -0.02em;
+  /* КОНТРАСТ НЕАКТИВНОГО ТАБА. Было --grey-30-brand (#D2D7DA) — 1.45:1 к белому фону:
+     формально текст, фактически disabled, кликать такое никто не пойдёт. Ставим
+     --text-secondary (#565B5E) — 6.88:1, с запасом над порогом AA 4.5:1 для мелкого
+     текста. Своего hex не изобретаем: это семантический токен «вторичный текст» из
+     tokens.css, тот же, что у должности директора и служебных строк страницы.
+     Выбранный при этом остаётся ЗАМЕТНО сильнее: --grey-90 даёт 19.82:1, то есть
+     2.9× по коэффициенту контраста — разница читается и без цвета, одной плотностью. */
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.expo-year:hover { color: var(--text-ghost-hover); }   /* #232527 — 15.9:1, ступень между покоем и выбором */
+.expo-year.is-selected { color: var(--grey-90); }
+/* focus-visible СВОЙ не заводим — глобальное кольцо из tokens.css */
+
+/* Рельс года. Один на год, невидимые прячет [hidden] — но display:flex у класса
+   БЬЁТ UA-правило [hidden]{display:none} (специфичность класса выше типа-атрибута),
+   поэтому гашение прописано явно. Без этой строки все 11 наборов лягут подряд. */
+.about-expo-rail {
+  display: flex;
+  gap: var(--about-col-gap);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-inline: max(var(--about-pad), calc((100% - var(--about-max)) / 2));
+  /* scroll-padding ОБЯЗАН равняться полю: без него snap ставит карточку к border-краю
+     рельса, поле «съедается», и стрелки (они вычитают левое поле — канон §5)
+     промахиваются мимо кромки ровно на это число. */
+  scroll-padding-inline: max(var(--about-pad), calc((100% - var(--about-max)) / 2));
+  padding-bottom: var(--sp-8);
+  scrollbar-width: thin;
+}
+.about-expo-rail[hidden] { display: none; }
+.about-expo-rail:focus-visible { outline: 0.125rem solid var(--border-focus); outline-offset: 0.125rem; }
+
+.expo-card {
+  flex: 0 0 auto;
+  width: min(66.8125rem, 100%);        /* 1069 макета; 100% = контент рельса, не 100vw —
+                                          процент от вьюпорта включает скроллбар и даёт
+                                          горизонтальное переполнение на узком десктопе */
+  scroll-snap-align: start;
+}
+/* Шапка живёт над ФОТО, а не над всей карточкой: замер макета 912×34 при карточке 1069.
+   Отсюда правый вырез ровно в колонку миниатюр + гэп медиа-ряда (132+25).
+   ГОДА В ШАПКЕ НЕТ (снят 22.07). Он дублировал активный таб, стоящий прямо над лентой,
+   а в наборе 2025 девять карточек подряд несли девять одинаковых «2025» кеглем h4 —
+   ряд заголовков, за которыми нет разного содержания. Год теперь живёт ровно в одном
+   месте — в табе. Замер шапки: 33.6 → 21 на 1920, 21.7 → 21 на 375. */
+.expo-card-head {
+  padding-right: calc(8.25rem + 1.5625rem);
+  margin-bottom: var(--sp-12);
+}
+/* ЗАГЛУШКА-СЛОТ, ЖДЁМ КЛИЕНТА (пара к комментарию в js/about.js).
+   Слот — тот, что макет отводит под ОПИСАНИЕ выставки; описаний нет ни у нас, ни на
+   живом сайте (замер: 104 анкера с data-caption=""), названия мероприятий запрошены
+   у клиента и выдумывать их нельзя. До них тут стоит счётчик кадров, и он оформлен
+   СЛУЖЕБНЫМ, а не заголовком: caption-ступень (12→14 против 15 у корпуса) и
+   --text-secondary (контраст 6.9:1 против 8.9:1 у корпуса) — читается, но не
+   претендует на роль шапки. Придёт текст клиента — встанет сюда же вместо счётчика
+   и заберёт корпусной кегль. */
+.expo-card-count {
+  margin: 0;
+  font-weight: 300;
+  font-size: var(--about-fs-caption);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.expo-card-media { display: flex; gap: 1.5625rem; }   /* 25 */
+/* Большой кадр — КНОПКА (открывает фулвью), поэтому сброс кнопочных умолчаний.
+   div с onclick был бы недоступен с клавиатуры, а канон фулвью требует Enter/Space. */
+.expo-card-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  aspect-ratio: 912 / 512;
+  border: 0;
+  padding: 0;
+  border-radius: var(--r-4);
+  overflow: hidden;
+  background: var(--bg-surface);
+  cursor: zoom-in;                     /* канон .gallery-main > img / .slide-photo */
+  display: block;
+}
+.expo-card-main img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.expo-card-thumbs {
+  flex: 0 0 8.25rem;                   /* 132 */
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-12);                   /* шаг 84 = 72 + 12 */
+}
+.expo-thumb {
+  width: 100%;
+  aspect-ratio: 132 / 72;
+  border: 0;
+  padding: 0;
+  border-radius: var(--r-4);
+  overflow: hidden;
+  background: var(--bg-surface);
+  cursor: pointer;
+  flex: none;
+  transition: outline-color 0.15s ease;
+}
+.expo-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* Одиночный выбор — канон .slide-thumbs .thumb.is-active: обводка внутрь, лейаут
+   не двигает (border сдвинул бы кадр на 3px и вся колонка «дышала» бы при выборе). */
+.expo-thumb.is-active { outline: 0.1875rem solid var(--action-primary); outline-offset: -0.1875rem; }
+/* ПОРТРЕТНЫЕ КАДРЫ. Часть фото вертикальные (замер забора): в слоте 912×512 при
+   cover от портрета 2:3 остаётся ~37 % кадра. Класс вешает js/about.js по фактическим
+   naturalWidth/naturalHeight — не по имени файла и не на глаз. */
+.expo-card-main.is-portrait img,
+.expo-thumb.is-portrait img { object-fit: contain; }
+
+/* ---------- Фулвью (эталон 2184:36730) ----------
+   Второй лайтбокс страницы НЕ заводим: у about своего не было вовсе, а канон-CSS
+   продуктовой живёт в block-01-first-screen.css, который эта страница не подключает.
+   Классы namespace'ятся expo-fullview-*, чтобы при будущем слиянии страниц не
+   столкнуться с .lightbox продуктовой. */
+.expo-fullview {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-48);
+  /* тёмный скрим канона (замер эталона): hex тут запрещён — берём токен-примитив
+     и разбавляем прозрачностью через color-mix */
+  background: color-mix(in srgb, var(--grey-90) 88%, transparent);
+}
+.expo-fullview[hidden] { display: none; }
+body.expo-fullview-open { overflow: hidden; }
+/* Стейдж, а не голая картинка (канон: под кадром светлая подложка, кадр вписан
+   с полями). Вертикальный предел стоит В ТОЙ ЖЕ формуле ширины, а не отдельным
+   max-height: при aspect-ratio max-height режет только высоту и стейдж молча
+   перестаёт быть 912/512 (грабли канона, поймано на квадрате продуктовой).
+   160vh = 90vh × 912/512. */
+.expo-fullview-img {
+  width: min(90vw, 160vh, 60rem);
+  height: auto;
+  aspect-ratio: 912 / 512;
+  object-fit: contain;
+  background: var(--bg-surface);
+  border-radius: var(--r-8);
+  transition: opacity 0.15s ease;
+}
+.expo-fullview-rail {
+  --fv-thumb: 5rem;                    /* 80 — канон .lightbox-rail, фикс, не fluid */
+  position: absolute;
+  top: 50%;
+  left: var(--sp-64);
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-12);
+  max-height: calc(100% - var(--sp-96));
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.expo-fullview-rail::-webkit-scrollbar { display: none; }
+.expo-fullview-rail .expo-thumb { width: var(--fv-thumb); aspect-ratio: 1 / 1; }
+.expo-fullview-rail .expo-thumb.is-selected { outline: 0.1875rem solid var(--action-primary); outline-offset: -0.1875rem; }
+.expo-fullview-close {
+  position: fixed;
+  top: var(--sp-24);
+  right: var(--sp-24);
+  width: 2.75rem;
+  height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--r-4);
+  cursor: pointer;
+  background: var(--action-primary);
+  color: var(--text-inverse);
+  transition: background-color 0.15s ease, border-radius 0.15s ease;
+}
+.expo-fullview-close:hover { background: var(--action-primary-hover); border-radius: var(--r-8); }
+.expo-fullview-close:active { background: var(--action-primary-pressed); }
+.expo-fullview-close svg { width: 1.375rem; height: 1.375rem; }
+
+/* Стоячее правило дома: под reduced-motion блок стоит на месте. Плавную прокрутку
+   рельса и табов гасит сам js/about.js (behavior: auto), здесь — все переходы. */
+@media (prefers-reduced-motion: reduce) {
+  .expo-year,
+  .expo-thumb,
+  .expo-fullview-img,
+  .expo-fullview-close { transition: none; }
+}
+
+/* ============================================================
+   7. ТЕНДЕР/CTA — фото + панели + полоса контактов
+   ============================================================ */
+.about-tender {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: var(--about-pad);
+  display: grid;
+  justify-items: end;
+  gap: clamp(1.5rem, 2.6vw, 3rem);
+  background: var(--bg-surface);
+  min-height: min(56.75rem, 47.3vw);   /* 908 в кадре 1920 */
+  align-content: space-between;
+}
+.about-tender-photo {
+  position: absolute; inset: 0; z-index: -1;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.about-tender-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 27.9375rem));   /* 446/445 */
+  gap: var(--about-col-gap);
+  width: min(100%, 56.375rem);
+}
+.tender-panel {
+  background: var(--bg-page);
+  border-radius: var(--r-4);
+  padding: 1.5rem;
+}
+.tender-panel-title {
+  font-size: var(--fs-h3);
+  color: var(--grey-90);
+  margin-bottom: 1.25rem;
+}
+/* Кегль тендер-панелей — КОРПУСНЫЙ, как у остальной прозы страницы. Раньше тут стоял
+   --fs-p4 (15 на 1920 / 13 на 375): продающий текст был мельче вводного на четверть,
+   и это был главный шов между блоками.
+   ⚠ Проверено грепом перед правкой: .tender-panel и .about-cta в components.css НЕ
+   существуют — обе панели описаны здесь и в css/mobile.css, канон ими не управляет.
+   Из канона в этой полосе приходят только .btn (кнопки CTA), .cta-field и .phone-box —
+   их кегли и геометрию не трогаем. */
+.tender-panel p {
+  font-weight: 300;
+  font-size: var(--about-fs-body);
+  line-height: 1.5;
+  color: var(--grey-60-brand);
+  margin-bottom: var(--sp-16);         /* карточный ритм, как у панели экскурсии */
+}
+.tender-panel p:last-child { margin-bottom: 0; }
+
+/* ── полоса контактов (канон CTA: телефон с регионом · email · мессенджеры) ── */
+.about-cta {
+  width: min(100%, 56.6875rem);        /* 907 */
+  background: var(--bg-page);
+  /* радиус 12 — канон полосы (2-Д «в»); было --r-4 */
+  border-radius: var(--r-12);
+  padding: 1.5rem;
+}
+.about-cta-title {
+  /* 2-Д «в»: капс снят и кегль приведён к клампу 22→28 (канон-полоса продуктовой
+     рендерит 28 на 1920 — замерено, не выведено). Прежде: --fs-h5 (24) + uppercase. */
+  font-size: clamp(1.375rem, 1.29rem + 0.38vw, 1.75rem);
+  text-transform: none;
+  color: var(--grey-90);
+  margin-bottom: 1.5rem;
+}
+.about-cta-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+.cta-field { display: flex; flex-direction: column; gap: var(--sp-8); }   /* зазор лейбл↔контрол = 8, вердикт Антона 29.07 («1 б») */
+/* Лейбл поля — caption-ступень шкалы (12→14). Кегль НЕ трогаем: 14 на 1920 совпадает
+   с канонным .cta-field .lbl (0.875rem, components.css), а полоса собрана из канон-полей. */
+.cta-field-label {
+  /* 2-Д «г»: мелкий текст полос — Geologica 400 везде (было 300); строка 1.0, чтобы
+     воздух под лейблом давал ЯВНЫЙ гэп поля, а не полуинтерлиньяж (было lh 21 при кегле 14). */
+  font-weight: 400;
+  font-size: var(--about-fs-caption);
+  line-height: 1;
+  color: var(--text-secondary);
+}
+.cta-field-row { display: flex; flex-wrap: wrap; gap: var(--sp-12); }
+.cta-pair { display: flex; gap: var(--sp-8); }
+
+/* телефон: чип региона + номер + копи-кнопка в одном боксе.
+   ⚠ Кегли ниже (--fs-p4 у чипа и пунктов дропа, --fs-p3 у номера) на типо-шкалу
+   страницы СОЗНАТЕЛЬНО не переведены: это КОНТРОЛЫ канон-полосы, а не проза. В канон-
+   версии (components.css: .region-chip, .phone-link, .region-drop button) они прибиты
+   к 0.875rem / 1rem / 0.875rem, и наши значения сидят на них; переставь их на корпус —
+   разъедется высота 44-й строки и уплывём от канона. Шкала --about-fs-* про ТЕКСТ. */
+.phone-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  /* канон-паддинг бокса 0/10/0/8 (components.css .phone-box) — было 4 со всех сторон */
+  padding: 0 0.625rem 0 0.5rem;
+  min-height: 2.75rem;                 /* 44 — высота канон-кнопки */
+  /* синяя рамка канона (--text-link), а не красная: телефон в обводочном боксе —
+     это ссылка-действие связи, а не акцент страницы (2-Д «в») */
+  border: var(--hairline) solid var(--text-link);
+  border-radius: var(--r-4);
+  background: var(--bg-page);
+}
+.region-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+  border: 0;
+  border-radius: var(--r-2);
+  background: var(--bg-surface);
+  padding: var(--sp-8) var(--sp-10);
+  font-size: var(--fs-p4);
+  color: var(--grey-60-brand);
+}
+.region-chip:hover { background: var(--bg-surface-accent); }
+.region-chip-chev img { width: 1.125rem; height: 1.125rem; }
+.phone-box-tel {
+  font-size: var(--fs-p3);
+  color: var(--text-link);             /* канон .phone-link, было --action-primary */
+  white-space: nowrap;
+  padding-inline: var(--sp-4);
+}
+.phone-box .copy-btn { flex: 0 0 auto; }
+.region-drop {
+  position: absolute;
+  top: calc(100% + var(--sp-4));
+  left: 0;
+  z-index: 5;
+  min-width: 100%;
+  max-height: 15rem;
+  overflow-y: auto;
+  background: var(--bg-page);
+  border: var(--hairline) solid var(--border-default);
+  border-radius: var(--r-4);
+  box-shadow: 0 0.5rem 1.5rem var(--grey-20);
+}
+.region-drop button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: var(--sp-8) var(--sp-12);
+  font-size: var(--fs-p4);
+  color: var(--grey-60-brand);
+  white-space: nowrap;
+}
+.region-drop button:hover { background: var(--bg-surface); }
+
+/* ============================================================
+   ЦИФРЫ ПРОИЗВОДСТВА — замок ширины под докрутку
+   (пара к блоку «цифры производства» в js/about.js)
+   ============================================================
+   .stat-item-count — inline-grid, в ОДНОЙ ячейке которого лежат живое значение и
+   невидимый двойник (::after, content из data-lock; атрибут ставит на время докрутки
+   и снимает на финише JS). Ширина ячейки = максимум из двух, поэтому пока счётчик
+   крутится (1 → 6000, 30 → 15, 1,9 → 0,1), единица измерения за числом стоит колом.
+
+   ЗАМЕР, почему не хватило табличных цифр: в Simplepro Display цифры ПРОПОРЦИОНАЛЬНЫЕ
+   («1» 23.38px против «4» 29.47px при канонном кегле 52), а font-variant-numeric шрифт
+   игнорирует — ширины с tabular-nums и без совпадают до 0.001px (перемер 22.07 на
+   канонном кегле, не наследие прежнего). tabular-nums оставлен
+   страховкой на путь фолбэка: Geologica tnum поддерживает.
+
+   Снесёшь — единица измерения поедет за числом, сама докрутка выживет. Замер разгона поля
+   БЕЗ замка при канонном кегле (22.07, прогон с заглушенным ::after): 1920 — 39.2 / 8.2 /
+   11.2px, 360 — 79.1 / 7.0 / 9.5px по трём цифрам. С замком размах ровно 0.00 на всём
+   прогоне (старт 60мс · середина 700мс · конец 1336мс — одно и то же число до сотых).
+   ⚠ Цена сделки: на ФИНИШЕ, когда замок снимается, поле садится к натуральной ширине
+   (1920: −3.9 / −9.6 / −7.1px), и единица однократно доезжает влево. Это осознанный выбор
+   автора куска — покой обязан быть 1:1 макетом, без лишнего зазора перед единицей. Величина
+   посадки едет с кеглем: на прежних 28 она была ~5px, на канонных 52 стала ~10 у «15 ДНЕЙ». */
+.stat-item-count {
+  display: inline-grid;
+  font-variant-numeric: tabular-nums;
+}
+.stat-item-count > *,
+.stat-item-count::after { grid-area: 1 / 1; }
+.stat-item-count::after {
+  content: attr(data-lock);          /* без атрибута — пустая строка, замок не мешает покою */
+  visibility: hidden;
+}
+
+/* ============================================================
+   СТАТИЧНЫЙ ХЕРО-ВОРДМАРК — пункт 5 механики секции 2222:138436
+   ============================================================ */
+/* Слово Антона, дважды: «лого должно оставаться статичным» · «лого до сих пор не едет».
+   Канон-кадр 2222:138033 (та же страница, прокрученная) показывает вордмарк НА ТОМ ЖЕ
+   МЕСТЕ, что и на неприкрученном 2192:42616, а контент уехал поверх него.
+
+   ЧТО ДЕЛАЕМ. Вордмарк стоит НЕПОДВИЖНО относительно окна на той экранной высоте,
+   где его оставила сцена первого экрана (§1a), и отпускается ровно у верха футера.
+   Величину сдвига в --about-hold-y считает js/about.js по [data-hold], само
+   объявление transform живёт здесь.
+
+   ⛔ ЗДЕСЬ БЫЛ ПАРАЛЛАКС (K=0.8, сдвиг разгонялся 0 → 153.64px на 1728×900 и
+   0 → 24.5px на 360×800) — СНЯТ 22.07. «Статично» и параллакс взаимоисключающи,
+   слово Антона — статика. Ход теперь ровно обратный: сдвиг не отстаёт от страницы,
+   а полностью её компенсирует, и вордмарк стоит колом.
+
+   ПОЧЕМУ transform, а НЕ position:fixed. Фикс тут физически не работает: родитель
+   .about-hero-scene несёт container-type:inline-size (§1a), а это `contain: layout`,
+   и layout-containment делает элемент СОДЕРЖАЩИМ БЛОКОМ для fixed-потомков — «фикс»
+   внутри сцены отсчитывался бы от коробки сцены и уезжал бы вместе с ней, то есть
+   ровно тот баг, который чиним. Плюс transform ничего не должен раскладке: вордмарк
+   остаётся грид-элементом, ритм «вордмарк → H1» держит margin-bottom выше по файлу,
+   высота документа не меняется ни на пиксель. translate3d вдобавок уводит вордмарк
+   на собственный композиторский слой — растр маски на скролле не пересчитывается.
+
+   ПОЧЕМУ z-index/isolation: элемент со сдвигом САМ становится стекинг-контекстом и
+   всплывает над обычным потоком — без явного -1 вордмарк закрыл бы собой H1.
+   z-index работает и на position:static, потому что вордмарк — грид-элемент
+   .about-grid. isolation держит этот -1 внутри херо: под фон страницы (body несёт
+   непрозрачный --bg-page) он не проваливается.
+
+   ЕСЛИ СНЕСТИ: вордмарк вернётся в позицию макета (сдвиг 0) и уедет вместе с херо —
+   страница не поедет, но пункт 5 механики пропадёт. Снимать надо ВСЕ правила разом
+   вместе с JS-блоком — иначе останется висеть --about-hold-y, который никто не читает. */
+.about-hero { isolation: isolate; }
+.about-hero-watermark {
+  z-index: -1;                 /* действует и на static: вордмарк — грид-элемент .about-grid */
+  pointer-events: none;        /* фон не перехватывает клики: они проходят насквозь */
+  /* transform снят: позицию держит position:fixed, см. §1 */
+}
+
+/* КОНТЕНТ ИДЁТ ПОВЕРХ — правило, без которого вся затея наоборот.
+   Вордмарк лежит в .about-hero, а тот из-за isolation:isolate — стекинг-контекст;
+   непозиционированный стекинг-контекст красится в порядке «z-index:0», то есть ПОЗЖЕ
+   фонов и текста обычных блоков-соседей. Замер (1728×900, тот же кадр с правилом и без):
+   на scrollY 3500 серые буквы легли ПОВЕРХ текста «Слова директора» и выели из него
+   слова, на 4400 — поверх подписей карточек истории; различие кадров 175 829 и 372 362
+   точки из 1 555 200. Одна строка чинит класс целиком: позиционированная секция красится
+   в том же ряду, но по дереву ПОСЛЕ херо — и накрывает вордмарк собой.
+   Селектор нарочно широкий, а не список из четырёх имён: допишут на страницу новую
+   секцию — она получит правило сама, а не всплывёт багом через месяц.
+   .about-excursion и .about-tender уже несут position:relative (§4/§7) — им ничего
+   не добавляется; правило их просто описывает. Стекинг-контекста НЕ заводим (z-index
+   не трогаем): .expo-fullview внутри секции выставок — position:fixed с z-index 200,
+   и ему нужен корневой контекст, иначе лайтбокс уедет под шапку. */
+main > section:not(.about-hero) { position: relative; }
+
+/* ⛔ reduced-motion: статика — это ОТСУТСТВИЕ движения, а не движение. Правило
+   `transform: none` тут стояло, пока сдвиг был параллаксом; теперь тем же сдвигом
+   держится покой, и глушить его под reduce значило бы вернуть вордмарку езду.
+   Поэтому скрипт работает под reduce тоже (js/about.js), а гасится под ним сцена
+   первого экрана (§1a) и панорама задников (§8) — то есть настоящее движение. */
+
+/* ============================================================
+   8. ПАНОРАМА ЗАДНИКОВ — экскурсия (§4) и тендер/CTA (§7)
+   ------------------------------------------------------------
+   ЗАЧЕМ. Слово Антона: «при скролле чуть-чуть едет картинка показывая панораму».
+   В макете запас заложен физически: у экскурсии кадр 3000 при рамке 1920 (шире на 1080),
+   у пред-футерного — 2330 при 1920 (шире на 410). Здесь тот же приём: фото шире секции
+   на 4×--pano-amp (по 2× с каждой стороны), а ездит в пределах ±1×--pano-amp —
+   то есть на любом краю хода под рамкой остаётся ещё целый --pano-amp запаса,
+   и край кадра НИКОГДА не обнажается (замер на 1920: в крайних точках хода
+   узкая сторона держит 30.72 запаса, широкая 92.16 — сумма 122.88 = 4×amp).
+
+   ЧТО СЛОМАЕТСЯ ПРИ СНОСЕ. Ничего, кроме самого хода: фото вернётся к inset:0 из §4/§7
+   (position/height/object-fit заданы там, здесь только ширина, левый вылет и transform).
+   Если снести только JS — фото встанет в среднее положение (--pano-p по умолчанию 0),
+   вёрстка не поедет.
+
+   ПОЧЕМУ ЗАВЁРНУТО В «not all and (max-width: 45rem)». Ниже 720 моб-слой (css/mobile.css)
+   вынимает фото из абсолюта в поток (position:static, aspect-ratio) и снимает у секции
+   overflow:hidden — фото шире секции там дало бы горизонтальный скролл документа
+   (замер: на 360 это +48px, 13% ширины экрана). Поэтому механика просто не рождается
+   на мобе, а не «рождается и гасится» — это и есть один слой, а не слой поверх слоя.
+   Моб-правил в этом файле нет (см. хвостовой комментарий ниже) — здесь ДЕСКТОП-рамка.
+   ============================================================ */
+@media not all and (max-width: 45rem) {
+  .about-excursion,
+  .about-tender {
+    /* ход в одну сторону. 1.6vw = «чуть-чуть»: 30.7 на 1920 (1.6% ширины кадра),
+       ход из края в край 61 — панорамирование, а не полёт. Полка 2rem держит
+       амплитуду постоянной на широких экранах, пол 0.75rem — на узких десктопах. */
+    /* УСИЛЕНО ВДВОЕ 22.07 (слово Антона: «паралакс на картинках можно ещё подусилить»).
+       Было clamp(0.75rem, 1.6vw, 2rem) → амплитуда хода 48.9 на 1728. Стало ~48 на сторону,
+       ход из края в край ~96. Свес растёт автоматически: он выведен из этой же ручки
+       (width: 100% + 4×amp), то есть 193 на 1728 против прежних 111 — под ±48 нужно
+       ≥2×amp запаса, и он остаётся с двойным резервом, край не оголяется. */
+    --pano-amp: clamp(1.5rem, 2.8vw, 3.5rem);
+  }
+
+  /* Фото шире секции на 4×amp и вылезает влево на 2×amp: ход ±amp оставляет
+     под рамкой ≥1×amp запаса с обеих сторон в любой момент.
+     right:auto — снимаем правую половину inset:0 из §4/§7 (иначе бокс
+     переопределён по трём осям и right молча выигрывал бы у width).
+     max-width:none — ОБЯЗАТЕЛЬНО: сброс канона (tokens.css: `img, svg { max-width: 100% }`)
+     режет любую картинку по ширине контейнера, и без этой строки width считается,
+     но НЕ применяется — фото молча остаётся 100%, ход виден только по transform,
+     а край обнажается. Замер до снятия: width 1920 при calc 2042.88 на кадре 1920. */
+  .about-excursion-photo,
+  .about-tender-photo {
+    left: calc(-2 * var(--pano-amp));
+    right: auto;
+    width: calc(100% + 4 * var(--pano-amp));
+    max-width: none;
+    /* --pano-p ∈ [1 … -1] пишет js/about.js по прогрессу секции через кадр.
+       Своего значения тут нет умышленно: без JS остаётся 0 = среднее положение. */
+    transform: translate3d(calc(var(--pano-amp) * var(--pano-p, 0)), 0, 0);
+  }
+}
+
+/* Стоячее правило дома: reduced-motion гасит ход. Гасим ОДНОЙ ручкой — амплитудой:
+   при --pano-amp:0 формулы выше вырождаются в left:0 / width:100% / translate3d(0,0,0),
+   то есть ровно в исходный inset:0 из §4/§7 — фото статично в среднем положении,
+   даже если JS продолжает считать --pano-p. Идёт ПОСЛЕ блока выше — перебивает его. */
+@media (prefers-reduced-motion: reduce) {
+  .about-excursion,
+  .about-tender { --pano-amp: 0rem; }
+}
+
+/* УЗКИЙ ЭКРАН (≤720) живёт в отдельном файле css/mobile.css — как у соседа-листинга.
+   Здесь моб-правил больше нет: страховочная «одна колонка по потоку», стоявшая тут
+   до 22.07, заменена решённым моб-слоем по канону (карусели с точками, CTA столбиком,
+   тач-цели ≥48). Держать обе копии = слой совместимости с самим собой. */
+
+/* ОТПУСК У ФУТЕРА. Дальше верха футера лого не идёт: у футера СВОЙ вордмарк,
+   два логотипа в одном кадре — брак. Точку ставит JS от реального бокса футера,
+   не от прибитого числа: замер «9005» верен для одной ширины и одной раскладки,
+   а контент растёт. */
+.about-hero-watermark.is-released {
+  position: absolute;
+  top: var(--wm-abs-top, 0);
+}

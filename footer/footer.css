@@ -1,0 +1,394 @@
+/* Simple PRO — футер-модуль (стенд). Манифестации: деск (форма статуса + 5 колонок +
+   реквизиты) и моб (форма + колонки-аккордеон + вордмарк).
+   Механика — em-соразмерность по своду `../nav/collapse-rules.md`: у модуля ОДИН
+   rem-кегль (--foot-fs), и всё СОДЕРЖИМОЕ задано долями ОТ него (em), поэтому футер
+   ужимается целиком и пропорционально. Отдельного сжатия отступов при стоячем кегле
+   здесь не существует. В rem остаётся только внешняя рамка модуля (поля --foot-pad*):
+   боковое поле идёт по канон-кривой дома 36→28→12 (№12) и от кегля не зависит.
+   Источник значений: Figma «0720» → фрейм foot 2173:126402 + решения Антона 20.07.
+   Токены — ../product-card/css/tokens.css. */
+
+:root {
+  /* футер-локальные токены (кандидаты в общий слой после приёмки) */
+
+  /* ——— КЕГЛЬ ФУТЕРА — единственный rem-размер модуля ———
+     14→16 на 1280→1920. Всё остальное внутри задано в em (долях от него): поля панели,
+     высоты полей ввода, гэпы, радиусы и ширина формы едут за кеглем сами. */
+  --foot-fs: clamp(0.875rem, 0.625rem + 0.3125vw, 1rem);
+
+  /* внутреннее поле футера: НЕ --gutter/--pad-x (решение Антона 20.07 — вордмарк идёт
+     почти в край: 1848 при 1920). Кривая — канон-кламп полей дома (№12, слово Антона:
+     «36→28→12 логика вроде везде такая»): 36 от 1440, 28 на 1280, 12 на мобе.
+     Прежде здесь стоял фикс 2.25rem БЕЗ единого медиа-переопределения — замер давал
+     36 на всех пяти ширинах, включая 360, и футер донашивал деск-поле на телефоне.
+     Верх кривой = прежние 36, поэтому решение 20.07 про вордмарк не тронуто. */
+  --foot-pad: clamp(1.75rem, calc(-2.25rem + 5vw), 2.25rem);
+  --foot-pad-top: 3.75rem;
+  --foot-pad-bottom: 3.75rem;   /* 60 — замер макета: 1038 высота фрейма − 978 низ контента */
+
+  /* ——— внутренние размеры: доли кегля (em), не rem ——— */
+  --foot-title-fs: 1.0625em;   /* 17 при кегле 16 — заголовок колонки/секции */
+  --foot-title-gap: 1.25em;    /* 20 — заголовок → список */
+  --foot-link-pad: 0.125em;    /* 2  — вертикальное поле ссылки */
+  /* Воздух «форма ↔ колонки» — fluid-механика поверх кегля (решение Антона 20.07:
+     гэп сжимается с шириной, не фикс). 68→24 на 1920→1280, ниже держит пол 1.25em.
+     Потолок 4.25em = 68 — замер макета (форма 36…436, колонки с 504). */
+  --foot-gutter: clamp(1.25em, -4rem + 6.875vw, 4.25em);
+  /* 70 — замер макета: колонки 220 с шагом 290. Воздух — первая жертва по своду,
+     поэтому тоже клампом: 70→24 на 1920→1280, иначе на узком деске колонки душат текст. */
+  --foot-cols-gap: clamp(1.25em, -4.25rem + 7.1875vw, 4.375em);
+  --foot-row-gap: 3.5em;       /* 56 — замер макета: низ колонок 770 → верх контактов 826 */
+  --foot-mark-gap: 2.5em;      /* 40 — вордмарк (низ 466) → содержимое (506) */
+
+  --foot-panel-w: 25em;        /* 400 — форма «Проверить статус заказа» */
+  --foot-panel-h: 20em;        /* 320 — высота формы по макету */
+  --foot-panel-pad: 1.5em;     /* 24 — панель-отступы */
+  --foot-panel-gap: 1.25em;    /* 20 — заголовок → поля → кнопка (замер макета) */
+  --foot-fields-gap: 0.75em;   /* 12 — между двумя полями внутри группы */
+  --foot-field-gap: 0.5em;     /* 8  — подпись → поле */
+  --foot-field-h: 2.75em;      /* 44 — поле ввода и кнопка */
+  --foot-field-pad: 0.75em;    /* 12 */
+  --foot-r: 0.25em;            /* 4  — радиус панели, полей, кнопки */
+  --foot-r-hover: 0.5em;       /* 8  — «hover скругляет» (словарь состояний btn, свод) */
+  --foot-btn-min-w: 7.5em;     /* 120 — канон .btn min-width (в макете кнопка 118) */
+  --foot-btn-pad: 1.5em;       /* 24 — канон .btn padding-inline */
+
+  --foot-pair-gap: 0.25em;     /* 4  — шаг строк 28 при высоте строки 24 (замер макета) */
+  --foot-pair-w: 18em;         /* 288 — ширина контакт-блока; значение прижато к правому краю */
+  --foot-hairline: 0.0625em;   /* 1  — нить-разделитель аккордеона */
+  --foot-chevron: 0.09375em;   /* 1.5 — толщина шеврона */
+
+  /* белая нить и фокус-кольцо на графите: --border-focus (grey-90) на тёмном фоне
+     не читается, токена «кольцо на инверсии» в общем слое пока нет */
+  --foot-rule: color-mix(in srgb, var(--grey-0) 8%, transparent);
+  --foot-focus-ring: var(--grey-0);
+
+  /* флаг манифестации для footer.js: порог живёт только в @media ниже, скрипт читает
+     его отсюда и не дублирует число (иначе разъедется при пересчёте свипом) */
+  --foot-accordion: 0;
+}
+
+/* ============ каркас ============ */
+.site-footer {
+  overflow: hidden;
+  padding: var(--foot-pad-top) var(--foot-pad) var(--foot-pad-bottom);
+  background: var(--grey-60-brand);
+  color: var(--grey-30-brand);
+  /* кегль модуля: от него em-долями пляшет всё внутреннее */
+  font-size: var(--foot-fs);
+  font-weight: 300;
+}
+.footer-watermark {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1848 / 406;
+  height: auto;
+  margin-bottom: var(--foot-mark-gap);
+}
+/* ОДНА система осей на оба ряда (правка Антона 20.07, эталон foot 2173:126402):
+   верхний и нижний ряды строятся по одинаковой рамке «трек формы + остаток», а внутри
+   остатка живут ОДНИ И ТЕ ЖЕ пять колонок (5 × 1fr с одним гэпом). Поэтому «О компании»
+   стоит на вертикали реквизитов, а «Материалы» — на вертикали правовых ссылок.
+   Проверяется свипом: оси колонок ряда 1 и блоков ряда 2 сверяются попиксельно. */
+.footer-grid,
+.footer-row2 {
+  display: grid;
+  grid-template-columns: var(--foot-panel-w) minmax(0, 1fr);
+  column-gap: var(--foot-gutter);
+}
+.footer-cols,
+.footer-row2-cols {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  column-gap: var(--foot-cols-gap);
+}
+.footer-grid { align-items: start; }
+
+/* Фокус-кольцо всего футера: светлое, иначе тонет в графите (WCAG 2.4.7).
+   Через :is(...) — чтобы при сборке страницы канонический `.btn:focus-visible`
+   (components.css, кольцо grey-90) не перебил его равной специфичностью. */
+.site-footer :is(a, button, input):focus-visible {
+  outline: 0.125em solid var(--foot-focus-ring);
+  outline-offset: 0.125em;
+}
+
+/* ============ форма «Проверить статус заказа» ============ */
+.status-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--foot-panel-gap);
+  min-height: var(--foot-panel-h);
+  padding: var(--foot-panel-pad);
+  border-radius: var(--foot-r);
+  background: var(--grey-80);
+}
+.sp-title {
+  margin: 0;
+  font-size: var(--foot-title-fs);
+  font-weight: inherit;
+}
+/* группа полей: между собой 12, а до заголовка и кнопки — 20 (замер макета) */
+.sp-fields { display: flex; flex-direction: column; gap: var(--foot-fields-gap); }
+.sp-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--foot-field-gap);
+}
+.sp-field input {
+  height: var(--foot-field-h);
+  padding-inline: var(--foot-field-pad);
+  border: var(--foot-hairline) solid var(--grey-50);
+  border-radius: var(--foot-r);
+  background: var(--grey-30-brand);
+  color: var(--grey-60-brand);
+  font-family: inherit;
+  font-size: 1em;
+  font-weight: inherit;
+  transition: background-color 0.15s ease;   /* темп футера — тот же, что у кнопки ниже */
+}
+.sp-field input::placeholder { color: var(--grey-50); }
+
+/* ФОКУС ПОЛЕЙ ФОРМЫ СТАТУСА — правка Антона: поле «светится» белым, кольца вокруг нет.
+   Словарь состояний не сломан: индикация не исчезла, а СМЕНИЛАСЬ — фон grey-30 → grey-0.
+   На графитовой панели белое поле читается сильнее прежнего кольца, так что требование
+   различимого фокуса (WCAG 2.4.7, ради него кольцо и заводили) выполняется по-прежнему.
+   Контраст на белом с запасом: текст #454A4D ≈ 8.9:1, плейсхолдер #565B5E ≈ 7.0:1.
+
+   ⚠ Кольцо снимаем ТОЛЬКО у этих двух полей, а не у футера целиком: общее правило
+   `.site-footer :is(a, button, input):focus-visible` держит фокус на ссылках и кнопках,
+   где фон не меняется и снять кольцо было бы регрессом доступности.
+
+   :focus, а не только :focus-visible — Антон говорит «когда в них наткнуто», то есть
+   и мышью тоже; кольцо же гасим по :focus-visible, ровно там, где общее правило его ставит. */
+.sp-field input:focus { background: var(--grey-0); }
+.sp-field input:focus-visible { outline: none; }
+/* кнопка НЕ на всю панель — ТОЛЬКО НА ДЕСКЕ: ширина по контенту, прижата вправо в нижнем
+   ряду панели (слово Антона 20.07 по скрин-эталону; метадата фрейма 2173:126415 даёт её
+   слева — взял свежее слово, расхождение вынесено в отчёт). В моб — наоборот, на всю
+   ширину панели (правка Антона 20.07, оверрайд в медиа-блоке моба ниже). */
+.sp-btn {
+  align-self: flex-end;
+  height: var(--foot-field-h);
+  min-height: var(--foot-field-h);
+  font-size: 1em;
+}
+
+/* ============ колонки разделов ============ */
+/* Колонки — треки сетки, а не содержимое: ширина у всех одна (220 при 1920), и она же
+   держит оси нижнего ряда. Когда воздуха не хватает, треки ужимаются (minmax(0,1fr)) и
+   длинный пункт переходит на вторую строку — состав держится целиком, раскладка нет.
+   Нижний воздух = слак до нижнего ряда: в макете колонки (низ 770) отбиты от контактов
+   (826) на 56, а форма (низ 826) стоит к ним вплотную. margin-bottom вместо отступа у
+   ряда даёт ровно это и не склеивает блоки, когда колонки перерастают форму. */
+.footer-cols { margin-bottom: var(--foot-row-gap); }
+.footer-col { display: flex; flex-direction: column; gap: var(--foot-title-gap); min-width: 0; }
+/* заголовок секции: и <p> («Контакты»), и <button> (моб-аккордеон) — вид один */
+.fc-title {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--grey-30-brand);
+  font-family: inherit;
+  font-size: var(--foot-title-fs);
+  font-weight: inherit;
+  line-height: inherit;
+  text-align: start;
+}
+.fc-list { display: flex; flex-direction: column; }
+.footer-col a {
+  display: block;
+  padding-block: var(--foot-link-pad);
+  transition: color 0.15s ease;
+}
+.footer-col a:hover { color: var(--grey-0); }
+
+/* ============ нижний ряд: копирайт · контакты · реквизиты · правовые ссылки ============
+   Высоту ряда задаёт «Контакты» (самый высокий блок): он стоит от ВЕРХНЕЙ кромки, а
+   копирайт, реквизиты и ссылки прижаты к НИЖНЕЙ — их низ = низ контакт-блока
+   (эталон foot 2173:126402, правка Антона 20.07). Копирайт занял первую колонку —
+   ту, что стоит под формой статуса. */
+.footer-row2 { align-items: end; }
+.footer-row2-cols { align-items: end; }
+/* оси: контакты садятся на колонку 1 (шире её — занимают две), реквизиты на 3-ю
+   («О компании»), правовые ссылки на 4-ю («Материалы») — замер макета x 504 / 1084 / 1374 */
+.footer-contacts {
+  grid-column: 1 / span 2;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--foot-title-gap);
+}
+.footer-legal {
+  grid-column: 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--foot-pair-gap);
+}
+.footer-links {
+  grid-column: 4 / span 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--foot-pair-gap);
+}
+/* контакт-блок 288: ключ слева, значение прижато к правому краю (замер макета) */
+.fc-pairs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--foot-pair-gap);
+  width: var(--foot-pair-w);
+  max-width: 100%;
+}
+.fc-pair { display: flex; justify-content: space-between; gap: var(--foot-title-gap); }
+.footer-links a { transition: color 0.15s ease; }
+.footer-links a:hover { color: var(--grey-0); }
+.footer-copy {
+  grid-column: 1;
+  margin: 0;
+  font-size: var(--foot-title-fs);
+  color: var(--grey-0);
+}
+
+/* Кнопка «Посмотреть» — канон .btn/.btn--primary из components.css, пересчитанный в em
+   (стенд не тащит весь файл). Словарь состояний соблюдён целиком: hover = тон темнее +
+   рост радиуса, active = pressed-тон, focus-visible — общим правилом футера выше.
+   Прозрачная рамка-хайрлайн стоит в покое, чтобы состояния не двигали раскладку. */
+/* ⚠ СКОУП ОБЯЗАТЕЛЕН (21.07, врезка в продуктовую). Правило было объявлено глобально —
+   на стенде это незаметно (других .btn--primary там нет), но в СОСТАВЕ страницы модуль
+   грузится последним и перебивал ВСЕ кнопки сборки: у пары CTA правый сегмент раздувало
+   до 50×44 из-за --foot-btn-min-w, а иконку схлопывало в 0. Модуль не имеет права
+   экспортировать наружу общее имя — только своё поддерево. */
+.site-footer .btn--primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-width: var(--foot-btn-min-w);
+  padding-inline: var(--foot-btn-pad);
+  border: var(--foot-hairline) solid transparent;
+  border-radius: var(--foot-r);
+  background: var(--action-primary);
+  color: var(--role-primary-fg);
+  font-family: inherit;
+  font-weight: 400;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-radius 0.15s ease;
+}
+.site-footer .btn--primary:hover { background: var(--action-primary-hover); border-radius: var(--foot-r-hover); }
+.site-footer .btn--primary:active { background: var(--action-primary-pressed); border-radius: var(--foot-r-hover); }
+
+/* ============ моб-манифестация ============
+   Порог = 1230 — общий порог дома из свода (`../nav/collapse-rules.md`): страница
+   меняет манифестацию целиком и одновременно с nav, иначе в полосе 1231–1240 жил бы
+   моб-футер под деск-хедером.
+   ⚠ Правка 21.07: здесь стояло 1240 при том, что свод и nav держат 1230 — комментарий
+   утверждал «общий порог дома», а число с ним расходилось на 10px. Это давало полосу
+   1231–1240, где футер уже моб, а шапка ещё деск. Приведено к своду.
+   Физический потолок САМОГО футера — ЗАМЕР свипа (_scratch/sweep-footer.js): деск-раскладка
+   (форма 25em + 5 колонок) влезает с 1093, на 1092 колонки упираются в min-content
+   длинных пунктов (потолок 1100), то есть до дома-порога 1230 у футера ~130px запаса. Свип меряет обе
+   стороны границы (1230 и 1231).
+   Ступеней внутри деска нет: до порога жмут кегль и оба клампа воздуха.
+   Состав моб: форма (обязательна, кнопка на всю ширину панели) · колонки-аккордеон в
+   порядке донора (Мебель · Проекты · Покупателю · О компании · Материалы) · вордмарк ·
+   нижний ряд — © и ссылка «Обработка персональных данных» СТОПКОЙ, каждый на своей
+   строке целиком (решение Антона+бригадира 20.07: замер живым шрифтом показал, что на
+   распор строка недостижима даже на нечитаемом кегле — единственный рабочий вариант —
+   стопка со своей уменьшенной ступенью кегля, см. .footer-row2 в медиа ниже).
+   Контакты и реквизиты моб-донор не показывает. */
+@media (max-width: 76.875rem) {
+  :root {
+    --foot-accordion: 1;
+    /* у моб-манифестации СВОЙ кегль — 16, а не дно деск-клампа (14): на 14px iOS зумит
+       страницу при фокусе в поле ввода, и тач-цели не добирают до 48 из свода.
+       em-соразмерность от этого не страдает: доли те же, кегль другой. */
+    --foot-fs: 1rem;
+    --foot-field-h: 3em;      /* 48 — тач-цель формы */
+    --foot-link-pad: 0.75em;  /* 12 → строка списка 48 */
+  }
+  .site-footer { display: flex; flex-direction: column; }
+  /* Общая система осей — деск-механика; в моб футер становится одной колонкой, поэтому
+     .footer-grid и .footer-row2-cols распускаются (display: contents), а порядок задаётся
+     order на самих блоках. .footer-row2 — исключение: получает собственный флекс-бокс
+     (не распускается), чтобы собрать нижний ряд — © и ссылку «Обработка персональных
+     данных» СТОПКОЙ; почему стопкой, а не на распор — при самом правиле .footer-row2 ниже.
+     Order ниже вордмарка — самый нижний блок футера. Остальные правовые ссылки и
+     реквизиты моб-донор не носит. */
+  .footer-grid,
+  .footer-row2-cols { display: contents; }
+  .footer-contacts,
+  .footer-legal { display: none; }
+  .footer-links a { display: none; }
+  /* white-space: nowrap — критерий приёмки: ссылка ПД целиком на одной строке, без
+     переноса (решение Антона+бригадира 20.07). Паддинг свой (не --foot-link-pad —
+     тот общий с аккордеоном, у которого кегль 16, а не 14 этого ряда): 1em при
+     уменьшенном кегле ряда даёт тач-цель ≥48 (замер свипа). */
+  .footer-links .pd-link { display: block; padding-block: 1em; white-space: nowrap; }
+
+  .status-panel { order: 0; min-height: 0; }
+  /* кнопка на всю ширину панели — ТОЛЬКО В МОБ (правка Антона 20.07); деск не трогать,
+     там кнопка по контенту (см. комментарий у канонического правила .sp-btn выше) */
+  .sp-btn { align-self: stretch; }
+  /* вордмарк отбит от аккордеона и прижат к нижнему ряду (20 / 8 при кегле 16) */
+  .footer-watermark { order: 3; margin: 1.25em 0 0.5em; }
+  /* нижний ряд — НЕ распор: копирайт и ссылка ПД каждый на своей строке (стопка), левый
+     край обоих = левому полю футера (align-items: flex-start). Критерий — каждый текст
+     ЦЕЛИКОМ на своей строке, без переноса; распор бок-о-бок физически недостижим (замер
+     живым шрифтом 20.07: 187+271px текста в 303px ряда на 375, не влезает даже на кегле
+     10). Своя уменьшенная ступень кегля — 0.875em от --foot-fs (≈14) — единственный
+     способ уложить оба текста в одну строку каждый на узких телефонах (решение
+     Антона+бригадира 20.07). white-space: nowrap на обоих текстах закрепляет критерий. */
+  .footer-row2 {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5em;
+    font-size: 0.875em;
+    order: 4;
+  }
+  .footer-copy { white-space: nowrap; }
+
+  .footer-cols { order: 2; display: flex; flex-direction: column; gap: 0; margin: var(--foot-row-gap) 0 0; }
+  .footer-col { gap: 0; border-bottom: var(--foot-hairline) solid var(--foot-rule); }
+  .footer-col .fc-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-block: 0.875em;
+    cursor: pointer;
+  }
+  .footer-col .fc-title::after {
+    content: "";
+    flex: 0 0 auto;
+    width: 0.5em;
+    height: 0.5em;
+    /* повёрнутый на 45° квадрат занимает по ширине √2 стороны: без компенсации его
+       угол вылезает за поле и даёт 2px горизонтального скролла (замер свипа) */
+    margin-inline-end: 0.125em;
+    border-right: var(--foot-chevron) solid var(--grey-30-brand);
+    border-bottom: var(--foot-chevron) solid var(--grey-30-brand);
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+  }
+  .footer-col.is-open .fc-title::after { transform: rotate(225deg); }
+  .footer-col .fc-list { display: none; }
+  /* 8 — низ раскрытого списка не липнет к нити-разделителю */
+  .footer-col.is-open .fc-list { display: flex; padding-bottom: 0.5em; }
+
+  /* порядок донора: Покупателю поднимается над «О компании» и «Материалами» */
+  .footer-col:nth-child(3) { order: 4; }  /* О компании */
+  .footer-col:nth-child(4) { order: 5; }  /* Материалы */
+  .footer-col:nth-child(5) { order: 3; }  /* Покупателю */
+}
+
+/* ——— моб-поле модуля (№12, «36→28→12 логика вроде везде такая») ———
+   Порог 45rem — тот же, что у страниц-потребителей (главная, продуктовая, листинг,
+   about), поэтому поле футера и поле страницы над ним совпадают, а не спорят.
+   ⚠ Это НЕ порог моб-манифестации футера: аккордеон живёт с 76.875rem и остаётся
+   на своём пороге — здесь меняется только боковое поле. */
+@media (max-width: 45rem) {
+  :root { --foot-pad: 0.75rem; }
+}

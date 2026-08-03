@@ -1,0 +1,160 @@
+/* Simple PRO — ГЛАВНАЯ · МОБИЛЬНЫЙ СЛОЙ (≤720)
+   Порог тот же, что у канона продуктовой и у моб-манифестации nav-модуля.
+   Подключается ПОСЛЕ home.css: переопределяет десктоп только внутри @media.
+
+   ⚠ Врезка модулей: у главной СВОЕГО хедера/футера больше нет, и вместе со снятым
+   .site-header ушли его моб-правила. Всё, что раньше пряталось «за компанию» с ним,
+   теперь обязано иметь собственное правило — блоки главной ниже расписаны явно.
+   Нижний карман под моб-бар nav-модуля даёт сам модуль (body padding-bottom в nav.css). */
+
+@media (max-width: 45rem) {
+  :root { --home-pad-x: 0.75rem; --home-gap: 0.75rem; --home-sec-y: 2rem; --pad-x: 0.75rem; --gutter: 0.75rem; }
+
+  /* моб-лесенка заголовков: клампы деска дают 44–52, сажаем на 30 */
+  h2 { font-size: 1.875rem; line-height: 1.15; }
+  .catalog-head, .catalog-products > h2, .popular h2, .certs h2, .reviews h2, .prod-title,
+  .teaser h3, .utp-title h2, .pb-card h2, .seo-title { font-size: 1.875rem; line-height: 1.15; }
+
+  /* ── БЛОК 1: hero — из наложения слоёв в простой поток ── */
+  .home-hero { height: auto; min-height: 0; max-height: none; }
+  /* задник становится блоком потока: высоту даёт ПРОПОРЦИЯ самой коробки, а не картинка.
+     ⚠ Это принципиально: при reduced-motion видео снято, и если бы высоту держал он,
+     моб-задник схлопнулся бы в ноль. Коробка держит её всегда. */
+  .home-hero .hero-media { position: relative; inset: auto; aspect-ratio: 12 / 10; }
+  /* пара плашек — из абсолюта в поток, боковые поля берёт колонка целиком.
+     ⚠ width сбрасываем явно: на деске у колонки стоит кламп по эталону
+     (низ 48.75rem = 780), и в потоке моба он распёр бы её шире экрана. */
+  .hero-panels { position: static; width: auto; padding: var(--sp-16) var(--home-pad-x) 0; }
+  .hero-title-card {
+    flex-direction: column; align-items: flex-start;
+    padding: var(--sp-16); gap: var(--sp-16);
+  }
+  /* ⚠ <br> заголовка НЕ прячем: в разметке он стоит вместо пробела
+     («пространства<br>для»), и display:none склеивал слова в «ПРОСТРАНСТВАДЛЯ».
+     КЕГЛЬ — КЛАМПОМ, а не числом: на 28 заголовок рвался на ЧЕТЫРЕ строки
+     (считано Range.selectNodeContents(h1) со схлопыванием по верхней кромке —
+     у блочного h1 getClientRects().length всегда 1, по нему строки не считают).
+     Ширины строк живым шрифтом на 28: «Лабораторные» 202.6, «пространства»
+     201.3, «для ваших достижений» 330.6. Полезная ширина внутри плашки =
+     vw − 24 (поле страницы) − 32 (поля плашки): 264@320, 319@375, 334@390 —
+     то есть третья строка не влезала везде до 390, и именно она давала четвёртую.
+     Кламп посажен на предел «третья строка целиком» с запасом ~4 %:
+     320→21.4, 360→24.7, 375→25.9, 390→27.2, от ~400 упирается в прежние 28.
+     Меньше трёх строк тут недостижимо: «Лабораторные пространства» одной
+     строкой на 320 требует кегля ~18 — это уже не заголовок. */
+  .hero-title-card h1 { font-size: clamp(1.3125rem, -0.32rem + 8.3vw, 1.75rem); }
+  .hero-title-card .btn { width: 100%; }
+  /* нижняя плашка: текст над кнопками, кнопки в столбик во всю ширину */
+  .hero-cta-card { flex-direction: column; align-items: stretch; padding: var(--sp-16); gap: var(--sp-12); }
+  .hero-cta-row { flex-direction: column; }
+  .hero-cta-card .btn { width: 100%; max-width: none; }
+
+  /* ── БЛОК 3: каталог ── */
+  .catalog-head { padding: var(--home-sec-y) var(--home-pad-x) var(--sp-20); }
+  .cat-grid { grid-template-columns: minmax(0, 1fr); }
+  .cat-card--wide { grid-column: auto; aspect-ratio: 1 / 1; }
+  .cat-card .cat-pic { inset: var(--sp-12); }
+  .cat-card--live .cat-pic { inset: 0; }   /* рендер живой мебели полем не обрамляем — см. home.css */
+  .cat-card .cat-foot { padding: var(--sp-16) var(--sp-12); }
+  .cat-card .cat-foot h3 { font-size: 1.125rem; }
+  /* Подвал на мобе ниже (паддинг 16, h3 1.125) — роль пересчитываем той же формулой,
+     иначе меню модификаций оставит под собой деск-полосу пустоты. */
+  .cat-card { --cat-foot-h: calc(2 * var(--sp-16) + 1.125rem * 1.05); }
+  .cat-menu { padding: var(--sp-12) var(--sp-12) var(--cat-foot-h); }
+
+  .utp-wrap { padding: var(--home-sec-y) var(--home-pad-x) 0; }
+
+  /* моб-правила снесённого блока-параллакса (.prlx/.icon-card) удалены вместе с ним
+     22.07 — на его месте скролл-сцена, у неё свой моб-режим (свайп-слайды). */
+
+  .catalog-products { padding: var(--home-sec-y) var(--home-pad-x); }
+  .catalog-products > h2 { margin-bottom: var(--sp-20); }
+  .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .product-card h3 { font-size: 1rem; min-height: 0; }
+  .show-more { margin-top: var(--sp-24); width: 100%; }
+
+  /* БЛОК 4 (cta-kp) снят 22.07 — моб-правил у него больше нет. */
+
+  /* ── БЛОК 5: photo-break ── */
+  .photo-break { height: auto; min-height: 0; max-height: none; }
+  .photo-break .pb-photo { position: static; height: auto; aspect-ratio: 12 / 10; }
+  .pb-nav { position: static; padding: var(--sp-12) var(--home-pad-x) 0; }
+  .pb-card { position: static; margin: var(--sp-12) var(--home-pad-x) 0; padding: var(--sp-16); }
+  .pb-card .pb-row { flex-direction: column; align-items: flex-start; gap: var(--sp-16); }
+  .pb-card .pb-row .btn { width: 100%; }
+
+  /* ── БЛОК 6: спроектируйте лабораторию ── */
+  .offer-section { padding: var(--home-sec-y) var(--home-pad-x); }
+  .offer-title { flex-direction: column; align-items: flex-start; white-space: normal; font-size: 2rem; gap: 0; }
+  .offer-grid { grid-template-columns: minmax(0, 1fr); }
+  .offer-card { padding: var(--sp-16); }
+  .cta-bar { flex-direction: column; align-items: stretch; padding: var(--sp-16); }
+  .cta-bar-groups { flex-direction: column; align-items: stretch; }
+  .cta-field .dbl .btn { flex: 1; }
+  /* Пара Telegram и пара Max стоят В ОДИН РЯД пополам (слово Антона 30.07 №29-②), как у
+     продуктовой и листинга. min-width: 0 обязателен — без него длинное «Telegram» не даёт
+     колонкам ужаться и ряд уезжает за экран. */
+  .cta-field-row { flex-direction: row; gap: var(--sp-8); }
+  .cta-field-row > .dbl { flex: 1 1 0; min-width: 0; }
+  /* QR на мобе снят (то же слово Антона: «на хера там qr коды на мобилке»). У продуктовой
+     правило с 22.07, у листинга с 31.07, у главной его не было вовсе — она единственная
+     показывала QR на телефоне (находка приёмщика №57-①). Правило адресуется к .qr-btn,
+     поэтому вместе с ним разметка главной переведена на канон-класс. */
+  .cta-bar .qr-btn { display: none; }
+  .phone-box { justify-content: space-between; }
+  .bim-panel { flex-direction: column; padding: var(--sp-16); }
+  .bim-photo { flex: none; width: 100%; }
+  .bim-card { flex-direction: column; padding-inline: 0; gap: var(--sp-16); }
+  .bim-actions .btn { flex: 1; }
+
+  /* ── БЛОК 7: производство и доверие ── */
+  .prod-section { padding: var(--home-sec-y) var(--home-pad-x); }
+  .prod-watermark { display: none; }
+  .prod-top { min-height: 0; }
+  /* ⚠ relative, а НЕ static: слои постера внутри — absolute inset:0. Со static
+     .prod-video перестаёт быть containing block, слои цепляются за .prod-top
+     и накрывают заголовок «Наше производство» (поймано на кадре 375). */
+  .prod-video { position: relative; left: auto; width: 100%; margin-top: var(--sp-16); }
+  .prod-video .play-btn img { width: 4rem; height: 4rem; }
+  .prod-cols { grid-template-columns: minmax(0, 1fr); gap: var(--sp-16); margin: var(--sp-24) 0 0; }
+  .certs { flex-direction: column; gap: var(--sp-16); margin-top: var(--home-sec-y); }
+  .certs h2 { left: 0; max-width: none; }
+  .certs-row { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .clients { margin-top: var(--home-sec-y); }
+  .clients-head .count { font-size: 3.5rem; }
+  .clients-head .count-label { font-size: 1.25rem; padding-top: var(--sp-4); }
+  /* рейки табов: горизонтальный свайп ВНУТРИ своего бокса, страница не едет */
+  .industry-tabs, .popular-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-top: var(--sp-20); gap: var(--sp-16); }
+  .industry-tabs::-webkit-scrollbar, .popular-tabs::-webkit-scrollbar { display: none; }
+  .industry-tab, .ptab { white-space: nowrap; flex: none; }
+  /* Кегль табов отраслей на мобе — канон продуктовой (0.875rem, её css/mobile.css:332).
+     Правило адресное, ТОЛЬКО .industry-tab: соседние .popular-tabs/.ptab делят с ними
+     строку-рейку выше, и расползание правки на них запрещено словом лида.
+     ⚠ Ряд остаётся СКРОЛЛОМ, а не переносом канона, и это выбор по числу: девять отраслей
+     капсом дают ~1044 суммарной ширины против 366 доступных — перенос сложил бы их в три
+     строки (~132 по вертикали) вместо одной полосы 44. Скролл честнее и сохраняет
+     канон-полосу; перенос эталона рассчитан на пять коротких табов, а не на девять. */
+  .industry-tab { font-size: 0.875rem; }
+  .logowall { margin-top: var(--sp-20); }
+  .reviews { flex-direction: column; margin-top: var(--home-sec-y); gap: var(--sp-20); }
+  .reviews h2 { flex: none; max-width: none; }
+  .reviews-row { overflow-x: auto; scrollbar-width: none; }
+  .reviews-row::-webkit-scrollbar { display: none; }
+  .review-card { flex: 0 0 85%; padding: var(--sp-16); }
+  .popular { margin-top: var(--home-sec-y); }
+  .popular-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: var(--sp-20); }
+  .pop-card h3 { font-size: 1rem; }
+  .pop-card .pc-foot { padding: var(--sp-12); }
+
+  /* ── БЛОК 8: проекты ── */
+  .teasers { padding: var(--home-sec-y) var(--home-pad-x); }
+  .teasers > h2 { position: static; }
+  .teasers-grid { grid-template-columns: minmax(0, 1fr); margin-left: 0; margin-top: var(--sp-20); gap: var(--sp-32); }
+  .teaser .tz-pic { max-width: none; }
+
+  /* ── БЛОК 9: seo-полотно ── */
+  .seo-section { padding: var(--home-sec-y) var(--home-pad-x); }
+  .seo-grid, .seo-cols { grid-template-columns: minmax(0, 1fr); }
+  .seo-title { max-width: none; }
+  .seo-col h3 { font-size: 1.25rem; margin-bottom: var(--sp-12); }
+}

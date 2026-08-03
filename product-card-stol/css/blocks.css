@@ -1,0 +1,1022 @@
+/* Блоки 3–14 продуктовой — вёрстка перенесена из рабочей сборки в rem + канон-токены. */
+
+/* --- CTA-компоненты + блок 3 (линейка) + блок 4 (преимущества) --- */
+/* CTA-карточка (отдельная белая полоса под панелью) — компактные кнопки, чтобы 3 группы легли в один ряд */
+.cta-card {
+  display: flex; align-items: center; gap: 0.625rem; flex-wrap: wrap;
+}
+.cta-card .lead { font-size: 1rem; line-height: 1.5rem; color: var(--grey-70); max-width: 14.75rem; flex: none; margin-right: auto; } /* донор: 236×48, кнопки прижаты вправо */
+.cta-card .btn { padding: 0.75rem 0.875rem; min-height: 2.75rem; font-size: var(--fs-p4); }
+.cta-card .btn--icon { width: 2.75rem; }
+/* Зазор пары — 1px по канону двойной кнопки (было 2). Утреннее «на первом экране всё ок»
+   уточнено Антоном 21.07: оно про СОСТАВ (компакт, без лейблов), а ПОВЕДЕНИЕ пар = канон. */
+.cta-group { display: inline-flex; align-items: center; gap: var(--hairline); }
+/* Расщепление hero-от-канона СНЯТО в части поведения (было: свой контракт r-8 намертво).
+   Теперь пары хero живут словарём одиночного btn — r-4 в покое, 4→8 у НАВЕДЁННОГО
+   сегмента, сосед не шелохнётся. Геометрию компакт-плашки и состав не трогаем. */
+.cta-group .btn { min-width: 0; }
+.cta-field .dbl .btn { min-width: 0; }
+/* Базовый .qr-btn канонный: r-4 в покое → r-8 на ховере, свой transition (это не .btn,
+   словарных переходов у него нет). Бордер и белый фон — внешность хero, не поведение. */
+.qr-btn {
+  width: 2.75rem; height: 2.75rem; flex: none;
+  border: 0.0625rem solid var(--border-default); border-radius: var(--r-4);
+  display: grid; place-items: center; background: var(--grey-0);
+  transition: background-color 0.15s ease, border-radius 0.15s ease;
+}
+.qr-btn:hover  { border-radius: var(--r-8); }
+.qr-btn:active { border-radius: var(--r-8); }
+.qr-btn svg, .qr-btn img { width: 1.375rem; height: 1.375rem; color: var(--grey-60-brand); }
+.qr-btn--secondary { background: var(--action-secondary); border-color: var(--action-secondary); }
+.qr-btn--secondary:hover { background: var(--action-secondary-hover); }
+.qr-btn--secondary:active { background: var(--action-secondary-pressed); }
+/* канон CTA hero (скрины Антона, «кнопка макс»): [красная+копи][Telegram+QR][Max+QR] в ОБОИХ состояниях;
+   Конструктор в CTA не живёт — он в шапке панели рядом с ♥ */
+/* донор hero-CTA (оба экрана, 18:8693 и 18:9115): «Помощь эксперта» — ТЁМНАЯ (графитовая) капсула с СИНЕЙ иконкой TG внутри (см. icon-tg.svg) — уточнено Антоном по донор-фреймам в высоком разрешении, отменяет более раннюю правку «сделать синей». Наследуется от базового .btn--secondary (var(--action-secondary)), переопределение не нужно. */
+
+/* ============================================================
+   БЛОК 3: линейка моделей (донор: full-bleed, без заголовка/стрелок/ценников)
+   ============================================================ */
+/* ===== КАНОН БОКОВОГО ПОЛЯ СТРАНИЦЫ =====
+   36@1920 · 36@1440 · 28@1280 — решение Антона 20.07, тот же кламп, что зазор плашек.
+   Сперва жил на списке блоков 3/4/5/6/7; задачей №8 («болячка везде одинаковая») поле
+   стало ОБЩИМ для всей продуктовой, и объявление переехало на :root.
+   ⚠ ПОЧЕМУ именно :root, а не длинный список селекторов — поймано замером при миграции:
+   секция, не перечисленная в списке, var(--edge-pad) не видит вовсе, значение невалидно,
+   и паддинг схлопывается в 0. То есть «добавить в список» — это мина, которая молча
+   срабатывает на каждой следующей секции; на :root видят все.
+   Full-bleed остаются full-bleed ОСОЗНАННО: hero-рендер; рельсы блоков 3/4 (поле держит
+   сам рельс, иначе край контейнера режет карточки при прокрутке); правый край кейсов и
+   проектов (лента намеренно уходит за экран).
+   ⚠ --pad-x в tokens.css НЕ трогаем: он в ОБЩЕМ слое, его читают ещё стенды nav и footer. */
+:root {
+  --edge-pad: clamp(1.75rem, calc(-2.25rem + 5vw), 2.25rem); /* 28→36 на 1280→1440, выше — плато 36 */
+}
+
+/* донор 18:9492: карточки 444×444 (квадрат), зазор 24, скругление, hover = карточка растёт.
+   Самопроверка: 1920 − 2×36 = 1848, (1848 − 3×24)/4 = 444 — ровно натуральная величина
+   донор-рендера. */
+.section--carousel { padding-block: var(--edge-pad); }
+.model-row { display: flex; gap: 1.5rem; padding: 0.75rem var(--edge-pad); margin-block: -0.75rem; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--edge-pad); scrollbar-width: none; } /* паддинг-карман: ховер-скейл карточки не обрезается краем скролл-зоны; вертикаль гасится margin-block, поле блока даёт секция. scroll-padding обязателен: без него snap-align:start подтягивает первую карточку под самый край и съедает боковое поле там, где рельс скроллится (моб) */
+.model-row::-webkit-scrollbar { display: none; }
+.model-card {
+  flex: 0 0 calc((100% - 4.5rem) / 4); aspect-ratio: 1 / 1;
+  scroll-snap-align: start; display: block; overflow: hidden;
+  border-radius: var(--r-8); position: relative;
+  transition: transform .2s ease;
+}
+.model-card:hover { transform: scale(1.03); z-index: 1; }
+.model-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Тег модели — ЖИВОЙ чип поверх фото (в донор-рендерах model-lk*.png он был ЗАПЕЧЁН).
+   Замер с model-lk*.png 444×444 (= карточка на 1920, натуральная величина): пилюля 113×28
+   («ЛК-900 ШВП») / 117×28, от угла карточки 12/12, радиус 3, cap 11, ink-поля L9 R10 T8 B9,
+   заливка #FFFFFF = --grey-0, чернила #454A4D = --text-primary — оба попали в токен точно.
+   Кегль подобран сверкой живого рендера с донором (_scratch/compare-tag.py): Geologica 300,
+   15px, letter-spacing −0.01em, padding-inline 8.5 — воспроизводит пилюлю пиксель-в-пиксель.
+   Канон чипа (как в nav): единственный rem — кегль, всё внутри доли ОТ него (em), поэтому
+   тег ужимается целиком вслед за карточкой. Пол клампа 13 = кегль моб-донора 18:8688. */
+.model-tag {
+  --tag-fs: clamp(0.8125rem, 0.5625rem + 0.3125vw, 0.9375rem); /* 13→15 на 1280→1920 */
+  position: absolute; top: 0.8em; left: 0.8em;   /* 12 при кегле 15 */
+  display: inline-flex; align-items: center;
+  height: 1.8667em;                              /* 28 */
+  padding-inline: 0.5667em;                      /* 8.5 */
+  border-radius: 0.25em;                         /* 3.75 при кегле 15 — в кадре даёт ровно донорские 3 */
+  background: var(--grey-0);
+  color: var(--text-primary);
+  font-size: var(--tag-fs);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  /* pointer-events НЕ гасим: тег лежит внутри <a.model-card>, ховер и клик и так достаются
+     карточке через всплытие, а с pointer-events:none текст перестал бы выделяться. */
+}
+
+/* ============================================================
+   БЛОК 4: преимущества (горизонтальная лента)
+   ============================================================ */
+/* шапка блока: заголовок слева, стрелки-навигация справа на уровне заголовка */
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; margin-bottom: 2rem; }
+/* Секция full-bleed: поле держат ШАПКА и РЕЛЬС по отдельности, а не общая обёртка.
+   Так лечится обрезка карточек при прокрутке вправо: раньше блок сидел в .container,
+   рельс упирался в его край и карточки пропадали за 100px до края экрана. Теперь рельс
+   во всю ширину, а 36/28 — его собственный padding-inline. */
+.section--adv .section-head { padding-inline: var(--edge-pad); }
+/* лента = донор 18:9499: блоки 756/288/912/756, гэп 96@1920 · 76@1440 · 56@1280 (числа Антона 20.07), снап по блокам */
+/* Вертикальный padding + отрицательный margin-block — карман под ховер-подложку карточек
+   (box-shadow spread 12 < 14), чтобы её не срезал край ленты (см. .adv-card:hover).
+   Горизонтальный padding — это уже ПОЛЕ блока, поэтому по бокам margin не гасим.
+   scroll-padding-inline обязателен: при scroll-snap без него первая карточка встаёт
+   под самый край и съедает поле (грабля блока 3). */
+.adv-strip { display: flex; gap: clamp(3.5rem, calc(-6.5rem + 12.5vw), 6rem); overflow-x: auto; scroll-snap-type: x proximity; padding: 0.875rem var(--edge-pad); margin-block: -0.875rem; scroll-padding-inline: var(--edge-pad); scrollbar-width: none; }
+.adv-strip::-webkit-scrollbar { display: none; }
+.adv-strip--mob { display: none; } /* моб-ряд единых карточек (донор 18:7617) — включает mobile.css */
+.adv-card { flex: none; scroll-snap-align: start; border-radius: var(--r-4); transition: background-color .2s ease, box-shadow .2s ease; }
+/* Ховер-подложка карточки — ОБЩИЙ приём для «Преимуществ» (блок 4) и «Надёжности» (блок 6):
+   при наведении вокруг карточки распахивается серое поле цветом её фона. box-shadow-spread
+   не двигает лейаут (border изменил бы габарит и толкал соседей), лента выше даёт запас под подложку. */
+.adv-card:hover, .utp-card:hover { background: var(--grey-10); box-shadow: 0 0 0 0.75rem var(--grey-10); }
+/* Зум-ин фотографии ВНУТРИ рамки на ховере карточки (Антон 20.07: «очень минималистично»).
+   Кадр не растёт — растёт только картинка, её держит overflow:hidden у .ac-photo.
+   Скоуп строго .adv-card: у «Надёжности» (.utp-card) поведение остаётся прежним. */
+.ac-photo img { transition: transform 0.4s ease; }
+.adv-card:hover .ac-photo img { transform: scale(1.04); }
+.ac-txt { display: flex; flex-direction: column; gap: var(--sp-20); justify-content: flex-end; padding: 1.5rem; }
+.ac-txt h4 { font-family: "Simplepro Display", sans-serif; font-weight: 700; font-size: var(--fs-h4); line-height: 1.143; letter-spacing: -0.005em; color: var(--grey-60-brand); margin: 0; text-transform: none; } /* h4 28/32 */
+/* вес 400, не макетные 300: канон-решение недели «≤17px → Regular 400» (Антон 21.07,
+   INBOX §21.07 «Блок 4 — двойная карточка и состав»); та же правка предстоит блоку 6
+   (задача №10), здесь применяю только в своей зоне (.ac-txt = общий текст-блок карточек
+   блока 4 — duo/solo/double/wide, поэтому вес меняется сразу везде, не точечно) */
+.ac-txt p { font-weight: 400; font-size: var(--fs-p2); line-height: 1.412; letter-spacing: -0.0125em; color: var(--grey-60-brand); margin: 0; } /* p2 reg 17/24 */
+.ac-photo { overflow: hidden; border-radius: var(--r-4); background: var(--grey-10); }
+.ac-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ac-duo { display: flex; gap: 1.25rem; width: clamp(33.75rem, 39.4vw, 47.25rem); }
+.ac-duo .ac-texts { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+/* align-self:flex-start — известное расхождение (задача №8): .ac-duo не переопределяет
+   align-items (дефолт stretch), и текстовая колонка рядом (2 подписи на justify-content:
+   space-between) на части ширин оказывается ГЕОМЕТРИЧЕСКИ выше 720 — стретч тянет фото
+   под эту высоту, aspect-ratio проигрывает битву (замер до правки: 0.516 вместо 404/720
+   = 0.561, одинаково в Safari и Chrome — не баг рендера, легальное поведение флекса).
+   align-self выключает стретч ТОЛЬКО у фото: колонка текста стретчится и распирается
+   как раньше (её space-between по-прежнему должен покрывать фото по высоте), а фото
+   держит свою пропорцию само. Если после фикса колонка текста иногда выше фото —
+   это не баг, а следствие текста длиннее донора; смотреть замером, не блокировать. */
+.ac-photo--tall { width: 53.4%; flex: none; aspect-ratio: 404 / 720; align-self: flex-start; } /* 404 из 756 */
+.ac-solo { display: flex; flex-direction: column; gap: 4rem; width: clamp(12.875rem, 15vw, 18rem); }
+.ac-photo--sq { width: 100%; aspect-ratio: 1 / 1; } /* квадрат на всех ресайзах */
+.ac-solo .ac-txt { padding-inline: 1.5rem; }
+/* .ac-wide ИМЯ НЕ МЕНЯЮ (хотя у Антона в терминах набора эта карточка 912 — «двойная»,
+   а «wide» он зовёт НОВУЮ 1692-карточку ниже): рельс общий, на нём параллельно ещё три
+   агента, а index.html я не трогаю — переименуй я класс здесь, старая разметка карточки
+   с прежним именем осталась бы БЕЗ этих правил и разъехалась бы на живом стенде до того,
+   как хаб вручную поправит index.html. Новая карточка получила имя .ac-panorama — коллизии
+   нет, а замена имени этой карточки на .ac-double опциональна и лежит на хабе (не спешка). */
+.ac-wide { display: flex; gap: 1.25rem; width: clamp(40.75rem, 47.5vw, 57rem); align-items: flex-start; } /* align-items: было flex-end — правая колонка садилась к НИЗУ карточки, а по макету («от верха карточки», Figma-копипаст Антона + узел 2184:28328) должна начинаться от верха; отсюда «рассыпана» */
+.ac-wide .ac-col { flex: none; width: 57%; display: flex; flex-direction: column; }
+.ac-photo--big { width: 100%; aspect-ratio: 1 / 1; } /* квадрат на всех ресайзах */
+.ac-txt--under { padding: 1.5rem 0; } /* подпись строго под картинкой */
+.ac-txt--side { flex: 1 0 0; min-width: 0; } /* shrink 0, не 1 — сверено узлом 2184:28328: колонка не должна сжиматься */
+
+/* .ac-panorama — НОВАЯ пятая карточка набора (1692, «wide» по словам Антона, но имя
+   свободно от .ac-wide — см. комментарий выше): большое фото слева НА ВСЮ высоту карточки
+   + узкая колонка из ДВУХ подписей справа, растёт от верха (align-items:flex-start, тот
+   же приём, что у .ac-wide/912). Числа — узел 2184:28330 (get_design_context, файл
+   scratch-simple-pro-only 0Cz8GGLLeqj3hmQtYwBDJG): фото 1224×720 из карточки 1692×720
+   (72.3% × соотношение 1224/720), гэп 40, справа flex-grow ~428 (1692−1224−40). MIN клампа
+   Антон числом не давал (в отличие от карточки 912) — досчитан по паттерну соседей
+   (.ac-duo/.ac-solo/.ac-wide: MIN = MAX×5/7 ровно, сверено на всех трёх), перепроверить
+   при живом 1280-фрейме. */
+.ac-panorama { display: flex; gap: 2.5rem; width: clamp(75.5625rem, 88.125vw, 105.75rem); align-items: flex-start; }
+.ac-photo--pano { width: 72.3%; flex: none; aspect-ratio: 1224 / 720; } /* донор те же фото-ассеты (adv-pic4), другой crop через object-fit:cover */
+.ac-panorama .ac-texts { flex: 1 0 0; min-width: 0; display: flex; flex-direction: column; gap: 1.25rem; } /* колонка из двух .ac-txt; в отличие от .ac-duo .ac-texts НЕ space-between — по макету подписи пакуются от верха, а не растянуты в распор (узел 2184:28330: gap-20 фиксированный, не justify-content) */
+.arrow-nav { display: inline-flex; gap: 0.5rem; }
+/* Словарь состояний по канону components.css (.btn): hover — тон hover + РОСТ радиуса,
+   active — pressed-тон, focus-visible — кольцо с воздухом. Радиус ведём парой переменных,
+   как чип nav (--nav-chip-r / -hover): база 8 → ховер 12, а моб-переопределение меняет
+   только базу и свой ховер, не дублируя правила. */
+.arrow-btn {
+  --arrow-r: var(--r-8);
+  --arrow-r-hover: var(--r-12);
+  width: 2.75rem; height: 2.75rem; border: 0; border-radius: var(--arrow-r);
+  background: var(--action-primary); color: var(--grey-0);
+  display: grid; place-items: center;
+  transition: background-color 0.15s ease, color 0.15s ease, border-radius 0.15s ease;
+}
+.arrow-btn:hover  { background: var(--action-primary-hover);   border-radius: var(--arrow-r-hover); }
+.arrow-btn:active { background: var(--action-primary-pressed); border-radius: var(--arrow-r-hover); }
+/* focus-visible СВОЙ не заводим: проверено замером — у стрелок блока 4 и таблицы (.arrow-nav--adv,
+   .arrow-nav--red) ни одного overflow-предка нет, глобальное кольцо из tokens.css видно целиком.
+   ⚠ на будущее: 4 инстанса .arrow-btn в .labs-section сидят внутри overflow:hidden — если кольцо
+   там начнёт срезаться краем секции, лечить точечно в .labs-section, а не глушить канон здесь. */
+.arrow-btn:disabled { background: var(--grey-20); color: var(--grey-30-brand); cursor: default; }
+.arrow-btn svg { width: 1.25rem; height: 1.25rem; }
+/* донор: обе стрелки всегда красные (без серого disabled) — преимущества и сравнительная таблица */
+.arrow-nav--adv .arrow-btn, .arrow-nav--adv .arrow-btn:disabled,
+.arrow-nav--red .arrow-btn, .arrow-nav--red .arrow-btn:disabled { background: var(--action-primary); color: var(--grey-0); }
+.arrow-nav--adv .arrow-btn:hover,  .arrow-nav--red .arrow-btn:hover  { background: var(--action-primary-hover); }
+.arrow-nav--adv .arrow-btn:active, .arrow-nav--red .arrow-btn:active { background: var(--action-primary-pressed); }
+/* Прогресс-полоса под лентой преимуществ. Поле — своё (секция full-bleed).
+   Отступ от карточек: margin-top схлопывается с margin-block:-0.875rem ленты, и от КАРТОЧЕК
+   остаётся ровно это число (было 8 — бар липнул к карточкам). 24 по спейсинг-лестнице,
+   финальное число подтверждает Антон на стенде. */
+.adv-strip-progress { height: 0.25rem; background: var(--grey-20); border-radius: var(--r-pill); margin-top: var(--sp-24); margin-inline: var(--edge-pad); position: relative; overflow: hidden; }
+.adv-strip-progress span { position: absolute; left: 0; top: 0; height: 100%; width: 20%; background: var(--grey-60-brand); border-radius: var(--r-pill); }
+
+/* ============================================================
+   БЛОК 5: видео (донор: фирменные обложки, заголовок под слайдами)
+   ============================================================ */
+/* поле блока — общий кламп 36/36/28 (секция снята с .container) */
+.section--video { padding-inline: var(--edge-pad); }
+.video-strip { display: flex; gap: var(--sp-24); overflow-x: auto; scrollbar-width:none; }
+.video-strip::-webkit-scrollbar{ display:none; }
+/* Два видео в ряд ложатся РОВНО в поле блока (донор resize-1440-1280.md §Видеообзор:
+   912@1920 / 672@1440 — оба сходятся как (ширина_блока − 2×36 − гэп 24)/2).
+   Старый clamp(…, 52.5rem) был подогнан под .container 1720 и после смены поля на 36
+   оставлял 144px мёртвого поля справа. На 1280 выходит 600 против донорских 592:
+   у донора там поле 36, а по числам Антона 28 — расхождение осознанное, см. отчёт. */
+.video-card { flex: 0 0 calc((100% - var(--sp-24)) / 2); border-radius: var(--r-12); overflow: hidden; position: relative; aspect-ratio: 16/9; background: var(--grey-70); }
+.video-card iframe { width:100%; height:100%; border:0; }
+.video-poster { position:absolute; inset:0; display:grid; place-items:center; cursor:pointer; background: center/cover; }
+/* ── Play-кнопка, канон Антона 20.07 (числа из Фигмы) ──────────────────────────
+   Покой : белый круг 120, внутри треугольник-полигон 60×60 с радиусом углов 4, красный.
+   Ховер : ИНВЕРСИЯ — круг красный (hover-тон), треугольник белый.
+   Треугольник — inline-SVG на currentColor: во внешний <img> CSS не проникает, а инверсию
+   и скруглённые углы иначе не сделать. Один канон на блок 5 и блок 13.
+   padding 0 — UA-паддинг кнопки сжимал svg в овал (грабля проекта). */
+.play-btn {
+  /* Диаметр ТЕКУЧИЙ (слово Антона 21.07: «уменьшать при скейле в принципе»),
+     вся шкала ×0.7 по правке Антона того же дня (по скрину обложки видео):
+     84@1920 · 67@1440 · 62@1280 (было 120/96/88).
+     ⚠ ПОЛ НЕ УМНОЖЕН. ×0.7 дал бы 33.6 — это меньше тач-цели, кнопка перестала бы
+     нажиматься пальцем. Пол опущен до 2.75rem = h44, канон кнопок проекта и наименьшее
+     значение, которое ещё остаётся тач-целью. Ниже него шкала не идёт сознательно. */
+  --play-d: clamp(2.75rem, calc(1.05rem + 3.5vw), 5.25rem);
+  --play-optical: 0.05;                        /* оптический сдвиг глифа вправо = 5% ДИАМЕТРА */
+  position: relative; z-index: 1;
+  width: var(--play-d); height: var(--play-d);
+  padding: 0; border: 0; border-radius: 50%;
+  background: var(--grey-0);
+  color: var(--action-primary);                /* треугольник = currentColor */
+  display: grid; place-items: center;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+.play-btn:hover  { background: var(--action-primary-hover);   color: var(--grey-0); transform: scale(1.04); }
+.play-btn:active { background: var(--action-primary-pressed); color: var(--grey-0); }
+.play-btn:focus-visible { outline: 0.125rem solid var(--border-focus); outline-offset: 0.125rem; }
+/* Посадка глифа. Два РАЗНЫХ по природе слагаемых, оба — доли, не пиксели:
+   1) геометрия — решена В САМОМ PATH: скругление вершины r4 срезает остриё, из-за чего
+      чернила треугольника занимают по X только 0…55.06 из 60 и центр чернил уезжает
+      на 2.4721 влево от центра бокса SVG (это и есть «стоит криво», замер в отчёте).
+      Поэтому path нарисован СО СДВИГОМ +2.4721: чернила симметричны своему боксу,
+      а place-items:center у кнопки центрирует уже саму фигуру, а не пустой бокс.
+      Поворотов нет вообще — path сразу остриём вправо, повёрнутого бокса не существует.
+   2) оптика — translateX на 5% ДИАМЕТРА: у треугольника центр масс лежит на трети высоты
+      от основания, поэтому геометрический центр глазу кажется съехавшим влево. Доля от
+      --play-d, а не px: на другой размер кнопки посадка переезжает сама. */
+.play-btn svg {
+  /* Глиф — ДОЛЯ диаметра (60 из 120 = ровно половина), а не фикс 3.75rem: иначе при
+     текучем круге треугольник остаётся 60 и на 1280 выглядит непропорционально крупным. */
+  width: calc(var(--play-d) * 0.5); height: calc(var(--play-d) * 0.5);
+  display: block; fill: currentColor;
+  transform: translateX(calc(var(--play-d) * var(--play-optical)));
+}
+/* низ по колоночной сетке 1920 (Figma 2051:101588): «Видеообзор» в левой четверти,
+   текст 1 — правая половина левого видео (кол. 2), текст 2 — правая половина правого видео (кол. 4), кол. 3 пустая */
+.video-foot { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: var(--sp-24); margin-top: var(--sp-32); }
+.video-foot-head { grid-column: 1; }
+.video-foot > p:nth-of-type(1) { grid-column: 2; }
+.video-foot > p:nth-of-type(2) { grid-column: 4; }
+.video-foot p { font-size: var(--fs-p2); color: var(--text-primary); line-height: 1.5; margin: 0; }
+
+/* Блоки 6 (УТП) и 7 (оффер) + CTA-канон №2 — стили в b0609.css */
+.email-btn { font-variant-numeric: tabular-nums; }
+
+/* Блоки 8 (конструктор) и 9 (сравнительная таблица) — стили в b0609.css */
+
+/* Блоки 10/12 (кейсы), 11 (тендер) — стили в b1012.css; 13 (производство), 14 (футер) — в b1314.css */
+
+/* ============================================================
+   3D-вьювер (модалка/инлайн в табе)
+   ============================================================ */
+.viewer-3d { position: relative; aspect-ratio: 1/1; max-width: 28.75rem; margin: 0 auto; background: var(--grey-10); border-radius: var(--r-12); overflow:hidden; cursor: grab; user-select:none; }
+.viewer-3d.dragging { cursor: grabbing; }
+.viewer-3d img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:none; pointer-events:none; }
+.viewer-3d img.is-shown { display:block; }
+.viewer-3d .hint { position:absolute; z-index:2; bottom:0.75rem; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.55); color:var(--grey-0); font-size: var(--fs-p5); padding: 0.375rem 0.875rem; border-radius: var(--r-pill); pointer-events:none; display:flex; align-items:center; gap:0.5rem; transition: opacity .3s; }
+.viewer-3d.touched .hint { opacity: 0; }
+.viewer-3d .slider { display: none; } /* вердикт Антона 10.07: управление — драгом мыши по модели, ползунок убран */
+
+/* Адаптив 1440/1280/моб — отдельным проходом по донор-ресайзам (спеки заготовщика А) */
+
+/* донор-ресайзы: боковой паддинг секций падает только на 1280-скачке */
+@media (max-width: 84.375rem) { :root { --pad-x: 1.75rem; } } /* = 1350 */
+
+/* Адаптив ВСТРОЕННОГО хедера (лого-бокс, hpill, cat-strip, header-short) снят 21.07
+   вместе с ним — хедер стал модулем code/nav/ со своим макетным рядом полей.
+   Из блока остались только КРОШКИ: у модуля их нет, а терять нельзя (BreadcrumbList). */
+@media (max-width: 104.9375rem) { .breadcrumbs { top: 4.875rem; left: 1.5rem; } } /* = 1679 */
+@media (max-width: 84.9375rem) { .breadcrumbs { left: 1rem; } } /* = 1359 */
+
+/* --- блоки 6–9: УТП · offer · конструктор · таблица --- */
+/* ============================================================
+   Пакет блоков 6–9 — правки под донор (переопределяют базу styles.css,
+   сам styles.css не трогаем; здесь только каскадные уточнения).
+   ============================================================ */
+
+/* ============================================================
+   БЛОК 6 — УТП «Надёжность» (донор 18:9956, spec: 3 равные колонки)
+   Сетка: [заголовок · Доставка · Сроки] / [пусто · пусто · Гарантия].
+   «Доставка» НЕ тянется вниз — все карточки одного роста (по строкам).
+   Вотермарка — низ-лево в пустом углу, ПОД карточками,
+   градиент следует за курсором (в покое целиком серая).
+   Поле блока — СВОИ 2.25rem у .utp, а не общий --edge-pad блоков 3/4/5: два поля
+   складывались и съедали 24 у каждой колонки, см. разбор строкой ниже. .container снят.
+   ============================================================ */
+/* Поле секции обнулено НАРОЧНО — та же правка, что у продуктовой (её blocks.css §БЛОК 6,
+   симбиоз №26): у .utp есть собственные 2.25rem, и внешний --edge-pad давал ВТОРЫЕ 36 —
+   контент 1776 против 1848 у главной, колонки 576 против эталонных 600 (замер 02.08).
+   Через переменную, а не `padding-inline: 0`: моб-слой (css/mobile.css §.section--utp)
+   переопределяет --edge-pad на 0.75rem, и мобильные поля 12 остаются целы. Поставишь 0
+   напрямую — мобилка уедет в full-bleed. */
+.section--utp { --edge-pad: 0; padding-inline: var(--edge-pad); }
+.utp {
+  background: var(--grey-0);
+  border-radius: 1.5rem;
+  padding: 3.5rem 2.25rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-areas:
+    "title c1 c2"
+    ".     .  c3";
+  gap: 1.5rem;
+}
+.utp-title { grid-area: title; }
+.utp-title h2 {
+  font-family: "Simplepro Display", sans-serif;
+  font-size: clamp(2.75rem, 1.75rem + 1.25vw, 3.25rem);
+  line-height: 1.06; letter-spacing: -.01em;
+  color: var(--grey-60-brand); text-transform: none; margin: 0;
+}
+.utp-scroll { display: contents; } /* обёртка нужна только моб-скроллу */
+.utp-card--delivery { grid-area: c1; }
+.utp-card--terms { grid-area: c2; }
+.utp-card--warranty { grid-area: c3; }
+/* карточка «Надёжность» (Figma 2184:28483, сверка задачи №10): 600×268@1920 → 392×304@1280.
+   --utp-ic/--utp-ic-off — геометрия иконки (значения см. .utp-card-ic ниже), подняты сюда
+   переменными, потому что резерв под иконку СЧИТАЕТСЯ ОТ НИХ через calc(), а не берётся
+   отдельным клампом. У спеки был свой кламп на резерв (100@1920→56@1280), НО при иконке
+   100 и офсете 20 это 100−100−20=−20 — наезд, а не запас (замер подтвердил ту же −20 и на
+   1280); проверено сменой назад, слово Антона: «текст чуть-чуть залазит на иконку — это не
+   заебись». calc(иконка + офсет + 0.5rem воздуха) держит зазор ≥8px на ЛЮБОЙ ширине
+   1280–1920, а не только в двух точках, которые спека проверяла числами. */
+.utp-card {
+  --utp-ic: clamp(3.75rem, -1.25rem + 6.25vw, 6.25rem);       /* 60→100, синхронно с .utp-card-ic */
+  --utp-ic-off: clamp(1rem, 0.5rem + 0.625vw, 1.25rem);       /* 16→20 (было плоских 20 на всех ширинах) */
+  position: relative; z-index: 1;
+  background: var(--grey-10);
+  border-radius: var(--r-8);
+  min-height: 16.75rem;              /* 268 — не ниже эталона @1920 */
+  padding: clamp(1rem, 1.25vw, 1.5rem);                       /* 16→24@1280→1920 */
+  padding-right: calc(var(--utp-ic) + var(--utp-ic-off) + 0.5rem); /* резерв ОТ иконки — см. коммент выше */
+  display: flex; flex-direction: column; gap: clamp(0.5rem, -1rem + 1.875vw, 1.25rem); /* титул↔текст 8→20@1280→1920 */
+  transition: box-shadow .2s ease, background-color .2s ease;
+}
+/* hover — общая подложка-расширение (правило у .adv-card:hover, блок 4) */
+/* Спека: 20/24@1280 → 28@1920 (leading-none на 1920, т.е. ratio едет 1.2→1.0 — не константа).
+   Сайтовый --fs-h4 клампуется от 360, на 1280 даёт ~23.9px вместо 20 (замер №10, Δ +19%) —
+   у ЭТОЙ карточки своя пара опорных точек (1280/1920), поэтому кегль и лидинг — отдельными
+   клампами, каждый по своим двум числам спеки, а не общий токен. */
+.utp-card h5 {
+  font-family: "Simplepro Display", sans-serif;
+  font-size: clamp(1.25rem, 0.25rem + 1.25vw, 1.75rem);       /* 20→28 */
+  line-height: clamp(1.5rem, 1rem + 0.625vw, 1.75rem);        /* 24→28 */
+  color: var(--grey-60-brand);
+  text-transform: none; margin: 0;
+}
+/* 16/20@1280 → 17/24@1920 (замер №10: сайтовый --fs-p2 близко, но на 1280 даёт 16.6 не 16 —
+   те же две опорные точки, что и у титула выше).
+   Вес 300 — Geologica Light макета 2192:38770 (числа узла `icon card` сняты вызовом 31.07,
+   разбор — components.css §.utp-card p). Стояло 400 «канон-флагом недели», который те же
+   макетные числа и отменили: три остальные страницы уже на 300, стол оставался
+   единственным с 400. */
+.utp-card p { font-size: clamp(1rem, 0.875rem + 0.15625vw, 1.0625rem); font-weight: 300; color: var(--grey-60-brand); line-height: clamp(1.25rem, 0.75rem + 0.625vw, 1.5rem); letter-spacing: -0.011em; margin: 0; } /* 16/20→17/24 */
+/* настоящая ссылка → канон: синяя + подчёркивание (подчёркиванием в доме помечены
+   ТОЛЬКО живые <a>) + тон на ховере. Семантического --text-link-hover в общем слое
+   пока нет, поэтому берём примитив напрямую. Кегль — ТОТ ЖЕ кламп, что у .utp-card p
+   выше (не var(--fs-p2)): ссылка сидит прямо под абзацем в той же карточке, разным
+   токеном они на 1280 разъехались бы (16 у абзаца против 16.6 у сайтового --fs-p2). */
+.utp-card-link { color: var(--text-link); font-size: clamp(1rem, 0.875rem + 0.15625vw, 1.0625rem); text-decoration: underline; align-self: flex-start; margin-top: auto; transition: color .2s ease; }
+.utp-card-link:hover { color: var(--blue-link-hover); }
+
+/* ── ИКОНКА УТП: кольцо-дуга отдельным слоем, глиф — из SVG ──────────────────
+   В ассетах utp-icon-*.svg кольцо ЗАПЕЧЕНО в один файл с глифом: это путь с
+   градиентной заливкой, полоса 84.09%→100% радиуса (замер _scratch/sweep-utp.js).
+   Разделяем без правки ассета: img режем диск-маской, кольцо рисуем сами.
+   Радиус реза 78→82% выбран замером — самый крупный глиф («часы») кончается на
+   71.8% радиуса, запечённое кольцо начинается с 84.09%: режем в зазоре, ничего не
+   задев. Кольцо-полосу повторяем 1-в-1 по ассету, чтобы покой не дрогнул. */
+.utp-card-ic {
+  position: absolute; top: var(--utp-ic-off); right: var(--utp-ic-off);
+  width: var(--utp-ic);
+  aspect-ratio: 1 / 1;
+}
+.utp-card-icon {
+  width: 100%; height: 100%;
+  /* цвет в маске не значим, важна только альфа — берём токен, чтобы не было литерала */
+  -webkit-mask-image: radial-gradient(circle closest-side, var(--grey-100) 78%, transparent 82%);
+  mask-image: radial-gradient(circle closest-side, var(--grey-100) 78%, transparent 82%);
+}
+/* хвост кометы по окружности: голова (плотный красный) на 270° = «9 часов», к «3 часам»
+   тает в прозрачность — там разрыв. Профиль снят с эталона
+   _scratch/refs/figma-gradient-icons-2177-127653.png. */
+.utp-card-ic::before {
+  content: ""; position: absolute; inset: 0;
+  background: conic-gradient(from 0deg,
+    color-mix(in srgb, var(--action-primary) 34%, transparent)   0deg,
+    color-mix(in srgb, var(--action-primary) 12%, transparent)  45deg,
+    transparent                                                 90deg,
+    color-mix(in srgb, var(--action-primary) 22%, transparent) 135deg,
+    color-mix(in srgb, var(--action-primary) 38%, transparent) 180deg,
+    color-mix(in srgb, var(--action-primary) 72%, transparent) 225deg,
+    var(--action-primary)                                      270deg,
+    color-mix(in srgb, var(--action-primary) 62%, transparent) 315deg,
+    color-mix(in srgb, var(--action-primary) 34%, transparent) 360deg);
+  /* кольцевая маска = полоса ассета 84.09%→100% радиуса, края с суб-пиксельным пером */
+  -webkit-mask-image: radial-gradient(circle closest-side, transparent 83.2%, var(--grey-100) 84.6%, var(--grey-100) 99.2%, transparent 100%);
+  mask-image: radial-gradient(circle closest-side, transparent 83.2%, var(--grey-100) 84.6%, var(--grey-100) 99.2%, transparent 100%);
+}
+
+/* ── ПЕРЕЛИВ на ховере карточки: крутится ТОЛЬКО кольцо, глиф стоит ──────────
+   Два варианта на выбор Антона, переключатель — [data-ring] на .utp (index.html). */
+@keyframes utp-ring-spin { from { transform: rotate(0deg); } to { transform: rotate(1turn); } }
+/* A «spin»: один полный оборот хвоста, конец = начало, поэтому стыка не видно.
+   ВЕРДИКТ Антона 21.07: движение A, но на УГЛОВОЙ СКОРОСТИ B — та делает 150° за .7s,
+   то есть 214°/с; полный круг на той же скорости = 360/214 ≈ 1.7s. Отсюда число, оно
+   не на глаз подобрано. Ждёт сверки Антона по стенду — ветку B до его «ок» не убираем. */
+.utp[data-ring="spin"] .utp-card:hover .utp-card-ic::before {
+  animation: utp-ring-spin 1.7s cubic-bezier(.4, 0, .2, 1);
+}
+/* B «turn»: доворот на 150° и плавный возврат — тише, без полного круга */
+.utp[data-ring="turn"] .utp-card-ic::before { transition: transform .7s cubic-bezier(.4, 0, .2, 1); }
+.utp[data-ring="turn"] .utp-card:hover .utp-card-ic::before { transform: rotate(150deg); }
+
+/* Глобальный reduce-motion в tokens.css ужимает длительность до 0.01ms — этого мало:
+   кольцо всё равно ПРЫГАЕТ в конечный угол за один кадр. Глушим движение полностью.
+   Селекторы повторяют боевые один-в-один: короткий `.utp .utp-card-ic::before` проигрывал
+   правилу ховера по специфичности и анимация переживала reduce (поймано свипом). */
+@media (prefers-reduced-motion: reduce) {
+  .utp[data-ring="spin"] .utp-card:hover .utp-card-ic::before { animation: none; }
+  .utp[data-ring="turn"] .utp-card-ic::before { transition: none; }
+  .utp[data-ring="turn"] .utp-card:hover .utp-card-ic::before { transform: none; }
+}
+
+.utp-watermark {
+  /* донор: вотермарка = фирменный SVG-вордмарк; рисуем его МАСКОЙ поверх фона-градиента —
+     механика «градиент за курсором» живёт.
+
+     Ассет НЕ utp-logo-watermark.svg: в том экспорте чернила шире собственного viewBox
+     (1071.41 против 1068) и внутри висит clip-path на 1068 — правый бок последней «o»
+     срезался НАВСЕГДА, на любом масштабе, из CSS не лечится. Берём тот же вордмарк из
+     соседнего экспорта prod-logo-simplepro-watermark.svg: чернила 1848×405 = viewBox
+     ровно, clip-path нет (замер обоих — _scratch/sweep-utp.js).
+
+     aspect-ratio прибит по viewBox НЕ для красоты: у экспортов стоит
+     preserveAspectRatio="none", такой SVG тянется в любой бокс и пропорцию не держит
+     сам (грабля дома, лого хедера). Верное отношение на боксе + mask-size 100% 100%
+     (а не contain, который зависел бы от того, какое отношение выведет движок) = маска
+     ложится точно, без растяжки.
+
+     ⚠ ШИРИНА (задача №10, сверка с 2184:28483): 55vw давал 704/792/1056 на 1280/1440/1920
+     против макетных 704/904/1068 — на 1280 совпадало случайно, к 1440 расходилось на 112px,
+     к 1920 на 12px. Цель НЕ монотонна одним наклоном (1280→1440 растёт по 1.25px/px,
+     1440→1920 — по 0.342px/px, это разные прямые) — простой двухточечный кламп 1280↔1920
+     ЛЖЁТ на 1440 (проверено: даёт 795 против 904, ту же ошибку в 109px, что и до правки).
+     Взят приём соседа по файлу (.labs-section --labs-col/--photo-w, задача №14е): две
+     ступени, каждая — свой кламп на своём отрезке, сумма минус стык на 1440 (обе ступени
+     дают 904 в стыке, поэтому вычитание не даёт разрыва). Трогаю ТОЛЬКО width — маска/
+     градиент/JS-перелив ниже и в app.js не тронуты, канон Антона жив. */
+  position: absolute; left: clamp(1.5rem, 3vw, 2.25rem); bottom: 1.5rem; z-index: 0;
+  width: calc(
+    clamp(44rem, -56rem + 125vw, 56.5rem)              /* ступень 1280→1440: 704→904 */
+    + clamp(56.5rem, 25.75rem + 34.1667vw, 66.75rem)   /* ступень 1440→1920: 904→1068 */
+    - 56.5rem                                           /* стык: на 1440 обе ступени дают 904 */
+  );
+  aspect-ratio: 1848 / 405;
+  font-size: 0; user-select: none;
+  /* в покое — целиком серый вордмарк (центр градиента уведён за край), красное — только под курсором */
+  background-image: radial-gradient(circle at var(--mx,-100%) var(--my,-100%), var(--action-primary) 0%, var(--red-hover) 18%, var(--grey-10) 46%);
+  background-color: var(--grey-10);
+  -webkit-mask-image: url("../assets/figma/prod-logo-simplepro-watermark.svg");
+  -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: 100% 100%;
+  mask-image: url("../assets/figma/prod-logo-simplepro-watermark.svg");
+  mask-repeat: no-repeat; mask-position: center; mask-size: 100% 100%;
+}
+
+@media (max-width: 53.75rem) { /* = 860 */
+  .utp {
+    grid-template-columns: 1fr;
+    grid-template-areas: "title" "c1" "c2" "c3";
+    padding-bottom: clamp(7.5rem, 24vw, 12.5rem); /* место вотермарке в столбик-раскладке */
+  }
+}
+
+/* ============================================================
+   БЛОК 7 — «Спроектируйте СВОЮ лабораторию» (донор 18:9529)
+   Секция на grey-10, заголовок 5rem одной строкой (justify-between,
+   «свою» красным), 3 белые карточки (заголовок+номер / фото 19.25rem
+   слоями / текст 17), CTA-плашка канон №2.
+   ============================================================ */
+.offer-section { background: var(--grey-10); padding: 3.5rem var(--edge-pad); }
+.offer-title {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 1.5rem;
+  font-family: "Simplepro Display", sans-serif; font-weight: 700;
+  font-size: clamp(2.75rem, 4.16vw, 5rem); line-height: 1; letter-spacing: -.01em;
+  margin: 0 0 2.5rem; text-transform: none; white-space: nowrap;
+}
+/* ── ПЕРЕКЛИЧКА заголовка с карточками ──────────────────────────────────────
+   Покой: красная «свою» (сегмент 2), два других бледно-серые (донор #D2D7DA = --grey-30-brand).
+   Ховер карточки N → красным горит сегмент N, остальные гаснут.
+   Решено ЧИСТЫМ CSS через :has() на секции — JS не нужен: ховер карточки виден
+   заголовку вверх по дереву. Порядок правил = каскад:
+   1) все серые → 2) покойный акцент на 2-м → 3) любой ховер гасит покойный →
+   4) ховер конкретной карточки зажигает свой сегмент.
+   Специфичность (3) и (4) равна (0,5,0), решает порядок — (4) стоит ниже. */
+.offer-title .seg { color: var(--grey-30-brand); transition: color .25s ease; }
+.offer-title .seg--2 { color: var(--action-primary); }
+.offer-section:has(.offer-card:hover) .offer-title .seg { color: var(--grey-30-brand); }
+.offer-section:has(.offer-card--1:hover) .offer-title .seg--1,
+.offer-section:has(.offer-card--2:hover) .offer-title .seg--2,
+.offer-section:has(.offer-card--3:hover) .offer-title .seg--3 { color: var(--action-primary); }
+
+.offer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 1.5rem; }
+.offer-card {
+  background: var(--grey-0); border-radius: 0.25rem; padding: 1.5rem;
+  display: flex; flex-direction: column; gap: 1.25rem;
+  transition: box-shadow .2s ease;
+}
+/* Ховер карточки — ЭТАЛОН блоков 4/6 (.adv-card:hover / .utp-card:hover) один в один:
+   подложка-обводка box-shadow-СПРЕДОМ цветом фона самой карточки. Спред не входит в
+   габарит — раскладка не едет (border толкал бы соседей). Здесь карточка белая на серой
+   секции, поэтому спред белый (--grey-0), а не серый как у блоков 4/6.
+   z-index — тот самый «подъём»: подложка ложится ПОВЕРХ соседних карточек, а не под них. */
+.offer-card:hover { box-shadow: 0 0 0 0.75rem var(--grey-0); position: relative; z-index: 1; }
+.offer-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; }
+.offer-head h5 {
+  font-family: "Simplepro Display", sans-serif; font-weight: 700;
+  font-size: clamp(1.25rem, 1.46vw, 1.75rem); color: var(--grey-60-brand);
+  text-transform: none; margin: 0;
+}
+.offer-head .num { font-weight: 300; font-size: 0.9375rem; color: var(--grey-50); flex: none; }
+.offer-pic {
+  position: relative; height: clamp(12.5rem, 16vw, 19.25rem);
+  border-radius: 0.25rem; overflow: hidden; background: var(--grey-10);
+}
+.offer-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.offer-pic .ovl--multiply { mix-blend-mode: multiply; }
+.offer-text { display: flex; flex-direction: column; gap: 1rem; }
+.offer-dots { display: none; } /* моб-индикатор скролл-ряда (донор 18:7148) — включает mobile.css */
+.offer-text p { font-weight: 300; font-size: clamp(1rem, 0.875rem + 0.15625vw, 1.0625rem); line-height: 1.5rem; letter-spacing: -0.0125rem; color: var(--grey-60-brand); margin: 0; }
+
+/* ═══ КАНОН CTA-ПОЛОСЫ ПЕРЕЕХАЛ В components.css (22.07) ═══
+   Полосу несут ЧЕТЫРЕ страницы: продуктовая · главная · листинг · о компании.
+   Держать её в блоках ОДНОЙ страницы значит однажды получить четыре разошедшиеся копии —
+   правка канона обязана доезжать до всех разом (слово Антона 22.07). */
+
+@media (max-width: 68.75rem) { /* = 1100 */
+  .offer-grid { grid-template-columns: 1fr; }
+  .offer-title { white-space: normal; flex-wrap: wrap; }
+}
+
+/* ============================================================
+   БЛОК 8 — конструктор (донор 18:9611): секция grey-20 с полями 36,
+   шаги слева 1356, панель «Ваш заказ» 480 справа (sticky)
+   ============================================================ */
+.constructor-section { background: var(--grey-20); padding: 3.5rem var(--edge-pad); }
+.constructor-title {
+  font-size: clamp(2.25rem, 2.3vw, 2.75rem); line-height: 3rem; letter-spacing: -0.0275rem;
+  color: var(--grey-60-brand);
+}
+.constructor { display: grid; grid-template-columns: minmax(0, 1fr) clamp(21.5rem, 4.5rem + 21.25vw, 30rem); gap: 1.5rem; align-items: start; margin-top: 2.5rem; }
+.constructor-steps { min-width: 0; display: flex; flex-direction: column; gap: 2.5rem; }
+.cstep-head { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; }
+.cstep-num { background: var(--grey-30-brand); color: var(--grey-60-brand); border-radius: 0.125rem; padding: 0.25rem 0.5rem; font-weight: 600; font-size: 0.875rem; line-height: 1rem; white-space: nowrap; }
+.cstep-title { font-weight: 600; font-size: 1.375rem; line-height: 1.75rem; letter-spacing: -0.02063rem; color: var(--grey-60-brand); }
+.clabel { font-weight: 300; font-size: 1rem; color: var(--grey-60-brand); margin: 1.25rem 0 0.5rem; }
+
+/* радио донора: неотмеченная — кольцо grey-30, отмеченная — толстое красное кольцо («пончик») */
+.radio {
+  appearance: none; width: 1rem; height: 1rem; border-radius: 50%; flex: none;
+  border: 0.125rem solid var(--grey-30-brand); background: var(--grey-0); margin: 0; cursor: pointer;
+  transition: border-color .15s;
+}
+.radio:hover { border-color: var(--grey-50); }
+.radio:checked { border: 0.3125rem solid var(--action-primary); }
+
+/* белая радио-ячейка (шаг 2, материал тумб, цены матрицы). Высота — кламп по числам донора
+   (44 на 1920 → 36 на 1280, тот же «cell btn» и в шаге 2, и в матрице); .mat-row держит ТУ ЖЕ
+   высоту той же формулой — иначе подписи материалов слева разъедутся с ценами построчно. */
+.mcell {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--grey-0); border-radius: 0.25rem; height: clamp(2.25rem, 1.25rem + 1.25vw, 2.75rem); padding: 0 0.75rem;
+  font-weight: 300; font-size: 0.9375rem; color: var(--grey-60-brand); cursor: pointer;
+}
+.mcell-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.mcell-row .mcell { width: 10.375rem; }
+
+/* Шаг 1 — сетка: материалы слева × 4 колонки фото+цены (было 6 донорских: у островного
+   стола ширин ровно четыре — 900/1200/1500/1800; repeat(6,…) оставил бы два пустых трека,
+   и матрица уехала бы влево от фото-колонок). Число колонок продублировано в js/app.js
+   (WIDTHS) и в mobile.css — правишь одно, правь все три. Подписей ширин в доноре НЕТ.
+   Обе группы колонок — клампы по числам фреймов 1280→1920 (подпись 208→288, фото/цена 108→164);
+   раньше первая колонка стояла жёстко 17.5rem и в сжатии не участвовала — на 1511/1366 фото
+   рядом с ней теряло квадрат (высота своя, ширина колонки текла отдельно от неё), а на 1280/1100
+   жёсткая колонка выталкивала сетку за контейнер на пару px (замер: scrollWidth > clientWidth).
+   minmax(0, …) снаружи клампа — страховка: ниже опорной точки 1280 трек всё равно сожмётся
+   до нуля, а не проломит секцию. */
+.matrix { display: grid; grid-template-columns: minmax(0, clamp(13rem, 3rem + 12.5vw, 18rem)) repeat(4, minmax(0, clamp(6.75rem, -0.25rem + 8.75vw, 10.25rem))); gap: 0.25rem 0.5rem; align-items: stretch; }
+.mx-link { align-self: start; padding-right: 1.5rem; }
+.compare-link { color: var(--text-link); font-size: 1rem; font-weight: 300; display: inline-block; max-width: 12.5rem; }
+.compare-link:hover { text-decoration: underline; }
+/* aspect-ratio вместо жёсткой height: колонка теперь текучая (см. .matrix выше), а квадрат
+   кадра держится сам через ЛЮБУЮ ширину — раньше высота 10.25rem была своя, и на сжатой
+   колонке фото превращалось в вытянутый прямоугольник (диагностика 1511/1280: ratio 0.7→0.54). */
+.mx-photo { position: relative; aspect-ratio: 1 / 1; border-radius: 0.25rem 0.25rem 0 0; overflow: hidden; background: var(--grey-10); }
+.mx-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.mat-row { display: flex; align-items: center; gap: 0.625rem; height: clamp(2.25rem, 1.25rem + 1.25vw, 2.75rem); border-bottom: 0.0625rem solid var(--grey-30-brand); padding-right: 0.5rem; }
+.mat-prev { position: relative; width: 1.25rem; height: 1.25rem; border-radius: 0.125rem; overflow: hidden; flex: none; background: var(--grey-10); }
+.mat-prev img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.mat-name { font-weight: 300; font-size: 1rem; color: var(--grey-60-brand); flex: 1; }
+.mat-q { width: 1.125rem; height: 1.125rem; flex: none; opacity: .8; }
+/* цена радио-ячейки матрицы (.price — голый класс из app.js, своего правила не было вовсе):
+   nowrap явно, а не «повезёт с шириной» — цифры до 6 разрядов, ячейка живёт в текучей колонке. */
+.mx-price .price { white-space: nowrap; }
+
+/* Шаг 3 «Тип»: фото-карточки, подпись-радио снизу. Ширина — кламп по числам донора (166@1920
+   → 152@1280); aspect-ratio вместо своей высоты — тот же приём и та же причина, что у .mx-photo
+   (высота-сама-по-себе рвёт квадрат, когда колонка/ширина текут отдельно от неё). */
+.type-cards { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.type-card { width: clamp(9.5rem, 7.75rem + 2.1875vw, 10.375rem); cursor: pointer; }
+.type-card .tphoto { position: relative; display: block; aspect-ratio: 1 / 1; border-radius: 0.25rem 0.25rem 0 0; overflow: hidden; background: var(--grey-10); }
+.type-card .tphoto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center bottom; /* донор кропит кадр к тумбам (низ) */ }
+.type-card .tname { display: flex; align-items: center; gap: 0.5rem; height: 2.75rem; background: var(--grey-0); border-radius: 0 0 0.25rem 0.25rem; padding: 0 0.75rem; font-weight: 300; font-size: 0.9375rem; color: var(--grey-60-brand); }
+
+/* карточки «Размер» / Шаг 4: 288, фото-композит слоями, тело белое */
+.const-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 18rem)); gap: 1.5rem; }
+.const-card .cphoto { position: relative; aspect-ratio: 1 / 1; border-radius: 0.25rem 0.25rem 0 0; overflow: hidden; background: var(--grey-10); }
+.const-card .cphoto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.const-card .cbody { background: var(--grey-0); border-radius: 0 0 0.25rem 0.25rem; padding: 1rem; }
+.const-card .cname { font-weight: 300; font-size: 0.9375rem; line-height: 1.25rem; color: var(--grey-60-brand); margin: 0; min-height: 2.5rem; }
+/* flex-wrap — страховка сжатия: цена (nowrap-текст) и степпер (круглые кнопки) оба не сжимаются
+   меньше своего контента (дефолт flex min-width:auto), а трек карточки — minmax(0,…) и честно
+   сжимается вплоть до нуля. На 1366–1100 без wrap степпер вылезал за правый край карточки на
+   3–17px (замер getBoundingClientRect: .stepper.right > .const-card.right). С wrap пара просто
+   переносится каждый в свою строку — цена как была в одну строку (nowrap не трогали), внутрь
+   карточки укладывается всегда. На широких, где места хватает, перенос не срабатывает — ряд как был. */
+.const-card .cprice-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.75rem; }
+.const-card .cprice { font-weight: 600; font-size: 1.375rem; color: var(--grey-60-brand); white-space: nowrap; }
+
+/* степпер-пилюля (донор: radius 60, круглые кнопки 28) */
+.stepper { display: inline-flex; align-items: center; background: var(--grey-0); border: 0.0625rem solid var(--grey-10); border-radius: 3.75rem; padding: 0.125rem; }
+.stepper button { width: 1.75rem; height: 1.75rem; border: 0; border-radius: 50%; background: transparent; display: grid; place-items: center; }
+.stepper button:hover { background: var(--grey-10); }
+.stepper input { width: 2rem; text-align: center; border: 0; background: transparent; font-family: inherit; font-size: 0.9375rem; color: var(--grey-60-brand); }
+
+/* «Показать еще» (ghost с тёмной рамкой) */
+.show-more { border: 0.0625rem solid var(--grey-60-brand); border-radius: 0.25rem; height: 2.75rem; padding: 0 1rem; background: transparent; font-weight: 300; font-size: 1rem; color: var(--grey-60-brand); align-self: flex-start; margin-top: 1.5rem; transition: background .15s; }
+.show-more:hover { background: var(--grey-0); }
+/* Ховер/фокус ТОЛЬКО в конструкторе — задача №12: закраска grey-70 + рост скругления 4→8,
+   канон-рецепт .btn--inverse (components.css) — тёмная капсула, светлый текст, без рамки.
+   Скоуп через .constructor-steps нарочно уже, чем голый .show-more: та же кнопка используется
+   в блоке 9 (#cmpMore) — её словарь состояний не наша зона, там сидит другой поток параллельно,
+   трогать нельзя. Своя transition-строка — общая .show-more анимирует только background. */
+.constructor-steps .show-more {
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, border-radius 0.15s ease;
+}
+.constructor-steps .show-more:hover {
+  background: var(--action-inverse-hover);
+  color: var(--text-inverse);
+  border-color: transparent;
+  border-radius: var(--r-8);
+}
+.constructor-steps .show-more:focus-visible {
+  outline: 0.125rem solid var(--border-focus);
+  outline-offset: 0.125rem;
+}
+
+/* панель «Ваш заказ» */
+.order-panel { position: sticky; top: 4.5rem; background: var(--grey-0); border-radius: 0.25rem; padding: 1.5rem; }
+.order-head { display: flex; align-items: center; justify-content: space-between; }
+.order-title { font-size: 1.75rem; color: var(--grey-60-brand); }
+/* Шеврон «Ваш заказ» — канон ховера дома (queue-hub №35-②, слово Антона «кнопка шеврона
+   без ховера и как то топорно работает»). Портировано с продуктовой одновременно с ней:
+   у стола свой blocks.css с тем же правилом-близнецом, и он тоже идёт клиенту.
+   Тёмная заливка + белый глиф ФИЛЬТРОМ (в <img> переменные не долетают) + радиус 4 → 8. */
+.order-toggle {
+  width: 2.75rem; height: 2.75rem;
+  border: 0.0625rem solid var(--grey-60-brand); border-radius: var(--r-4);
+  background: none; display: grid; place-items: center; cursor: pointer;
+  transition: transform .2s, background-color .15s ease, border-color .15s ease, border-radius .15s ease;
+}
+.order-toggle:hover { background: var(--action-secondary-hover); border-color: var(--action-secondary-hover); border-radius: var(--r-8); }
+.order-toggle:hover img { filter: brightness(0) invert(1); }
+.order-toggle:active { background: var(--action-secondary-pressed); border-color: var(--action-secondary-pressed); }
+.order-toggle:focus-visible { outline: 0.125rem solid var(--border-focus); outline-offset: 0.125rem; }
+.order-panel.collapsed .order-toggle { transform: rotate(180deg); }
+.order-panel.collapsed .order-body { display: none; }
+.order-sep { height: 0.0625rem; background: var(--grey-10); margin: 1rem 0; }
+.order-label { font-weight: 600; font-size: 1.0625rem; color: var(--grey-60-brand); margin: 0 0 0.25rem; }
+.order-line { display: flex; align-items: baseline; gap: 0.75rem; padding: 0.5rem 0; font-size: 0.9375rem; }
+.order-line .nm { flex: 1; font-weight: 300; color: var(--grey-60-brand); }
+.order-line .qty { color: var(--grey-50); font-weight: 300; white-space: nowrap; }
+.order-line .amt { font-weight: 600; color: var(--grey-60-brand); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.order-qty, .order-total { display: flex; align-items: center; justify-content: space-between; }
+.order-qty .order-label, .order-total .order-label { margin: 0; }
+.order-total .sum { font-family: "Simplepro Display", sans-serif; font-size: 1.75rem; color: var(--grey-60-brand); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.order-actions { display: flex; justify-content: flex-end; gap: 0.5rem; padding-top: 1rem; }
+.btn--order { min-height: 2.5rem; border-radius: 0.25rem; padding: 0 0.875rem; font-size: 0.9375rem; }
+.btn--order img { width: 1.125rem; height: 1.125rem; }
+
+/* ============================================================
+   БЛОК 9 — сравнительная таблица (донор 18:8161): белая карта,
+   колонка названий 408 sticky + 8 колонок 180, мерджи colspan
+   ============================================================ */
+/* Full-bleed вправо — приём рельса блока 4 (.adv-strip): поле держат ШАПКА и РЕЛЬС
+   раздельно, у самой секции справа поля больше нет. Тогда .cmp-wrap ниже (у него
+   своего right-паддинга нет и не будет) дотягивается до ИСТИННОГО края окна, а не до
+   отступа секции — последняя колонка обрезается краем экрана, а не полем карты.
+   Левое поле не трогаем (full-bleed только вправо, донор задачи). */
+.cmp-section { background: var(--grey-0); border-radius: 0.5rem; padding: 3.5rem 0 3.5rem var(--edge-pad); }
+.cmp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; padding-right: var(--edge-pad); /* шапка держит своё поле сама — рельс ниже full-bleed */ }
+.cmp-title { font-size: clamp(1.75rem, 1.9vw, 2.25rem); line-height: 2.5rem; letter-spacing: -0.01688rem; color: var(--grey-60-brand); max-width: 23rem; }
+.cmp-wrap { overflow-x: auto; margin-top: 1.5rem; padding-top: 1.75rem; /* место бейджу «Текущий вариант» над рамкой */ } /* right намеренно 0 — см. full-bleed выше */
+.cmp-table { border-collapse: separate; border-spacing: 0; min-width: 100%; }
+.cmp-table th.lbl {
+  position: sticky; left: 0; z-index: 2; background: var(--grey-0);
+  min-width: 25.5rem; max-width: 25.5rem; text-align: left; vertical-align: middle;
+  font-weight: 300; font-size: 1rem; color: var(--grey-60-brand);
+  padding: 0.75rem 1rem 0.75rem 0; border-bottom: 0.0625rem solid var(--grey-20);
+}
+.cmp-table td {
+  min-width: 11.25rem; text-align: center; vertical-align: middle;
+  font-weight: 300; font-size: 0.9375rem; color: var(--grey-60-brand);
+  padding: 0.75rem 1rem; border-bottom: 0.0625rem solid var(--grey-20);
+  border-right: 0.0625rem solid var(--grey-20); /* донор: тонкая вертикальная сетка колонок */
+}
+.cmp-table td:last-child, .cmp-table td.pcell { border-right: 0; }
+.cmp-table td b { font-weight: 600; }
+.cmp-table tr:first-child th.lbl, .cmp-table td.pcell { border-bottom: 0; }
+.cmp-table td.pcell { padding: 0 0.5rem 0.5rem; position: relative; }
+.col-photo { width: 10.25rem; height: 10.25rem; object-fit: cover; display: block; margin: 0 auto; border-radius: 0.25rem; }
+.mark-chip { display: inline-flex; align-items: center; gap: 0.375rem; color: var(--text-link); font-weight: 400; font-size: 0.9375rem; }
+.cmp-check { width: 1rem; height: 1rem; display: block; margin: 0 auto; }
+/* красная рамка «Текущий вариант»: колонка 1, от фото до цены (не вся колонка) */
+.cmp-table td.curr { border-left: 0.125rem solid var(--action-primary); border-right: 0.125rem solid var(--action-primary); }
+.cmp-table td.curr-top { border-top: 0.125rem solid var(--action-primary); }
+.cmp-table td.curr-bottom { border-bottom: 0.125rem solid var(--action-primary); }
+.curr-badge {
+  position: absolute; left: -0.125rem; top: 0; transform: translateY(-100%);
+  background: var(--action-primary); color: var(--grey-0); font-weight: 300; font-size: 0.875rem; line-height: 1rem;
+  padding: 0.25rem 0.625rem; border-radius: 0.125rem 0.125rem 0 0; white-space: nowrap;
+}
+/* Глитч-фикс: бейдж «Текущий вариант» подвешен НАД первой строкой (translateY(-100%)
+   от .pcell) — в кармане padding-top рельса, где sticky-колонки (.cmp-table th.lbl)
+   физически ещё нет (её бокс начинается только со строки фото). При скролле бейдж
+   не находит, чем спрятаться, и едет по карману оторванным красным обрезком поверх
+   подписей строк — на этом ловился и деск, и моб. Чиним нашлёпкой: псевдоэлемент
+   продолжает sticky-колонку ВВЕРХ ровно на высоту кармана, тем же белым, и, будучи
+   потомком sticky-родителя, едет вместе с ним одним куском — обрезок больше не отстаёт. */
+.cmp-table tr:first-child th.lbl::before {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 100%;
+  height: 1.75rem; /* = padding-top у .cmp-wrap, ровно карман бейджа */
+  background: var(--grey-0);
+}
+.cmp-btn-row th.lbl, .cmp-btn-row td { border-bottom: 0; }
+/* «Показать ещё»/«Свернуть» — канон конструктора (Антон 21.07, INBOX ⑥/②): ховер = закраска
+   grey-70 + рост скругления (канон-рецепт .btn--inverse из components.css — та же пара
+   токенов, что параллельный поток задачи №12 уже завёл для .constructor-steps .show-more;
+   держим оба места на ОДНИХ токенах, не на сыром var(--grey-70), — это один канон, две точки).
+   Скоуп через .cmp-btn-row: свой transition-набор не трогает соседний #sinksMore
+   конструктора — общий базовый .show-more делят только цвет/форма покоя. */
+.cmp-btn-row .show-more {
+  margin: 0.75rem 0;
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease, border-radius .15s ease;
+}
+.cmp-btn-row .show-more:hover {
+  background: var(--action-inverse-hover); color: var(--text-inverse); border-color: transparent; border-radius: var(--r-8);
+}
+.cmp-btn-row .show-more:focus-visible {
+  outline: 0.125rem solid var(--border-focus); outline-offset: 0.125rem;
+}
+#cmpB { display: none; }
+.cmp-table.show-all #cmpB { display: table-row-group; }
+
+/* Ховеры (Антон 21.07): строка подсвечивается наведением на её лейбл, столбец —
+   наведением на фото/название/цену верхнего блока. Оба чисто на CSS, без обработчиков —
+   скролла не касаются никак.
+   СТРОКА: th.lbl — первый ребёнок <tr>, поэтому все td справа берутся общим соседом (~) —
+   работает и через мердж-ячейку (colspan), ей всё равно, она просто td. */
+/* ⛔ `tr:not(.cmp-btn-row)` — служебная строка («Показать еще» / «Свернуть») из подсветки
+   ИСКЛЮЧЕНА, слово Антона 31.07 (queue-hub №46). Портировано с продуктовой ОДНОВРЕМЕННО
+   с ней, а не «потом»: у стола та же строка и тот же баг, просто её не видно грепом по
+   разметке — `.cmp-btn-row` рождается в рантайме (`product-card-stol/js/app.js:999`).
+   Симптомов два, корень один: в служебной строке нечего сравнивать, а липкая `th.lbl`
+   (непрозрачно белый фон, z-index 2 — нужен, чтобы держать подпись при горизонтальном
+   скролле) остаётся белой, когда соседи красятся серым, и рядом с кнопкой встаёт белый
+   прямоугольник шириной колонки лейблов — его и читают как «кнопка зарезается». */
+.cmp-table tr:not(.cmp-btn-row) th.lbl:hover,
+.cmp-table tr:not(.cmp-btn-row) th.lbl:hover ~ td { background: var(--grey-10); }
+/* СТОЛБЕЦ: триггер — фото (стр.1), название (стр.3) или цена (стр.4) верхнего блока,
+   ГДЕ мерджей нет и nth-child честно равен номеру столбца. Подсветка — td:not([colspan])
+   тем же nth-child по ОБЕИМ tbody (секция A и скрытая до клика секция B — :has() читает
+   актуальный DOM, а не разметку при загрузке).
+   ⚠ Честное ограничение чистого CSS: у 6 строк-спек с мерджем (Материал шкафа / Варианты
+   рабочей поверхности-текст / Варианты ширины мм / Глубина / Высота / Тумбы×2) одна ячейка
+   растянута colspan на несколько столбцов — её nth-child для промежуточных столбцов не
+   существует физически. :not([colspan]) намеренно ИСКЛЮЧАЕТ такие ячейки из подсветки —
+   честный частичный результат (просто не подсвечивается), а не подсветка не той ячейки
+   не на том столбце. Полная версия (мердж-ячейки тоже) — JS-спека в отчёте задачи №13. */
+/* ⚠ Правил ровно СТОЛЬКО, сколько колонок: было 8 донорских (nth-child 2…9), стало 13 живых
+   типов столов (nth-child 2…14). nth-child здесь физический номер ячейки в строке, а первая —
+   это th.lbl, отсюда сдвиг на единицу. Меняешь число колонок в app.js (CMP_COLS) — дописывай
+   или убирай строки здесь, иначе крайние колонки просто перестанут подсвечиваться. */
+.cmp-table:has(> tbody:first-of-type > tr:is(:nth-child(1),:nth-child(3),:nth-child(4)) > td:nth-child(2):hover) > tbody > tr > td:not([colspan]):nth-child(2) { background: var(--grey-10); }
+.cmp-table:has(> tbody:first-of-type > tr:is(:nth-child(1),:nth-child(3),:nth-child(4)) > td:nth-child(3):hover) > tbody > tr > td:not([colspan]):nth-child(3) { background: var(--grey-10); }
+.cmp-table:has(> tbody:first-of-type > tr:is(:nth-child(1),:nth-child(3),:nth-child(4)) > td:nth-child(4):hover) > tbody > tr > td:not([colspan]):nth-child(4) { background: var(--grey-10); }
+.cmp-table:has(> tbody:first-of-type > tr:is(:nth-child(1),:nth-child(3),:nth-child(4)) > td:nth-child(5):hover) > tbody > tr > td:not([colspan]):nth-child(5) { background: var(--grey-10); }
+.cmp-table:has(> tbody:first-of-type > tr:is(:nth-child(1),:nth-child(3),:nth-child(4)) > td:nth-child(6):hover) > tbody > tr > td:not([colspan]):nth-child(6) { background: var(--grey-10); }
+.cmp-table:has(> tbody:first-of-type > tr:is(:nth-child(1),:nth-child(3),:nth-child(4)) > td:nth-child(7):hover) > tbody > tr > td:not([colspan]):nth-child(7) { background: var(--grey-10); }
+.cmp-table:has(> tbody:first-of-type > tr:is(:nth-child(1),:nth-child(3),:nth-child(4)) > td:nth-child(8):hover) > tbody > tr > td:not([colspan]):nth-child(8) { background: var(--grey-10); }
+.cmp-table:has(> tbody:first-of-type > tr:is(:nth-child(1),:nth-child(3),:nth-child(4)) > td:nth-child(9):hover) > tbody > tr > td:not([colspan]):nth-child(9) { background: var(--grey-10); }
+.cmp-table:has(> tbody:first-of-type > tr:is(:nth-child(1),:nth-child(3),:nth-child(4)) > td:nth-child(10):hover) > tbody > tr > td:not([colspan]):nth-child(10) { background: var(--grey-10); }
+.cmp-table:has(> tbody:first-of-type > tr:is(:nth-child(1),:nth-child(3),:nth-child(4)) > td:nth-child(11):hover) > tbody > tr > td:not([colspan]):nth-child(11) { background: var(--grey-10); }
+.cmp-table:has(> tbody:first-of-type > tr:is(:nth-child(1),:nth-child(3),:nth-child(4)) > td:nth-child(12):hover) > tbody > tr > td:not([colspan]):nth-child(12) { background: var(--grey-10); }
+.cmp-table:has(> tbody:first-of-type > tr:is(:nth-child(1),:nth-child(3),:nth-child(4)) > td:nth-child(13):hover) > tbody > tr > td:not([colspan]):nth-child(13) { background: var(--grey-10); }
+.cmp-table:has(> tbody:first-of-type > tr:is(:nth-child(1),:nth-child(3),:nth-child(4)) > td:nth-child(14):hover) > tbody > tr > td:not([colspan]):nth-child(14) { background: var(--grey-10); }
+
+/* --- блоки 10–12: labs design · тендер · projects --- */
+/* ============================================================
+   Пакет блоков 10/12 (близнецы «Дизайн лабораторий» / «Примеры
+   наших проектов», доноры 18:9962 / 18:9785) + блок 11 тендер.
+   ============================================================ */
+
+/* --- близнецы: интро-колонка 430/440/392 слева, карусель справа ---
+   Задача №14е (ресайз-канон), числа из research/figma-drops/labsdesign-2184-resize.md
+   (снято лидом 21.07). Токены висят на .labs-section — блоки 10 «Дизайн лабораторий» и
+   12 «Примеры проектов» оба сидят на этом классе, поэтому канон объявлен ОДИН раз и
+   работает на близнецах одинаково, дублировать по блокам не нужно. */
+.labs-section {
+  background: var(--grey-0); padding: 3.5rem 0 3.5rem var(--edge-pad); position: relative; overflow: hidden;
+  /* текст-колонка 392→440→430 — НЕ монотонно (пик на 1440), обычный кламп по двум концам
+     этого не опишет (взял бы 1920/1280 и соврал бы на 1440: дал 678 вместо 672... для
+     колонки — 415 вместо 440). Две ступени, каждая упирается в СВОЙ конец на плато за
+     своим отрезком (приём как у .gallery-rail блока 1: сумма минус стык, а не min/max —
+     min/max берут одну ступень и врут на другом отрезке). Проверка по трём точкам ниже
+     у каждого токена продублирована в замере (_scratch/measure-14e-*.js). */
+  --labs-col: calc(
+    clamp(24.5rem, calc(0.5rem + 30vw), 27.5rem)               /* ступень 1280→1440: 392→440 */
+    + clamp(26.875rem, calc(29.375rem - 2.08333vw), 27.5rem)   /* ступень 1440→1920: 440→430 */
+    - 27.5rem                                                   /* стык: на 1440 обе ступени дают 440 */
+  );
+  /* фото слайда 600×336 → 672×376 → 912×512 — ширина и высота растут разным темпом на
+     1280–1440 и 1440–1920, тот же приём двух ступеней (стык на 1440). */
+  --photo-w: calc(
+    clamp(37.5rem, calc(1.5rem + 45vw), 42rem)
+    + clamp(42rem, calc(50vw - 3rem), 57rem)
+    - 42rem
+  );
+  --photo-h: calc(
+    clamp(21rem, calc(1rem + 25vw), 23.5rem)
+    + clamp(23.5rem, calc(28.33333vw - 2rem), 32rem)
+    - 23.5rem
+  );
+  /* миниатюра 80×44 → 92×48 → 132×72 — тот же приём */
+  --thumbs-w: calc(
+    clamp(5rem, calc(7.5vw - 1rem), 5.75rem)
+    + clamp(5.75rem, calc(8.33333vw - 1.75rem), 8.25rem)
+    - 5.75rem
+  );
+  --thumbs-h: calc(
+    clamp(2.75rem, calc(2.5vw + 0.75rem), 3rem)
+    + clamp(3rem, calc(5vw - 1.5rem), 4.5rem)
+    - 3rem
+  );
+  /* стрелки 36 → 40 → 44 (44 остаётся базой .arrow-btn общего канона на 1920) */
+  --arrow-size: calc(
+    clamp(2.25rem, calc(2.5vw + 0.25rem), 2.5rem)
+    + clamp(2.5rem, calc(0.83333vw + 1.75rem), 2.75rem)
+    - 2.5rem
+  );
+}
+.labs-grid { display: grid; grid-template-columns: var(--labs-col) minmax(0, 1fr); gap: clamp(3rem, 10vw, 12.125rem); position: relative; }
+.labs-intro { display: flex; flex-direction: column; height: 35.75rem; }
+.labs-title { font-size: clamp(2.75rem, 1.75rem + 1.25vw, 3.25rem); line-height: 3.5rem; letter-spacing: -0.04063rem; color: var(--grey-60-brand); }
+.labs-text { margin-top: 1.5rem; }
+.labs-text p { font-weight: 300; font-size: 1.0625rem; line-height: 1.5rem; color: var(--grey-60-brand); margin: 0 0 1em; }
+.labs-intro .arrow-nav { margin-top: auto; }
+/* тёмные стрелки (блок 10; обе всегда тёмные, как красные у --red) */
+.arrow-nav--dark .arrow-btn, .arrow-nav--dark .arrow-btn:disabled { background: var(--grey-60-brand); color: var(--grey-0); }
+.arrow-nav--dark .arrow-btn:hover { background: var(--grey-70); }
+/* размер стрелок близнецов — ЛОКАЛЬНО через .labs-section: .arrow-btn общий канон-компонент
+   (44 на 1920 остаётся его базой везде), здесь только добавляем ресайз на 1440/1280 для
+   ЭТИХ четырёх инстансов (см. предупреждение выше про overflow:hidden секции). */
+.labs-section .arrow-btn { width: var(--arrow-size); height: var(--arrow-size); }
+
+.case-strip { display: flex; gap: 1.5rem; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; padding-right: 2.25rem; } /* гэп карточек 24 на 1920/1440/1280 — константа канона (было 80), не клампуется */
+.case-strip::-webkit-scrollbar { display: none; }
+.case-slide { flex: 0 0 auto; width: calc(var(--photo-w) + 1.5625rem + var(--thumbs-w)); scroll-snap-align: start; } /* ширина слайда = фото + гэп медиа-ряда + миниатюры, без отдельного магического числа — донорская «карточка целиком» (1069/788/707) сходится сама */
+.slide-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1.5rem; margin-bottom: 1rem; }
+.slide-head h3 { font-size: clamp(1.75rem, 1.9vw, 2.25rem); line-height: 2.5rem; letter-spacing: -0.01688rem; color: var(--grey-60-brand); }
+.slide-desc { font-weight: 300; font-size: 1.0625rem; line-height: 1.375rem; letter-spacing: -0.01063rem; color: var(--grey-60-brand); max-width: 13.75rem; }
+.slide-media { display: flex; gap: 1.5625rem; align-items: stretch; }
+.layer-pic { position: relative; overflow: hidden; border-radius: 0.25rem; background: var(--grey-10); }
+.layer-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.slide-photo { width: var(--photo-w); height: var(--photo-h); flex: none; } /* было min(57rem,66vw)+aspect-ratio 912/512 фикс — донор НЕ держит одну пропорцию на все три чекпоинта (1.781/1.787/1.786), явные w+h точнее клампованного aspect-ratio */
+.slide-thumbs { display: flex; flex-direction: column; gap: 0.75rem; width: var(--thumbs-w); flex: none; overflow-y: auto; scrollbar-width: thin; } /* столбец прокручивается по вертикали — до 6 миниатюр при видимых ~3; гэп 12 — константа канона на всех трёх десктоп-точках */
+.slide-thumbs .thumb { width: var(--thumbs-w); height: var(--thumbs-h); border: 0; padding: 0; border-radius: 0.25rem; flex: none; cursor: pointer; transition: outline-color .15s; }
+/* свопер: активная миниатюра — красная обводка (outline поверх слоёв, не двигает лейаут); клавфокус — синяя обводка снаружи */
+.slide-thumbs .thumb.is-active { outline: 0.1875rem solid var(--action-primary); outline-offset: -0.1875rem; }
+.slide-thumbs .thumb:focus-visible { outline: 0.1875rem solid var(--text-link); outline-offset: 0.125rem; }
+
+/* панель BIM под каруселью */
+.bim-panel { margin: 3.5rem 2.25rem 0 0; background: var(--grey-10); border-radius: 0.25rem; padding: 1.5rem; display: flex; gap: 1.5rem; align-items: stretch; }
+.bim-photo { width: 55.5rem; max-width: 50%; height: 15.75rem; object-fit: cover; border-radius: 0.25rem; flex: none; }
+.bim-card { background: var(--grey-0); border-radius: 0.25rem; padding: 1.5rem; display: flex; gap: 1rem; flex: 1; align-items: flex-start; }
+.bim-card-text { display: flex; flex-direction: column; gap: 1rem; flex: 1; }
+.bim-card-text h4 { font-size: clamp(1.375rem, 1.46vw, 1.75rem); color: var(--grey-60-brand); }
+.bim-card-text p { font-weight: 300; font-size: 1.0625rem; line-height: 1.5rem; color: var(--grey-60-brand); margin: 0; }
+.bim-card-text .lnk { color: var(--text-link); }
+.bim-actions { display: flex; gap: 0.5rem; margin-top: auto; }
+.bim-qr { background: var(--grey-0); border: 0.0625rem solid var(--grey-10); border-radius: 0.75rem; width: 7rem; height: 7rem; display: grid; place-items: center; flex: none; }
+
+/* блок 12: line-art фон секции + пара BIM-плашек */
+.projects-section::before {
+  content: ""; position: absolute; inset: 0;
+  background: url("../assets/figma/projects-bg-lineart.png") center / cover no-repeat;
+  opacity: .1; pointer-events: none;
+}
+.projects-section > * { position: relative; }
+.bim-panel--pair .bim-card { flex: 1 1 0; }
+
+/* ============================================================
+   БЛОК 11 — тендер (донор 18:9890): красная плашка radius 24 на всю
+   ширину, рутокен-рендер слева под -48.84°, дуга-декор за ним,
+   заголовок 52 + 4 белые карточки 2×2 + белая CTA-плашка 912
+   ============================================================ */
+
+ /* высоту блока задаёт правая колонка (донор 789); радиус — только левые углы (те, что совпадают с углами секции), правые — внутренняя граница колонки, там скруглять нечего */
+/* дуга-кольцо: SVG 706×706 с preserveAspectRatio=none — без явного аспекта браузер плющит её в блин */
+/* Перелив тона (задача №15б, слово Антона 21.07 «если возможно» — возможно): сам ассет —
+   плоский белый градиент (прозрачный→белый), hue-rotate тут нечего вращать — у белого нет
+   тона. Честный «перелив» для ЭТОЙ формы — колебание alpha на красной подложке
+   (--action-primary): более прозрачное кольцо пропускает больше красного и само читается
+   теплее/розовее, менее прозрачное — холоднее/белее — тон реально плывёт через альфа-блендинг
+   с токеном фона, без выдуманного hue. Цикл вдвое медленнее флешки (9s против 6s) — задник
+   двигается тише переднего плана, отсюда и «ненавязчиво», плюс кольцо статично по позиции:
+   двигается только флешка над ним — так парение читается как параллакс двух слоёв, а не как
+   общее дрожание картинки. */
+
+/* рутокен: PNG лежачий 2241×748, поворот −48.84° даёт почти квадратный габарит ~0.91W×0.97W —
+   центрируем в колонке и держим ширину, при которой повёрнутый бокс влезает целиком (USB не режется) */
+/* Левитация (задача №15а, слово Антона 21.07 «как будто она чуть-чуть парит»): translateY
+   стоит ПЕРВЫМ в списке функций — то есть применяется ПОСЛЕДНИМ, transform читается справа
+   налево, поэтому сдвиг ложится уже в экранных координатах, ПОСЛЕ поворота -48.84deg. Поставь
+   его после rotate() — «вверх» уехало бы по диагонали самого поворота, и парение читалось бы
+   как лёгкое кручение, а этого явно просили избежать («не крутится»). Амплитуда 0.5rem —
+   меньше 2% от габарита флешки (~640px по ширине на 1920), заметна на кадре, но не отвлекает
+   от заголовка/карточек рядом; цикл 6s ease-in-out — медленный вдох-выдох без единого рывка
+   («не прыгает»). Буфер до края секции (overflow: hidden) на 1920 — около 40px, амплитуды
+   с большим запасом. */
+
+/* Глобальный reduce-motion в tokens.css только ужимает длительность до 0.01ms — кадр всё
+   равно долетит до конечного состояния анимации и «дёрнется» за один тик. Глушим явно, как
+   канон УТП (blocks.css ~372, .utp[data-ring] reduce-блок): animation: none возвращает оба
+   элемента к их статичным transform/opacity, объявленным ВЫШЕ в этих же правилах, а не к
+   случайному кадру кейфрейма. */
+
+ /* донор 18:9891: 2.25rem */
+
+ /* донор: 398×60 = 14/20 */
+/* CTA-плашка донора: заголовок Geologica 17 (не display), radius 8 */
+
+/* Тендер держит ОДНУ строку (донор 18:9906), но НАБОР — общий канон 21.07: типографика
+   задана для ОБЕИХ CTA-полос, а прежний Geologica 400/17 ломал паритет (полосы читались
+   разными шрифтами). Из донор-правила осталось только то, что про строку: max-width: none. */
+
+/* --- блоки 13–14: производство · футер --- */
+/* ============================================================
+   Пакет блоков 13 (производство, донор 18:10012) и
+   14 (футер-канон с формой статуса, донор 18:10053)
+   ============================================================ */
+
+/* --- блок 13: вотермарка за заголовком, видео 912×512, 2 текст-колонки --- */
+.prod-section { background: var(--grey-0); padding: 3.75rem var(--edge-pad) 3.5rem; position: relative; overflow: hidden; }
+.prod-watermark { position: absolute; left: 2.25rem; right: 2.25rem; top: 3.75rem; width: calc(100% - 4.5rem); aspect-ratio: 1848 / 405; height: auto; z-index: 0; pointer-events: none; }
+/* Было flex+margin-inline:auto на обложке — авто-центрирование в остатке ряда, ось плавала
+   вместе с шириной заголовка и на макете 2190:38317 не совпадала. На макете обложка стоит на
+   x=660 (=41.25rem) от поля — ЛЕВЫЙ край, тот же, что держит .prod-cols ниже (та же формула
+   calc(33.33% + 0.5rem) от поля до поля, см. margin у .prod-cols). Грид с первым треком РОВНО
+   этой ширины резервирует место под заголовок как МЕСТО, а не как контент: заголовок (у него
+   max-width, не фикс-width) вписывается в трек, не раздвигая его. На flex+gap ширина
+   заголовка складывалась бы с зазором и точка старта обложки уезжала на узких 1440/1280. */
+.prod-top { position: relative; display: grid; grid-template-columns: calc(33.33% + 0.5rem) 1fr; align-items: start; }
+.prod-title { font-size: clamp(2.75rem, 1.75rem + 1.25vw, 3.25rem); line-height: 3.5rem; letter-spacing: -0.04063rem; color: var(--grey-60-brand); max-width: 29.25rem; }
+/* justify-self: start — второй трек тянется до правого поля секции (1fr), а у обложки
+   собственная ширина (912@1920, min(57rem,62vw) — та же формула, что и была, не трогаю);
+   без явного start грид растянул бы её на всю ширину трека вместо посадки к его левому краю. */
+.prod-video { position: relative; width: min(57rem, 62vw); aspect-ratio: 912 / 512; border-radius: 0.25rem; overflow: hidden; justify-self: start; }
+.prod-video .pv-layer { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* размер play-кнопки здесь не переопределяем: 120 теперь база канона (см. .play-btn) */
+.prod-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.prod-cols { position: relative; display: grid; grid-template-columns: minmax(0, 27.75rem) minmax(0, 27.75rem); gap: clamp(3rem, 9.4vw, 11.25rem); margin: 3.75rem 0 0 calc(33.33% + 0.5rem); }
+.prod-cols p { font-weight: 300; font-size: 1.0625rem; line-height: 1.5rem; letter-spacing: -0.01188rem; color: var(--grey-60-brand); margin: 0 0 1.5rem; }
+
+/* блок 14 (футер) переехал в модуль code/footer/ — врезан 21.07, здесь его больше нет. */
+
+/* Тендер-секция ПЕРЕЕХАЛА В КАНОН: с 22.07 её правила живут в
+   ../product-card/css/components.css §ТЕНДЕР и приезжают на страницу ссылкой.
+   Здесь лежал снимок ДО переезда: он грузился ПОСЛЕ components.css и молча
+   перебивал канон замороженной копией. Снесут канон — тендер этой страницы
+   останется без стилей, и это правильно: своей копии у страницы больше нет. */

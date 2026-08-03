@@ -1,0 +1,372 @@
+/* Simple PRO — «О компании» · МОБИЛЬНЫЙ СЛОЙ (≤720px).
+   Порог 45rem = 720 — тот же, что у продуктовой, листинга и nav-модуля: между
+   манифестациями не должно быть ширины, на которой нет ни одной из них.
+   Подключается ПОСЛЕ about.css и ДО модулей nav/footer (у них свои моб-манифестации).
+
+   Канон — research/figma-drops/mob-canon/principles.md (секция 2173 «моб продуктовая»):
+   контент ПОТОКОМ без шторок · карточка НАЕЗЖАЕТ снизу на фото · свайп-карусели с
+   ТОЧКАМИ вместо реек миниатюр · CTA столбиком (email красная → эксперт тёмная →
+   обводочная) · тач-цели ≥48 · низ-бар не трогаем (состав закрыт словом Антона 21.07).
+   Точки проверки: 320 / 360 / 375 / 390, сверка 1:1 — на 360. */
+
+@media (max-width: 45rem) {
+  /* ── моб-база ──
+     Поле 12 = канон-контент 336 на 360 (тот же --edge-pad/--pad-x, что у соседей).
+     Вертикальный ритм секций 40 вместо десктопных 200 — как .section у продуктовой. */
+  :root {
+    --about-pad: 0.75rem;
+    --about-col-gap: 0.75rem;
+    --about-block: 2.5rem;
+    /* Тач-минимум моб-канона (principles.md: «тач-цели ≥48px»). Число одно на весь моб-слой
+       и живёт переменной, иначе правка расползается по десятку правил и рассинхронится —
+       формулировка и значение взяты у листинга дословно, свой токен не заводим.
+       ⚠ about была ЕДИНСТВЕННОЙ из пяти страниц без этого объявления: у продуктовой, стола,
+       листинга и project оно есть. Поймано боем 31.07 — правило с `var(--tap-min)` молча
+       не применялось (переменной нет → декларация невалидна), и свип честно остался красным. */
+    --tap-min: 3rem;
+  }
+
+  /* Кармана под floating-бар страница БОЛЬШЕ НЕ ОБЪЯВЛЯЕТ. Тут стояло своё
+     `body { padding-bottom: 4.5rem }` — мёртвая копия: модуль nav сам держит
+     `body { padding-bottom: var(--nav-bar-reserve) }` (nav.css, тот же порог 45rem),
+     подключается ПОЗЖЕ и при равной специфичности выигрывал всегда. Замер: с нашей
+     строкой и без неё computed padding-bottom = 72px, а --nav-bar-reserve резолвится
+     в те же 4.5rem — то есть страница дублировала число, которое принадлежит бару.
+     Уедет высота бара в модуле — карман уедет за ней сам. */
+
+  /* Сетка страницы схлопывается в одну колонку: все привязки «текст с третьей
+     колонки» — десктопные, на 336 колонок нет. */
+  .about-grid { grid-template-columns: minmax(0, 1fr); }
+  .about-hero-text,
+  .about-director-person,
+  .about-director-text,
+  .about-production-video,
+  .about-production-text { grid-column: 1 / -1; }
+  .about-hero-title,
+  .about-hero-body,
+  .about-production-title,
+  .about-production-lead,
+  .history-card-text { max-width: none; }
+
+  /* Ритма абзацев тут больше нет: он сведён к одному значению --about-p-gap (20)
+     в about.css и одинаково работает на обеих манифестациях (0.78 интерлиньяжа на
+     1920, 0.83 на 375). Копия «то же самое, но для моба» была бы слоем совместимости
+     с самим собой. */
+
+  /* ── 1. ХЕРО ──
+     Верхнего хедера на мобе нет (вся навигация в нижнем баре модуля) — вордмарк
+     начинается почти от верха экрана, десктопный отступ под фикс-хедер не нужен.
+     Верхнее поле задаётся ПИНУ, а не секции: с 22.07 оно живёт там (about.css §1),
+     иначе десктопное --about-hero-top (14.5vw) осталось бы висеть на мобе.
+     Сцены первого экрана тут нет вовсе — см. about.css §1a. */
+  .about-hero-pin { padding-block-start: var(--sp-24); }
+  .about-hero-watermark { margin-bottom: var(--sp-24); }
+  .about-hero-title { margin-bottom: var(--sp-20); }
+
+  /* ── 2. СЛОВО ДИРЕКТОРА ──
+     Круг 287 на 336 съедал экран целиком: на мобе портрет 140 и подпись СБОКУ
+     (строкой), текст — под ними потоком. */
+  .about-director-person {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-16);
+    margin-bottom: var(--sp-24);
+  }
+  .about-director-photo { flex: 0 0 8.75rem; max-width: 8.75rem; }
+  .about-director-caption { margin-top: 0; }
+
+  /* ── 3. ИСТОРИЯ — свайп-карусель с точками ──
+     Карточка = ровно ширина контента (flex-basis 100% считается от внутренней
+     ширины рельса = clientWidth − padding), поэтому на всех четырёх точках
+     карточка садится в поле без остатка и снап не оставляет огрызков. */
+  .about-history-rail {
+    gap: var(--about-col-gap);
+    scroll-padding-inline: var(--about-pad);
+    padding-bottom: 0;
+    scrollbar-width: none;
+  }
+  .about-history-rail::-webkit-scrollbar { display: none; }
+  .history-card { flex: 0 0 100%; width: auto; max-width: none; }
+  /* Полей у узлов карточки тут больше нет: внутренний ритм держит один --history-gap
+     (about.css, clamp 16→40), поля обнулены там же. Правила под старый порядок узлов
+     «текст → фото → год» сняты вместе с ним — иначе ритм задваивался бы до 32. */
+
+  /* ── 4. ЭКСКУРСИЯ — фото В ПОТОКЕ, панель наезжает снизу ──
+     Было: фото абсолютным фоном секции, панель поверх него почти во весь кадр —
+     от фото оставалась рамка в пару пикселей. Канон-приём первого экрана (п.1):
+     фото сверху, белая карточка со скруглением наезжает на него снизу. */
+  /* фон-подложку секции ОСТАВЛЯЕМ: карточка белая (--bg-page), и на белой странице
+     она бы растворилась — читается она именно на серой полосе --bg-surface */
+  .about-excursion {
+    display: block;
+    min-height: 0;
+    padding: 0 0 var(--about-block);
+    overflow: visible;
+  }
+  .about-excursion-photo {
+    position: static;
+    z-index: auto;
+    height: auto;
+    aspect-ratio: 12 / 7;
+  }
+  .about-excursion-panel {
+    position: relative;
+    width: auto;
+    margin: calc(-1 * var(--sp-24)) var(--about-pad) 0;
+    padding: var(--sp-12);   /* внутренний отступ панели к канону 12 — вердикт Антона 29.07 («3 а») */
+    border-radius: var(--r-8);
+  }
+  /* Телефоны — тач-строки: у ссылки-номера меньшая сторона обязана быть ≥48.
+     Высоту 48 даёт САМА ссылка (min-height), а не растяжка строки: при
+     align-items:stretch подпись «Москва:» прилипала к верху своей 48-й ячейки,
+     а номер стоял по центру — строка читалась ступенькой. */
+  .about-excursion-phones dd {
+    display: flex;
+    align-items: center;
+    /* wrap — следствие корпусного кегля (16 вместо 15): на 320 «Санкт-Петербург:»
+       перестал влезать в строку рядом с номером и ломался пополам, а номер висел
+       посередине двух строк лесенкой. С переносом длинная подпись держит свою строку,
+       номер уходит на следующую целиком. На 360/375/390 строка влезает и перенос
+       не срабатывает — замер scrollWidth === clientWidth на всех четырёх. */
+    flex-wrap: wrap;
+    gap: var(--sp-4);
+    margin: 0;
+  }
+  .about-excursion-phones dd a { display: flex; align-items: center; min-height: 3rem; }
+
+  /* ── 5. ПРОИЗВОДСТВО ── */
+  .about-production-text { margin-top: var(--sp-24); }
+  .about-production-title { margin-bottom: var(--sp-16); }
+  .about-production-lead { margin-bottom: var(--sp-24); }
+  .about-production-stats { grid-template-columns: minmax(0, 1fr); gap: var(--sp-24); }
+
+  /* ── 6. ВЫСТАВКИ ──
+     Задание такта: годы-табы — ГОРИЗОНТАЛЬНЫЙ СВАЙП (не перенос), тач-цели ≥48;
+     карточка — свайп-карусель кадров с точками вместо колонки миниатюр.
+     Перенос (прежняя редакция, канон-моб п.4 «табы в строку/перенос») снят
+     сознательно: 11 годов по 48 = три ряда кнопок над каруселью, свайп-строка
+     держит ряд одним и не давит блок сверху. */
+  .about-expo-bar { display: block; width: auto; margin-inline: 0; margin-bottom: var(--sp-24); }
+  .about-expo-nav { display: none; }   /* листаем свайпом — стрелки на мобе не нужны (канон .labs-section .arrow-nav) */
+  .about-expo-years {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: var(--sp-8);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    padding-inline: var(--about-pad);
+  }
+  .about-expo-years::-webkit-scrollbar { display: none; }
+  .expo-year {
+    flex: none;
+    min-width: 3rem;                    /* 48 — тач-цель */
+    min-height: 3rem;
+    padding: var(--sp-8) var(--sp-10);
+    scroll-snap-align: center;
+  }
+
+  /* Рельс карточек на мобе — НЕ карусель, а стопка: внутри каждой карточки уже
+     живёт свой свайп-ряд фото, а два скролл-контейнера по одной оси вложенно —
+     на тач неуправляемо. Тот же приём, что .case-strip у продуктовой (mobile.css §10/12). */
+  .about-expo-rail {
+    flex-direction: column;
+    gap: var(--about-block);
+    overflow: visible;
+    scroll-snap-type: none;
+    padding-inline: var(--about-pad);
+    padding-bottom: 0;
+  }
+  /* правый вырез под колонку миниатюр снимаем — колонки тут нет (стала лентой кадров).
+     Зазор до медиа-ряда десктопный (sp-12), своего не заводим. */
+  .expo-card-head { padding-right: 0; }
+
+  /* Фото выставки: колонка миниатюр 132×72 сбоку → СВАЙП-КАРУСЕЛЬ кадров с точками
+     (канон-моб п.4). Лентой становится САМА колонка миниатюр: обёртку медиа-ряда
+     распускаем (display:contents), большой кадр прячем.
+     ⚠ Почему лента — колонка, а не медиа-ряд: строитель точек в about.js меряет шаг
+     по firstElementChild рельса, а первым ребёнком медиа-ряда стоит скрытый большой
+     кадр шириной 0 — шаг вышел бы 8 вместо 344 (замер) и точка не попадала бы в кадр.
+     ⚠ Большой кадр СКРЫТ, а не превращён в первый слайд: он показывает тот же файл,
+     что и выбранная миниатюра, — в ленте это был бы дубль слайда и лишняя точка. */
+  .expo-card-media { display: contents; }
+  .expo-card-main { display: none; }
+  .expo-card-thumbs {
+    display: flex;
+    flex-direction: row;
+    gap: var(--sp-8);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .expo-card-thumbs::-webkit-scrollbar { display: none; }
+  .expo-thumb {
+    flex: 0 0 100%;
+    aspect-ratio: 912 / 512;
+    scroll-snap-align: start;
+  }
+  /* выбора на мобе нет — «текущий кадр» показывают точки, обводка врала бы,
+     что выбран первый слайд, когда пролистан третий */
+  .expo-thumb.is-active { outline: 0; }
+
+  /* Фулвью на мобе: рейка миниатюр слева не помещается рядом с кадром —
+     переключаемся свайпом самой карусели, а фулвью показывает один кадр.
+     Крестик ПОДРАСТАЕТ до тач-порога: десктопные 2.75rem = 44 меньше канонных 48, а
+     на мобе он не «ещё один способ закрыть», а ЕДИНСТВЕННЫЙ — рейку мы спрятали, и
+     кадр открывается тапом по карусели. Свип этого не ловит: фулвью в покое [hidden],
+     а скрытые узлы он не меряет (замер раскрытого состояния — 44×44 на всех четырёх
+     ширинах). Ширина и высота обе явные: у кнопки они заданы парой в about.css.
+
+     ⚠ ФУЛВЬЮ ОБЯЗАН УВЕЛИЧИВАТЬ. До 22.07 он этого не делал, а УМЕНЬШАЛ: десктопная
+     формула width:min(90vw,160vh,60rem) при поле 16 давала на 375 стейдж 337.5×189.5,
+     и кадр 3:2 внутри 16:9-стейджа с object-fit:contain показывался как 284×190 —
+     против 351×197 в самой карусели. Тап по фото давал затемнение и кадр НА 22 %
+     МЕЛЬЧЕ. Увеличивать при этом ЕСТЬ ЧТО: доноры выставок 803–1200 px по ширине
+     (замер 104 файлов), на 375 они ужаты втрое — пикселей в запасе с избытком.
+     Поэтому на мобе снимаем и поле, и десктопную формулу: кадр идёт во всю ширину
+     экрана в СВОИХ пропорциях (aspect-ratio:auto), высота ограничена экраном.
+     Даёт: ландшафт 3:2 — 375×250 целиком против 351×197 обрезанных по 16:9 каруселью
+     (площадь кадра ×1.36); портрет 853×1280 — 375×563 против 131×197 (×8.2).
+     max-height:100% считается от .expo-fullview (position:fixed; inset:0) = высота
+     экрана, поэтому кадр не уезжает под кромку и без dvh. */
+  .expo-fullview { padding: 0; }
+  .expo-fullview-rail { display: none; }
+  .expo-fullview-img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    aspect-ratio: auto;
+    border-radius: 0;
+  }
+  .expo-fullview-close { top: var(--sp-12); right: var(--sp-12); width: 3rem; height: 3rem; }
+
+  /* ── 7. ТЕНДЕР/CTA — тот же приём потока, что у экскурсии ── */
+  /* фон-подложку держим по той же причине, что и у экскурсии */
+  .about-tender {
+    display: block;
+    min-height: 0;
+    padding: 0 0 var(--about-block);
+  }
+  .about-tender-photo {
+    position: static;
+    z-index: auto;
+    height: auto;
+    aspect-ratio: 12 / 7;
+  }
+  /* ПАРАЛЛАКС ЗАДНИКОВ НА МОБЕ (22.07). Десктопный приём здесь НЕ ГОДИТСЯ и это
+     не догадка: на мобе фото вынуто в поток (position:static выше), а у секции
+     overflow:visible — расширение кадра на 4×amp дало бы горизонтальный скролл
+     документа (замер прежней смены: +48px на 360, 13% ширины экрана).
+     Поэтому панорамируем СОДЕРЖИМОЕ, а не коробку: бокс остаётся ровно 100%,
+     а внутри него ездит object-position. Источник 2800×1412 при боксе 12/7
+     обрезается по горизонтали с запасом (на 360: кадр cover 416 против бокса 360,
+     то есть 28 свеса на сторону), ход ±12 забирает меньше половины — край не оголяется.
+     Горизонтальный скролл невозможен ПО ПОСТРОЕНИЮ: layout не трогаем вовсе. */
+  .about-excursion-photo,
+  .about-tender-photo {
+    --pano-amp-mob: 0.75rem;                 /* ход ±12 → амплитуда 24 */
+    object-fit: cover;
+    object-position: calc(50% + var(--pano-amp-mob) * var(--pano-p, 0)) center;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .about-excursion-photo,
+    .about-tender-photo { --pano-amp-mob: 0rem; }   /* ремень-9: гасим той же ручкой */
+  }
+
+  .about-tender-panels {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-12);
+    width: auto;
+    margin: calc(-1 * var(--sp-24)) var(--about-pad) 0;
+  }
+  .tender-panel { padding: var(--sp-16); border-radius: var(--r-8); }
+  .tender-panel-title { margin-bottom: var(--sp-12); }
+
+  .about-cta {
+    width: auto;
+    margin: var(--sp-12) var(--about-pad) 0;
+    padding: var(--sp-16);
+    border-radius: var(--r-8);
+  }
+  .about-cta-title { margin-bottom: var(--sp-12); }
+  .about-cta-groups { flex-direction: column; gap: var(--sp-12); }
+
+  /* Моб-своп полей СНЯТ вердиктом Антона 29.07 («2 Телефон → Email → Помощь»):
+     порядок канона один на деске и на мобе, DOM-порядок телефон · email · эксперт
+     работает как есть. Прежняя перестановка order'ом (email первой) отменена. */
+
+  /* КОПИ НА МОБЕ ВОЗВРАЩЕНА (№57-⑥, 31.07). Здесь стояло гашение копи- и QR-кнопок по
+     канон-виджету 18:10022 («email и пары на всю ширину без копи/QR»), с доводом «копировать
+     адрес с телефона незачем». Довод перебит ПОЗДНИМ И АДРЕСНЫМ словом Антона 30.07 (№29-②):
+     «емейл – с кнопкой копировать по идее то можно копировать то… на хера там qr коды на
+     мобилке». То есть снимается QR, а копи остаётся — ровно наоборот прежнему правилу.
+     ⚠ У about QR нет ВООБЩЕ (`qr-btn` в разметке 0), поэтому правило гасило только копи —
+     единственное, что Антон велел оставить. Продуктовая копи не прячет и на мобе (её
+     mobile.css лишь сайзит `.cta-group .copy-btn`), листинг тоже — about была последней.
+
+     ⚠ ВОЗВРАТ ОГОЛИЛ ТАЧ-ЦЕЛЬ, и свип это поймал сразу: копи телефона вернулась размером
+     34×24 при пороге страницы 48 — то есть прежнее гашение ПРЯТАЛО не только кнопку, но и
+     её недобор. Сайзим по идиоме листинга (его `.phone-box .copy-plain` → `--tap-min`),
+     а не своим числом: отрицательное поле справа съедает собственный паддинг бокса, иначе
+     строка теряет ещё 10px там, где их и так нет. */
+  .phone-box .copy-btn {
+    width: var(--tap-min); height: var(--tap-min); margin-right: -0.625rem; margin-left: auto;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .about-cta .cta-pair .btn--icon.copy-btn { min-width: var(--tap-min); min-height: var(--tap-min); }
+  /* QR — СНЯТЬ (та же фраза Антона 30.07: «на хера там qr коды на мобилке»). Селектор
+     адресный, а не по всем `.btn--icon`: копи-кнопка email — тоже `.btn--icon`, и широкое
+     правило гасило бы ровно то, что велено оставить. Именно так и было до 31.07, и именно
+     поэтому копи пропала вместе с QR — одна строка снимала обе кнопки разом.
+     ⚠ QR у about собран `.btn--icon`, а не канон-классом `.qr-btn` (та же расхождение, что
+     на главной до №57-①) — поэтому и общее правило `.cta-bar .qr-btn` сюда не долетает.
+     Свести к канон-классу одним ходом — в канон-долг, диффом лиду. */
+  .about-cta .cta-pair .btn--icon:not(.copy-btn) { display: none; }
+
+  .cta-field-row { flex-direction: column; gap: var(--sp-8); }
+  .about-cta .cta-pair { width: 100%; }
+  .about-cta .cta-pair .btn { flex: 1 1 auto; min-height: 3rem; }
+
+  /* Телефон-бокс: обводочная строка во всю ширину, чип региона и номер — тач-цели 48. */
+  .phone-box { flex-wrap: nowrap; min-height: 3.5rem; }
+  .region-chip { min-height: 3rem; flex: 0 0 auto; }
+  .phone-box-tel { display: flex; align-items: center; flex: 1 1 auto; justify-content: flex-end; min-height: 3rem; }
+  .region-drop button { min-height: 3rem; display: flex; align-items: center; }
+
+  /* ── ТОЧКИ-ИНДИКАТОР каруселей (строит js/about.js по [data-rail]) ──
+     Полоска-пилюля как у канона (красная активная + серые). flex:1 с капом 2.5rem:
+     у истории 13 кадров — фиксированные 40px не влезли бы (13×40+12×8 = 616 при
+     336 доступных), поэтому полоски делят ширину поровну и упираются в канон-40
+     только там, где кадров мало (фото выставки — 4). */
+  .rail-dots {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-8);
+    margin: var(--sp-16) 0 0;
+    padding-inline: var(--about-pad);
+  }
+  .rail-dots[hidden] { display: none; }
+  .expo-card .rail-dots { padding-inline: 0; }
+  /* ⚠ ПЕРЕХОДА У ТОЧКИ НЕТ, И ЭТО ЗАМЕР, А НЕ ВКУС. Тут стоял `transition: background
+     0.15s ease` — своя выдумка: у обоих соседей-каруселей дома (.gallery-dots и
+     .offer-dots в product-card/css/mobile.css) точка перекрашивается насухо. Цена
+     выдумки — ВРУЩИЙ КАДР ПРИЁМКИ: fullPage-съёмка перезапускает переход, и затвор
+     ловит его в полёте. Замер 22.07 на about-360.png: первая точка истории вышла
+     цветом (220,170,177) = 22 % пути от серого к красному, то есть на кадре сдачи
+     активной точки НЕТ НИ ОДНОЙ — карусель читается как мёртвая. DOM при этом здоров
+     (is-on на месте, computed background rgb(255,20,40)), свип зелёный, врёт картинка.
+     Проверено подменой в рантайме: с transition:none та же съёмка даёт (255,20,40).
+     Заодно ушёл и хвостовой @media (prefers-reduced-motion) этого файла — он гасил
+     ровно этот переход и других движений в слое нет. */
+  .rail-dots span {
+    flex: 1 1 0;
+    max-width: 2.5rem;
+    height: 0.25rem;
+    border-radius: var(--r-pill);
+    background: var(--grey-30-brand);
+  }
+  .rail-dots span.is-on { background: var(--action-primary); }
+}

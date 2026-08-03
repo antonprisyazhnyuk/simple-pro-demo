@@ -1,0 +1,825 @@
+/* ============================================================
+   Simple PRO — ГЛАВНАЯ (донор 49:2700 / Figma 2192:38332) · КАНОН-СКЕЛЕТ
+   Токены, шрифты, база и кнопки НЕ дублируются: приезжают из
+   ../product-card/css/tokens.css + components.css (единый источник).
+   Хедер и футер — модули code/nav/ и code/footer/, подключены ссылками.
+   Здесь только блоки главной. Единицы — rem/em/%; px нет вовсе
+   (единственное исключение канона — токен --hairline).
+   Мобильный слой (≤720) — css/mobile.css, подключается следом.
+   ============================================================ */
+
+/* ---------- локальные роли главной (все — алиасы канон-токенов) ---------- */
+:root {
+  /* боковое поле полотен главной. Донор даёт 36, но это ВЕРХ кривой, а не фикс:
+     канон дома (№12, слово Антона «36→28→12 логика вроде везде такая») требует 28 на 1280.
+     Прежде здесь стоял фикс 2.25rem — замер давал 36 и на 1440, и на 1280.
+     Формула — ровно та же, что у продуктовой (blocks.css §--edge-pad); моб-ступень 12
+     живёт в mobile.css и не трогается. */
+  --home-pad-x: clamp(1.75rem, calc(-2.25rem + 5vw), 2.25rem);
+  --home-gap:   1.5rem;    /* шаг сетки донора (24) */
+  --home-sec-y: 3.75rem;   /* вертикальный воздух секции (60) */
+}
+
+/* иконки внутри канон-кнопок: в разметке главной лежат голые svg/img,
+   а не .btn__icon — размер задаём здесь, чтобы не трогать канон компонентов */
+.btn > svg,
+.btn > img { width: 1.25rem; height: 1.25rem; flex: none; }
+
+/* ============================================================
+   БЛОК 1 — hero (49:2701)
+   ============================================================ */
+.home-hero {
+  position: relative; height: 50vw; max-height: 60rem; min-height: 40rem;
+  overflow: hidden;
+}
+/* ЗАДНИК — своя коробка (имя из канона продуктовой, .hero-media): держит и видео,
+   и постер одним слоем. На мобе она же становится обычным блоком потока с
+   пропорцией (см. mobile.css) — поэтому геометрию задаём ей, а не детям. */
+.home-hero .hero-media { position: absolute; inset: 0; overflow: hidden; background: var(--bg-surface-accent); }
+.home-hero .hero-poster,
+.home-hero .hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* Видео ЛЕЖИТ ПОВЕРХ постера ПОРЯДКОМ В DOM, а не z-index'ом: оба элемента
+   позиционированы, поэтому идущий вторым рисуется выше — этого достаточно.
+   ⚠ z-index: 1 у видео тут стоять НЕ ДОЛЖЕН: у .hero-media нет своего контекста
+   наложения (position без z-index/transform/opacity), и слой видео всплывал в
+   КОРНЕВОЙ контекст — выше плашек .hero-panels, накрывая их целиком. */
+
+/* ⚠ REDUCED-MOTION: показываем ПОСТЕР ВМЕСТО ВИДЕО, а не «то же, но без анимации».
+   Глобальный блок в tokens.css режет только длительности переходов — зациклённому
+   видеозаднику он не указ, поэтому снимаем сам элемент. Источники видео при этом
+   уже отсечены своим media (см. разметку), так что 10 МБ не едут по сети вовсе:
+   это правило — вторая половина той же меры, видимая. */
+@media (prefers-reduced-motion: reduce) {
+  .home-hero .hero-video { display: none; }
+}
+
+/* ---------- ПАРА ПЛАШЕК hero (приём компакт-панели продуктовой) ----------
+   Канон — .product-hero:not(.expanded) .panel-card: колонка из ДВУХ самостоятельных
+   белых блоков с малым прогалом. Прогал взят той же формулой, что в каноне
+   (6@1280 → 8@1920): он соразмерен скейлу панели, а не прибит числом.
+
+   ШИРИНА — по эталону 2203:127259 (замер по кадру): 912 при вьюпорте 1920,
+   правый край на канон-поле 36. 912 = 57rem — это ВЕРХ клампа.
+   Низ клампа держит не картинка, а ТРЕБОВАНИЕ «заголовок в ДВЕ строки»:
+   строка «Лабораторные пространства» живым шрифтом на 2.25rem = 526,
+   плюс поля плашки 2×24, прогал 24 и канон-кнопка «Подробнее» 146 — итого 745.
+   Низ клампа взят 780 (48.75rem), запас ~35 на дрожь метрик шрифта, поэтому
+   до 1280 включительно заголовок на третью строку не рвётся.
+
+   ⚠ Полоса 721–1230 закрывается САМА, и именно потому, что всё здесь в rem:
+   в этой полосе работает рем-зум из tokens.css, и низ клампа вместе с кеглем
+   заголовка едет ОДНОЙ пропорцией (замер: 768 → плашка 468 при кегле 21.6;
+   1024 → 624 при 28.8) — отношение «строка/плашка» не меняется, две строки
+   держатся без отдельного правила. Прибей мы ширину в px — тут была бы третья. */
+/* ⚠ НИЗ ПЛАШЕК — НЕ у самого низа hero: под ними стоит траст-строка (см. ниже),
+   и эталон 2203:127259 даёт ей место. Замер кадра 1920×960: белое полотно нижней
+   плашки кончается на y=880 → 80 от низа hero = 5rem (--sp-80). Раньше тут стояло
+   sp-24 — ровно потому, что строка жила отдельной секцией ПОД первым экраном. */
+.hero-panels {
+  /* Зазор до низа первого экрана — 24 (слово Антона по паре кадров: «вариант 2»).
+     Было 80: в эти 80 была вписана снесённая траст-строка, и без неё плашки
+     висели в пустоте. 24 — то же число, что у панели продуктовой, одинаково
+     на 1280/1440/1728/1920. Пара к коммиту сноса строки. */
+  position: absolute; right: var(--home-pad-x); bottom: var(--sp-24);
+  width: clamp(48.75rem, 32.25rem + 20.625vw, 57rem);
+  display: flex; flex-direction: column;
+  gap: clamp(0.375rem, 0.125rem + 0.3125vw, 0.5rem);
+}
+/* обе плашки — один словарь коробки (фон/радиус/поля), как panel-head и cta-zone канона */
+.hero-title-card,
+.hero-cta-card {
+  background: var(--bg-page); border-radius: var(--r-12); padding: var(--sp-24);
+}
+/* ВЕРХНЯЯ: заголовок слева тянется, кнопка справа не жмётся (49:2704).
+   Кнопка сидит на БЕЙЗЛАЙНЕ заголовка (правка Антона 29.07, В5-скрин 2), а не по
+   центру коробки: заголовок двухстрочный, и центровка вешала кнопку между строк.
+   last baseline — по ПОСЛЕДНЕЙ строке h1: именно на неё смотрит глаз, к ней и
+   прижата кнопка на скрине. При однострочном заголовке last и first совпадают. */
+.hero-title-card { display: flex; align-items: last baseline; gap: var(--sp-24); }
+.hero-title-card h1 {
+  flex: 1; font-size: 2.25rem; line-height: 0.91; letter-spacing: -0.02em;
+  color: var(--grey-70); margin: 0;
+}
+.hero-title-card .btn { flex: none; }
+/* НИЖНЯЯ: по образцу .cta-bar — текст слева, группа кнопок справа, обе стороны
+   по НИЖНЕЙ кромке (flex-end): высоту ряда задают кнопки h44, текст садится на их низ.
+   flex-wrap — тоже канон полосы: на узком деске группа честно уезжает под текст,
+   а не рвёт плашку. */
+.hero-cta-card {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: var(--sp-16); flex-wrap: wrap;
+}
+/* гэп ВНУТРИ группы кнопок — канон .cta-field-row (sp-8): пара читается как одна группа */
+.hero-cta-row { display: flex; gap: var(--sp-8); flex-wrap: wrap; }
+/* Кегль и интерлиньяж — с эталона 2203:127259: строка 16 при 1920 (верх --fs-p3
+   ровно 1rem), шаг строк 24 = 1.5. На эталоне подпись стоит В ДВЕ СТРОКИ, перелом
+   после «без» — он в разметке жёстким <br> (тот же приём, что у соседнего h1),
+   потому что сама по себе в плашке 912 строка не переносится: ей просторно.
+   Двухстрочная подпись и задаёт высоту плашки: 2×24 + 2×24 поля = 96 (эталон 95). */
+.hero-cta-note { font-size: var(--fs-p3); line-height: 1.5; color: var(--text-primary); }
+
+/* БЛОК 2 — trust-strip СНЕСЁН 22.07 по слову Антона («давай её вообще сносить»).
+   Белым по видео контраст давал медиану 3.57:1 и 1.37:1 в худшем кадре — вопрос
+   закрыт сносом, а не митигацией. Геометрия первого экрана СОЗНАТЕЛЬНО не тронута
+   (его слово: «первый экран оставим как есть, а строку снесём»). */
+
+/* ============================================================
+   БЛОК 3 — catalog showcase (49:2708)
+   ============================================================ */
+.catalog-section { background: var(--bg-surface); }
+.catalog-head {
+  padding: var(--home-sec-y) var(--home-pad-x) 3.125rem;
+  font-size: clamp(3.25rem, 3.75vw, 4.5rem); line-height: 1.08;
+  color: var(--text-primary);
+}
+/* 3.1 сетка категорийных карточек (квадраты + широкая на два столбца) */
+.cat-grid {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--home-gap);
+  padding-inline: var(--home-pad-x);
+}
+.cat-card {
+  position: relative; border-radius: var(--r-4); overflow: hidden;
+  background: linear-gradient(0deg, var(--grey-0) 2.36%, var(--grey-10) 28.64%, var(--grey-30-brand) 100%);
+  aspect-ratio: 1 / 1; display: block;
+  /* Высота подвала карточки — ОДНО число на три потребителя: сам подвал (паддинги+h3),
+     нижний отступ меню модификаций и его же маска. Заведено ролью, чтобы меню и подвал
+     не разъезжались при правке типографики (на мобе роль переопределяется). */
+  --cat-foot-h: calc(2 * var(--sp-24) + 1.5rem * 1.05);
+}
+.cat-card--wide { aspect-ratio: auto; grid-column: span 2; }
+.cat-card .cat-pic { position: absolute; inset: var(--sp-24); border-radius: var(--r-4); overflow: hidden; }
+.cat-card .cat-pic img { width: 100%; height: 100%; object-fit: cover; }
+.cat-card .cat-foot {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: var(--sp-24);
+  display: flex; justify-content: space-between; align-items: center; gap: var(--sp-16);
+}
+.cat-card .cat-foot h3 { font-size: 1.5rem; line-height: 1.05; color: var(--text-primary); margin: 0; }
+.cat-chip {
+  display: inline-flex; align-items: center; border: var(--hairline) solid var(--action-secondary);
+  border-radius: var(--r-4); height: 1.75rem; padding-inline: 0.625rem;
+  font-size: var(--fs-p5); color: var(--text-primary); white-space: nowrap;
+  /* ВСЕГДА белая с обводкой (правка Антона 29.07, В4: «белая с обводкой») — была
+     прозрачной и читалась по-разному на светлом и тёмном кадре мебели. */
+  background: var(--grey-0); flex: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+/* ⚠ Ховер кнопки НЕЗАВИСИМ от ховера карточки (правка Антона 22.07, дословно:
+   «навели на карточку — поменялась картинка; навели на кнопку модификации —
+   произошёл ЕЁ ховер»). Прежнее правило `.cat-card:hover .cat-chip` (заливка
+   кнопки от ховера КАРТОЧКИ) снято — вернут его, и два ховера снова слипнутся. */
+.cat-chip:hover,
+.cat-chip:focus-visible { background: var(--action-secondary); border-color: var(--action-secondary); color: var(--text-inverse); }
+/* Особого правила для широкой карточки больше нет: белая заливка теперь у всех чипов,
+   а прежняя БЕЛАЯ РАМКА широкой прямо спорила с «белая с обводкой» (Антон 29.07) —
+   обводка обязана быть видимой, поэтому рамка везде одна, тёмная. */
+
+/* ============================================================
+   3.1a ЖИВАЯ МЕБЕЛЬ + МЕНЮ МОДИФИКАЦИЙ (макет 2198:126412)
+   Два НЕЗАВИСИМЫХ ховера на одной карточке:
+     · ховер КАРТОЧКИ  → кроссфейд кадров мебели (покой → «ожившая»);
+     · ховер КНОПКИ    → всплывают чипы подкатегорий.
+   Ни один не сбрасывает другой: мебель живёт на :hover самой карточки
+   (кнопка лежит ВНУТРИ неё, значит при переходе на кнопку ховер карточки
+   не прерывается), а меню открывается только атрибутом data-menu из js.
+   ============================================================ */
+
+/* --- слои карточки. Порядок в DOM = порядок отрисовки, z-index не нужен:
+       .cat-pic (кадры) → .cat-card-hit (ссылка на всю карточку) → .cat-menu → .cat-foot --- */
+
+/* Кликабельная площадь всей карточки. Раньше карточка САМА была <a>, но внутрь
+   переехали ссылки-чипы, а <a> в <a> невалидно — площадь вынесена отдельным слоем. */
+.cat-card-hit { position: absolute; inset: 0; border-radius: inherit; }
+.cat-card-hit:focus-visible { outline-offset: -0.25rem; }
+/* Подвал НЕ перехватывает клики (иначе заголовок «съедал» бы ссылку под собой),
+   кнопка модификаций возвращает себе перехват. */
+.cat-card--live .cat-foot { pointer-events: none; }
+.cat-card--live .cat-chip { pointer-events: auto; cursor: pointer; font-family: inherit; }
+
+/* --- пара кадров мебели в одной коробке ---
+   Рендер мебели лежит ВО ВСЮ карточку (inset 0), а не в рамке с полем 24, как было
+   у прежних донор-картинок: и в секции 2198:126412, и в прото 2001:235789 узел
+   category-img стоит 600×600 в углу 0,0. Собственные поля у рендера уже заложены. */
+.cat-card--live .cat-pic { inset: 0; }
+/* Масштаб мебели −10% (правка Антона 22.07): пропорции те же, поля вокруг больше.
+   Одним правилом на ОБА кадра пары — иначе дефолт и ховер разъедутся и кроссфейд
+   «прыгнет». Кроссфейд идёт по opacity, transform ему не мешает.
+   ⚠ Здесь стоял `object-fit: contain` — МЁРТВЫЙ (№19): его перебивает `.cat-card
+   .cat-pic img { object-fit: cover }` выше, у того селектора специфичность больше.
+   Снесён, а не «починен повышением веса»: кадры квадратные (446×446) в квадратном
+   боксе (396×396), где cover и contain дают ПИКСЕЛЬ В ПИКСЕЛЬ одно и то же — замер
+   подтвердил. Строка только делала вид, что здесь работает contain. Придут
+   неквадратные кадры — решать заново и осознанно. */
+.cat-card--live .cat-frame { position: absolute; inset: 0; transform: scale(0.9); }
+.cat-card--live .cat-frame--hov { opacity: 0; }
+
+@media (hover: hover) and (pointer: fine) {
+  /* Кроссфейд в темпе канона картинок этой страницы (.pp-pic/.pop-card — 0.25s ease). */
+  .cat-card--live .cat-frame { transition: opacity 0.25s ease; }
+  .cat-card--live:hover .cat-frame--hov { opacity: 1; }
+  .cat-card--live:hover .cat-frame--def { opacity: 0; }
+}
+
+/* --- меню модификаций: шторка на всю карточку + столбик чипов справа --- */
+.cat-menu {
+  position: absolute; inset: 0; border-radius: inherit;
+  /* ⚠ ПРОЗРАЧНАЯ шторка — правка Антона 22.07 («чтобы было видно картинку»).
+     Макетный state=pressed со 100% bg/surface-accent ОТМЕНЁН его словом.
+     Контраст текста не страдает: у самих чипов своя непрозрачная подложка
+     (.cat-menu-chip → --bg-surface), сквозь фон просвечивает только мебель. */
+  background: color-mix(in srgb, var(--bg-surface-accent) 65%, transparent);
+  /* Сверху поле малое: самый длинный набор (16 чипов у «Столов») влезает в карточку
+     1920 ровно, и каждые лишние 24 сверху выталкивали бы верхний чип за край. */
+  padding: var(--sp-8) var(--sp-24) var(--cat-foot-h);
+  display: flex; flex-direction: column;
+  opacity: 0;
+  /* visibility выключаем БЕЗ задержки на открытии и С задержкой на закрытии —
+     иначе закрытая шторка ловила бы курсор и «открывалась» от ховера карточки. */
+  visibility: hidden; pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+}
+.cat-menu-list {
+  list-style: none; margin: 0; padding: 0;
+  flex: 1 1 auto; min-height: 0;             /* коробка на всю свободную высоту */
+  /* флаг ЛЕВЫЙ (Антон 29.07, В6) — было flex-end, столбик прижимался вправо */
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-8);
+  overflow-y: auto; scrollbar-width: thin; overscroll-behavior: contain;
+  transform: translateY(0.5rem);
+  transition: transform 0.2s ease;
+}
+/* Прижимаем столбик книзу автополем, а НЕ justify-content: flex-end — с ним верх
+   переполненного списка становится недоступен прокрутке. */
+.cat-menu-list > li:first-child { margin-top: auto; }
+
+/* --- ДВА СТОЛБЦА для длинных наборов (слово Антона 22.07) ------------------
+   Набор, не влезающий в один столбец, раскладывается в ДВА. Флаг data-cols
+   ставит js замером (CSS не видит «содержимое выше коробки»), и он же его
+   снимает, если и в два не влезло — тогда честный столбик со скроллом.
+
+   ⚠ Механизм — МНОГОКОЛОНОЧНЫЙ БЛОК (columns), а не flex-flow: column wrap.
+   Оба заполняют колонка-за-колонкой (порядок чтения одинаковый), но flex-wrap
+   набивает ПЕРВУЮ колонку до самого верха коробки и даёт рваный раскол вроде
+   11+5; multicol балансирует сам (column-fill: balance по умолчанию) и на
+   16 чипах даёт ровные 8+8. Балансировать flex-раскол пришлось бы, подставляя
+   высоту числом из js, — это ровно тот случай, когда сама раскладка умеет лучше.
+
+   Коробка тут по СОДЕРЖИМОМУ (flex: 0 1 auto) и прижата книзу собственным
+   margin-top: auto — тем же приёмом, что столбик, только на уровень выше:
+   у многоколоночного блока содержимое начинается от ВЕРХА коробки, поэтому
+   растянутая на всю высоту коробка увела бы чипы с низа карточки вверх. */
+.cat-menu-list[data-cols="2"] {
+  display: block;
+  flex: 0 1 auto; margin-top: auto;
+  columns: 2; column-gap: var(--sp-8);
+}
+/* Флаг ЛЕВЫЙ (правка Антона 29.07, В6: «нужно делать выравнивание теперь по левому
+   флагу, а не так как сейчас по правому»). В блочном режиме прижим делает text-align
+   (align-items тут не работает), сами чипы — inline-flex, коробка каждого по тексту. */
+.cat-menu-list[data-cols="2"] > li { text-align: left; break-inside: avoid; margin-bottom: var(--sp-8); }
+/* ⚠ вертикальный ритм в блочном режиме держит margin-bottom, а НЕ gap: gap в
+   multicol не работает по вертикали вовсе. Поле снимаем с последнего пункта и
+   с первого — иначе верхушки колонок разъедутся на 8. */
+.cat-menu-list[data-cols="2"] > li:last-child { margin-bottom: 0; }
+.cat-menu-list[data-cols="2"] > li:first-child { margin-top: 0; }
+.cat-menu-chip {
+  display: inline-flex; align-items: center; max-width: 100%;
+  padding-inline: var(--sp-8); border-radius: var(--r-4);
+  background: var(--bg-surface); color: var(--text-primary);
+  font-size: var(--fs-p3); line-height: 1.5; text-align: left; text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+/* В макете чипы в одну строку (nowrap). В коде перенос РАЗРЕШЁН: длинные имена
+   («стол-мойка СМС-Д (угловой) с двумя полками») на узкой карточке иначе вылезли
+   бы за полотно и дали горизонтальный скролл страницы. */
+.cat-menu-chip:hover,
+.cat-menu-chip:focus-visible { background: var(--action-secondary); color: var(--text-inverse); }
+
+.cat-card[data-menu="open"] .cat-menu {
+  opacity: 1; visibility: visible; pointer-events: auto;
+  transition: opacity 0.2s ease, visibility 0s linear 0s;
+}
+.cat-card[data-menu="open"] .cat-menu-list { transform: none; }
+/* Кнопка в РАСКРЫТОМ состоянии — тёмная (правка Антона 29.07, №15, точный образец
+   моб-каталога). Правило явное, а не «само получится от :hover/:focus-visible»:
+   на деске тёмной её делает ховер, но на тач-устройстве ховера нет, а focus-visible
+   после тапа браузеры дают по-разному — в эмуляторе получилось, на живом телефоне
+   могло и не получиться. Состояние кнопки обязано следовать за состоянием меню. */
+.cat-card[data-menu="open"] .cat-chip {
+  background: var(--action-secondary);
+  border-color: var(--action-secondary);
+  color: var(--text-inverse);
+}
+
+/* ⚠ REDUCED-MOTION: требование — кадр НЕ меняется вовсе, а не «меняется мгновенно».
+   Глобальное правило tokens.css режет только длительность, поэтому гасим сам кадр.
+   Стоит ПОСЛЕ hover-блока: специфичность равная, побеждает порядком. */
+@media (prefers-reduced-motion: reduce) {
+  .cat-card--live:hover .cat-frame--hov { opacity: 0; }
+  .cat-card--live:hover .cat-frame--def { opacity: 1; }
+}
+
+/* 3.2 УТП «Надежность, проверенная временем» (канон 18:9956, на главной full-bleed) */
+.utp-wrap { padding-top: var(--home-sec-y); }
+/* 3.2 УТП «Надёжность» — КАНОН, живёт в product-card/css/components.css (симбиоз 22.07:
+   геометрия отсюда, с главной; логика и анимации — с продуктовой). Здесь остаётся
+   только страничное: главная показывает блок full-bleed, поэтому у обёртки лишь
+   верхний отступ, без боковых полей секции. Дубли канон-правил сняты — иначе они
+   бьют канон по порядку подключения (home.css грузится ПОСЛЕ components.css). */
+
+/* 3.3 — БЫЛ блок-параллакс 49:2875 (.prlx + .icon-card «Заголовок»).
+   Снесён 22.07 по слову Антона: на его место встала скролл-сцена «Устройство
+   вытяжного шкафа» (её стили — секция «БЛОК УСТРОЙСТВО…» в конце файла).
+   Правила и ассеты prlx-* удалены целиком, мёртвых стилей «на всякий случай»
+   не оставлено; `.icon-card` был только у этого блока — проверено грепом. */
+
+/* 3.4 секция «Каталог» */
+.catalog-products { padding: var(--home-sec-y) var(--home-pad-x) 3.5rem; }
+.catalog-products > h2 {
+  font-size: clamp(2.5rem, 2.7vw, 3.25rem); line-height: 1.08; color: var(--text-primary);
+  margin-bottom: var(--sp-40);
+}
+.product-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--home-gap); }
+.product-card { display: flex; flex-direction: column; gap: var(--sp-12); }
+.product-card .pp-pic { aspect-ratio: 1 / 1; border-radius: var(--r-4); overflow: hidden; background: var(--bg-surface-accent); }
+.product-card .pp-pic img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.25s ease; }
+.product-card:hover .pp-pic img { transform: scale(1.04); }
+.product-card h3 { font-size: 1.25rem; line-height: 1.1; color: var(--text-primary); min-height: 2.75rem; }
+.product-card .pp-foot { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-12); margin-top: auto; }
+.product-card .pp-price { font-size: var(--fs-p3); color: var(--text-primary); }
+.product-card .pp-price b { font-weight: 600; font-size: var(--fs-p2); }
+.show-more { margin-top: var(--sp-40); }
+
+/* БЛОК 4 (cta-kp / контур-1, донор 49:2956) СНЯТ 22.07 вместе со своими правилами.
+   Воздух на его месте отдельным правилом НЕ подпирается: нижнее поле
+   .catalog-products (3.5rem) и так даёт канон-шаг до полотна фото — ровно
+   столько же, сколько стоит с другой стороны .photo-break. */
+
+/* ============================================================
+   БЛОК 5 — photo break / prlx (49:2961)
+   ============================================================ */
+.photo-break { position: relative; height: 50vw; max-height: 60rem; min-height: 35rem; overflow: hidden; }
+.photo-break .pb-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pb-nav { position: absolute; left: var(--home-pad-x); bottom: var(--home-pad-x); display: flex; gap: var(--sp-8); }
+.pb-card {
+  position: absolute; left: calc(58.33% + 0.5rem); right: var(--home-pad-x); bottom: var(--sp-24);
+  background: var(--bg-page); border-radius: var(--r-8); padding: var(--sp-24);
+  display: flex; flex-direction: column; gap: var(--sp-12);
+}
+.pb-card h2 { font-size: 2.25rem; line-height: 0.91; color: var(--grey-70); }
+.pb-card .pb-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-24); }
+.pb-card .pb-row p { font-size: var(--fs-p2); line-height: 1.45; color: var(--text-primary); margin: 0; max-width: 26.875rem; }
+
+/* ============================================================
+   БЛОК 6 — cta-3d / make-your-lab (49:2972)
+   ============================================================ */
+.offer-section { background: var(--bg-surface); padding: 3.5rem var(--home-pad-x); }
+.offer-title {
+  display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-24);
+  font-family: "Simplepro Display", sans-serif; font-weight: 700;
+  font-size: clamp(2.75rem, 4.16vw, 5rem); line-height: 1; letter-spacing: -0.01em;
+  margin: 0 0 var(--sp-16); text-transform: none; white-space: nowrap;
+}
+/* Заголовок-подсветка: ховер карточки зажигает СВОЙ сегмент заголовка. Механика перенесена
+   с продуктовой (`blocks.css` §offer) по слову Антона 31.07 — на главной анимации не было
+   вовсе, заголовок стоял статикой `.dim`/`.acc`. Работает на `:has()`, снизу вверх по дереву:
+   карточка не знает про заголовок, связь держит секция.
+   ПОРЯДОК ПРАВИЛ = КАСКАД, менять местами нельзя:
+     1) все сегменты серые → 2) покойный акцент на втором → 3) ЛЮБОЙ ховер гасит покойный →
+     4) ховер конкретной карточки зажигает свой.
+   Специфичность (3) и (4) равна — решает то, что (4) стоит ниже. Переставишь — покойное
+   «свою» перестанет гаснуть и будут гореть два слова разом.
+   ⚠ Номера `.seg--N` ↔ `.offer-card--N` обязаны совпадать (см. комментарий в разметке).
+   ⚠ Классы `.dim`/`.acc` СНЕСЕНЫ, а не оставлены рядом: других потребителей у них на
+   странице не было (проверено грепом), слой совместимости с самим собой тут не нужен. */
+.offer-title .seg { color: var(--grey-30-brand); transition: color .25s ease; }
+.offer-title .seg--2 { color: var(--action-primary); }
+.offer-section:has(.offer-card:hover) .offer-title .seg { color: var(--grey-30-brand); }
+.offer-section:has(.offer-card--1:hover) .offer-title .seg--1,
+.offer-section:has(.offer-card--2:hover) .offer-title .seg--2,
+.offer-section:has(.offer-card--3:hover) .offer-title .seg--3 { color: var(--action-primary); }
+
+/* Под reduced-motion гасим ПЕРЕХОД, а не саму подсветку. Сосед по странице
+   (`.cat-card--live`, §315) там убирает свой ховер целиком — но у него кроссфейд кадров,
+   то есть движение; здесь же смена цвета, движением она не является, и снятие подсветки
+   отняло бы у пользователя обратную связь, ничего не дав взамен. Поэтому цвет меняется
+   мгновенно. У эталона такого правила нет вовсе — это НЕ копия его поведения, а осознанная
+   добавка, и потому названа здесь вслух. */
+@media (prefers-reduced-motion: reduce) {
+  .offer-title .seg { transition: none; }
+}
+.offer-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--home-gap); margin-bottom: var(--sp-24); }
+.offer-card {
+  background: var(--bg-page); border-radius: var(--r-4); padding: var(--sp-24);
+  display: flex; flex-direction: column; gap: var(--sp-20);
+}
+.offer-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-24); }
+.offer-head h5 {
+  font-family: "Simplepro Display", sans-serif; font-weight: 700;
+  font-size: clamp(1.25rem, 1.46vw, 1.75rem); color: var(--text-primary);
+  text-transform: none; margin: 0;
+}
+.offer-head .num { font-size: var(--fs-p3); color: var(--text-secondary); flex: none; }
+.offer-pic {
+  position: relative; height: clamp(12.5rem, 16vw, 19.25rem);
+  border-radius: var(--r-4); overflow: hidden; background: var(--bg-surface);
+}
+.offer-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.offer-pic .ovl--multiply { mix-blend-mode: multiply; }
+.offer-text { display: flex; flex-direction: column; gap: var(--sp-16); }
+.offer-text p { font-size: clamp(0.9375rem, 0.9vw, 1.0625rem); line-height: 1.45; color: var(--text-primary); margin: 0; }
+
+/* ⛔ СВОИХ ПРАВИЛ-ДВОЙНИКОВ ПОД КАНОН-КЛАССЫ ЗДЕСЬ БОЛЬШЕ НЕТ (2-Д «ж», 29.07).
+   Снесены страничные копии: .cta-bar · .cta-bar h4 · .cta-bar-groups · .cta-field ·
+   .cta-field .lbl · .phone-box · .region-chip · .region-chip .chev · .phone-link ·
+   .copy-plain · .cta-field .dbl. Всё это живёт в ../product-card/css/components.css §CTA,
+   а components.css грузится РАНЬШЕ этого файла — значит копия при равной специфичности
+   БИЛА канон и держала его замороженный доканонный снимок (та же мина, что вычищена
+   у листинга 22.07, см. шапку listing.css §CTA-плашка канон №2).
+   Осталось ровно то, чего в каноне нет — правила строкой ниже. */
+.cta-field .dbl .btn { min-width: 0; }
+
+/* БАЗА .qr-btn — страничная ВЫНУЖДЕННО, и это не забытая копия канона.
+   Канон (components.css §CTA) несёт только `.cta-bar .qr-btn` — то есть QR как СЕГМЕНТ
+   пары: размер, снятие бордера, радиусы, переходы. Самой базовой плашки (фон, рамка,
+   раскладка глифа) в общей земле нет вовсе: она живёт в `product-card/css/blocks.css`,
+   а главная его не грузит. Ровно та же дыра была у листинга, и он закрыл её так же
+   (`listing/css/listing.css` §.qr-btn) — идём за соседом, а не заводим свой приём.
+   Поймано на №57-①: разметка переехала на канон-класс `.qr-btn`, и кнопка мгновенно
+   встала дефолтом браузера — фон rgb(239,239,239) вместо тёмного канона.
+   📌 Канон-долг: база .qr-btn размазана по ЧЕТЫРЁМ страничным файлам, и модификатор носит
+   ДВА разных имени (--secondary у продуктовой и стола, --dark у листинга). Кандидат в
+   общую землю одним ходом — вынесено диффом лиду, сама в чужую зону не пишу. */
+.qr-btn {
+  width: 2.75rem; height: 2.75rem; flex: none;
+  border: var(--hairline) solid var(--border-default); border-radius: var(--r-8);
+  display: grid; place-items: center; background: var(--bg-page);
+}
+.qr-btn--secondary { background: var(--action-secondary); border-color: var(--action-secondary); }
+.qr-btn--secondary:hover { background: var(--action-secondary-hover); }
+.qr-btn--secondary:active { background: var(--action-secondary-pressed); }
+
+/* панель «3D Max и DAE модели для дизайнеров» */
+.bim-panel { margin-top: var(--sp-24); background: var(--bg-page); border-radius: var(--r-4); padding: var(--sp-24); display: flex; gap: var(--sp-24); align-items: stretch; }
+.bim-photo { flex: 0 0 50%; width: 50%; aspect-ratio: 888 / 252; object-fit: cover; border-radius: var(--r-4); }
+.bim-card { background: var(--bg-page); border-radius: var(--r-4); padding-inline: var(--sp-24); display: flex; gap: var(--sp-16); flex: 1; align-items: flex-start; min-width: 0; }
+.bim-card-text { display: flex; flex-direction: column; gap: var(--sp-16); flex: 1; min-width: 0; }
+.bim-card-text h4 { font-size: clamp(1.375rem, 1.46vw, 1.75rem); color: var(--text-primary); text-transform: none; font-family: "Simplepro Display", sans-serif; }
+.bim-card-text p { font-size: var(--fs-p2); line-height: 1.45; color: var(--text-primary); margin: 0; }
+.bim-card-text .lnk { color: var(--text-link); }
+.bim-actions { display: flex; gap: var(--sp-8); margin-top: auto; flex-wrap: wrap; }
+.bim-actions .btn > img { width: 1.125rem; height: 1.125rem; }
+.bim-qr { background: var(--bg-page); border: var(--hairline) solid var(--border-default); border-radius: var(--r-12); width: 7rem; height: 7rem; display: grid; place-items: center; flex: none; }
+.bim-qr img { width: 5.5rem; height: 5.5rem; }
+
+/* ============================================================
+   БЛОК 7 — production + trust (49:3021)
+   ============================================================ */
+.prod-section { background: var(--bg-page); padding: var(--home-sec-y) var(--home-pad-x) 3.5rem; position: relative; overflow: hidden; }
+/* aspect-ratio ОБЯЗАТЕЛЕН, и это домовая грабля, а не украшение: экспорт вордмарка идёт
+   с preserveAspectRatio="none" + width/height="100%", то есть у файла НЕТ собственной
+   пропорции. <img> без заданной высоты в такой ситуации падает в дефолт замещаемого
+   элемента 150 по вертикали — логотип раздавливался с макетных 405 до 150 (замер до
+   правки: 1848×150 при узле макета 2192:38951 = 1848×405). Та же грабля закрыта на about
+   (about.css §1, там пропорцию держит бокс-маска). Снесут ratio — вордмарк молча
+   сплющится снова, свипы этого не ловят: битую геометрию картинки видит только глаз. */
+.prod-watermark { position: absolute; left: var(--home-pad-x); right: var(--home-pad-x); top: var(--home-sec-y); width: calc(100% - 2 * var(--home-pad-x)); aspect-ratio: 1848 / 405; z-index: 0; pointer-events: none; }
+/* сетка блока 7 (метаданные 49:3021): колонки x36 / x660 / x1284 при контенте 1848 —
+   доли, а не прибитая ширина: выше полосы rem-зума (>1230) числа не сжимаются
+   и фикс-ширины дали бы горизонтальный вынос на 1440 */
+.prod-top { position: relative; min-height: 32rem; }
+.prod-title { font-size: clamp(2.5rem, 2.7vw, 3.25rem); line-height: 1.08; letter-spacing: -0.0125em; color: var(--text-primary); max-width: 29.25rem; }
+.prod-video { position: absolute; left: 33.77%; top: 0; width: 49.35%; aspect-ratio: 912 / 512; border-radius: var(--r-4); overflow: hidden; }
+.prod-video .pv-layer { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* padding:0 — не косметика: UA-стиль кнопки (Chrome кладёт 1 сверху-снизу и 6 по бокам)
+   не сбрасывался, и круглая кнопка стояла прямоугольным боксом 132×122 вокруг глифа
+   120×120. На border-radius:50% несимметричный бокс даёт эллипс, а не круг, и кликзона
+   съезжает вправо-влево. */
+.play-btn { position: relative; z-index: 1; padding: 0; border-radius: 50%; background: none; color: var(--grey-0); border: 0; display: grid; place-items: center; transition: transform 0.15s ease; }
+.play-btn:hover { transform: scale(1.08); }
+.prod-video .video-poster { position: absolute; inset: 0; display: grid; place-items: center; cursor: pointer; }
+.prod-video .play-btn img { width: 7.5rem; height: 7.5rem; }
+.prod-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.prod-cols { position: relative; display: grid; grid-template-columns: 36.27% 36.27%; gap: 14.7%; margin: var(--home-sec-y) 0 0 33.77%; }
+.prod-cols p { font-size: var(--fs-p2); line-height: 1.45; color: var(--text-primary); margin: 0 0 var(--sp-24); }
+.prod-cols p:last-child { margin-bottom: 0; }
+
+/* 7.2 патенты и сертификаты (донор: заголовок слева, ряд из 4 карточек справа) */
+.certs { position: relative; display: flex; justify-content: space-between; gap: var(--sp-48); margin-top: var(--home-sec-y); }
+.certs h2 { font-size: clamp(2rem, 2.3vw, 2.75rem); line-height: 1.1; color: var(--text-primary); max-width: 21.625rem; text-transform: uppercase; position: relative; left: -0.75rem; }
+.certs-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--home-gap); width: 66.23%; flex: none; }
+.certs-row img { width: 100%; height: auto; aspect-ratio: 288 / 404; object-fit: cover; border-radius: var(--r-4); background: var(--bg-surface); }
+
+/* 7.5 клиенты: счётчик + табы отраслей + стена логотипов */
+.clients { position: relative; margin-top: var(--home-sec-y); }
+.clients-head { display: flex; align-items: flex-start; gap: var(--sp-24); }
+.clients-head .count {
+  font-family: "Simplepro Display", sans-serif; font-weight: 700;
+  font-size: clamp(5rem, 6.25vw, 7.5rem); line-height: 0.9; color: var(--action-primary); letter-spacing: -0.02em;
+}
+.clients-head .count-label { font-family: "Simplepro Display", sans-serif; font-weight: 700; font-size: clamp(1.625rem, 1.9vw, 2.25rem); line-height: 1.05; color: var(--text-primary); text-transform: uppercase; padding-top: var(--sp-12); }
+/* Табы отраслей — К КАНОНУ ТАБОВ ПРОДУКТОВОЙ (слово Антона 31.07: «чтобы они были такие
+   же как на продуктовой»). Эталон — `.tabs-nav`/`.tab-btn`, product-card/css/block-01-first-screen.css:174–196.
+   Разница была системной, а не косметической: тут набирали текстовым Geologica строчными,
+   там — дисплейным капсом 700/18 с риской. Перенесены: шрифт, вес, кегль, трекинг, регистр,
+   цвета покой/ховер/актив, гэп 28→16, границы ряда сверху И снизу, механика подчёркивания.
+   ⚠ Роли ARIA (tablist/tab/aria-selected) НЕ ставим: панелей у этих табов нет и они ничего
+   не переключают — роль без панели врёт читалке сильнее, чем её отсутствие. Приводим ВИД.
+   ⚠ min-height, а не фикс height канона: у продуктовой пять коротких табов, тут девять
+   длинных отраслей — замер с канон-типографикой даёт 1470.4 с гэпами, то есть в 1848 на
+   1920 полоса влезает ОДНОЙ строкой (как у эталона), а на 1368 не хватает 102 и ряд
+   переносится. Фикс-высота на переносе резала бы вторую строку. */
+/* ⚠ ТАЧ-ТАРГЕТ 42, А НЕ 44 — ОСОЗНАННО (решение лида 31.07, не недосмотр).
+   Ряд внешне 2.75rem = 44, но `border-block` кладёт по волоску сверху И снизу, и внутренняя
+   коробка выходит 42 — таб растянут по ней. У эталона `.tabs-nav` продуктовой ровно то же
+   (`height: 2.75rem`). Поднять до 44 можно лишь разойдясь с каноном, к которому эти табы
+   только что свели (№32). Размен признан плохим: 2px недобора против разъезда двух страниц.
+   Долг записан ОДНОЙ строкой на оба ряда сразу, чинить их тоже вместе.
+   Следующей сверке: это НЕ находка, не поднимать заново. */
+.industry-tabs {
+  display: flex; align-items: stretch; flex-wrap: wrap;
+  gap: var(--sp-16); margin-top: var(--sp-48);
+  min-height: 2.75rem;
+  border-block: var(--hairline) solid var(--grey-10);
+}
+.industry-tab {
+  position: relative; display: inline-flex; align-items: center;
+  background: none; border: 0; padding: 0.375rem 0;
+  font-family: "Simplepro Display", "Geologica", sans-serif;
+  font-weight: 700; font-size: 1.125rem;
+  letter-spacing: -0.0075em; text-transform: uppercase;
+  color: var(--grey-60-brand); white-space: nowrap;
+  transition: color 0.15s ease;
+}
+.industry-tab:hover { color: var(--grey-70); }
+.industry-tab.is-active { color: var(--grey-70); }
+/* риска ЛЕЖИТ поверх нижней границы ряда, а не красит бордер самой кнопки: таб растянут
+   на высоту ряда, риска свешена на волосок вниз и накрывает границу заподлицо — один в один
+   механика эталона. Красного ТЕКСТА в табах нет, красная только риска. */
+.industry-tab.is-active::after {
+  content: ""; position: absolute; left: 0; right: 0;
+  bottom: calc(-1 * var(--hairline)); height: 0.125rem;
+  background: var(--action-primary);
+}
+.logowall { margin-top: var(--sp-32); }
+.logowall img { width: 100%; display: block; }
+
+/* 7.4 отзывы */
+.reviews { position: relative; display: flex; gap: var(--home-gap); margin-top: var(--home-sec-y); }
+.reviews h2 { font-size: clamp(2rem, 2.3vw, 2.75rem); line-height: 1.1; color: var(--text-primary); max-width: 24.3125rem; flex: 0 0 calc(25% - var(--sp-48)); text-transform: uppercase; }
+.reviews-row { display: flex; gap: var(--home-gap); flex: 1; overflow: hidden; min-width: 0; }
+.review-card { flex: 0 0 27.75rem; background: var(--bg-page); border-radius: var(--r-4); padding: var(--sp-24); display: flex; flex-direction: column; gap: var(--sp-20); }
+.review-card .rv-head { display: flex; align-items: center; gap: var(--sp-16); }
+.review-card .rv-ava { width: 3.75rem; height: 3.75rem; object-fit: contain; flex: none; }
+.review-card .rv-name { font-weight: 600; font-size: var(--fs-p2); color: var(--text-primary); }
+.review-card .rv-role { font-size: var(--fs-p3); color: var(--text-secondary); }
+.review-card .rv-sep { height: var(--hairline); background: var(--border-default); }
+.review-card p { font-size: var(--fs-p3); line-height: 1.6; color: var(--text-primary); margin: 0; }
+
+/* 7.3 популярные товары */
+.popular { position: relative; margin-top: var(--home-sec-y); }
+.popular h2 { font-size: clamp(2.5rem, 2.7vw, 3.25rem); line-height: 1.08; color: var(--text-primary); }
+.popular-tabs { display: flex; gap: var(--sp-12); margin-top: var(--sp-32); flex-wrap: wrap; }
+.ptab {
+  border: 0; border-radius: var(--r-4); height: 1.75rem; padding-inline: 0.625rem;
+  background: var(--bg-page); color: var(--text-primary);
+  font-size: var(--fs-p5); transition: background-color 0.15s ease, color 0.15s ease;
+}
+.ptab.is-active, .ptab:hover { background: var(--action-secondary); color: var(--text-inverse); }
+.popular-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--home-gap); margin-top: var(--sp-32); }
+.pop-card { position: relative; aspect-ratio: 1 / 1; border-radius: var(--r-4); overflow: hidden; display: block; }
+.pop-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.25s ease; }
+.pop-card:hover img { transform: scale(1.04); }
+.pop-card::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 46%, color-mix(in srgb, var(--grey-90) 62%, transparent) 100%);
+}
+.pop-card .pc-foot {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; padding: var(--sp-20) var(--sp-24);
+  display: flex; justify-content: space-between; align-items: flex-end; gap: var(--sp-16);
+}
+.pop-card .pc-text { display: flex; flex-direction: column; gap: 0.375rem; }
+.pop-card h3 { font-size: 1.25rem; line-height: 1.1; color: var(--text-inverse); }
+.pop-card .pc-price { font-size: var(--fs-p3); color: var(--text-inverse); }
+.pop-card .pc-price b { font-weight: 600; font-size: var(--fs-p2); }
+.pop-chip {
+  display: inline-flex; align-items: center; border: var(--hairline) solid var(--grey-0); border-radius: var(--r-4);
+  height: 1.75rem; padding-inline: 0.625rem; font-size: var(--fs-p5); color: var(--text-inverse); flex: none;
+  background: transparent; transition: background-color 0.15s ease, color 0.15s ease;
+}
+.pop-card:hover .pop-chip { background: var(--grey-0); color: var(--text-primary); }
+.pp-chip {
+  display: inline-flex; align-items: center; border: var(--hairline) solid var(--action-secondary); border-radius: var(--r-4);
+  height: 1.75rem; padding-inline: 0.625rem; font-size: var(--fs-p5); color: var(--text-primary); flex: none;
+  background: transparent; transition: background-color 0.15s ease, color 0.15s ease;
+}
+.product-card:hover .pp-chip { background: var(--action-secondary); color: var(--text-inverse); }
+
+/* ============================================================
+   БЛОК 8 — labs-teaser / projects (49:3145)
+   ============================================================ */
+.teasers { background: var(--bg-surface); padding: var(--home-sec-y) var(--home-pad-x); position: relative; }
+.teasers > h2 { font-size: clamp(1.375rem, 1.46vw, 1.75rem); color: var(--text-primary); position: absolute; left: var(--home-pad-x); top: var(--home-sec-y); }
+/* донор: колонки x504 / x1284, фото 600 обе — равные доли + донорский зазор 180.
+   На 1920 даёт ровно 600+180+600 = донор; ниже сжимается пропорционально,
+   а не выносит страницу, как прибитые 780/600. */
+.teasers-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11.25rem; margin-left: calc(25% + 0.375rem); }
+.teaser { display: flex; flex-direction: column; gap: var(--sp-20); }
+.teaser .tz-pic { width: 100%; max-width: 37.5rem; aspect-ratio: 600 / 336; border-radius: var(--r-4); overflow: hidden; background: var(--bg-surface-accent); }
+.teaser .tz-pic img { width: 100%; height: 100%; object-fit: cover; }
+.teaser h3 { font-size: clamp(2rem, 2.3vw, 2.75rem); line-height: 1.08; color: var(--text-primary); }
+.teaser-links { display: flex; flex-direction: column; gap: 0.625rem; }
+.teaser-links a { color: var(--text-link); font-size: var(--fs-p2); width: fit-content; }
+.teaser-links a:hover { color: var(--blue-link-hover); text-decoration: underline; }
+
+/* ============================================================
+   БЛОК 9 — seo-text (49:3171, тёмное полотно)
+   ============================================================ */
+/* Фон — ФОТО ПОД ЗАТЕМНЕНИЕМ (слово Антона 29.07: «сео блок должен быть с картинкой,
+   как это показано на скрине», эталон 2234:83171). Раньше стояла сплошная grey-90:
+   фото донора было перекрыто заливкой. Ассеты вынесены в общую assets/photo/: обе
+   страницы едят одни файлы, копий нет.
+   ⚠ ТОЧНОСТЬ: у листинга взят СТЕК ФОНА (base → photo → shade), но НЕ типографика и НЕ
+   сетка — прежняя редакция этого комментария обещала «стек и числа», и это было неправдой.
+   Замер 31.07 @1440: заголовок 36 здесь против 28 там (тут кегль прибит, там clamp) ·
+   абзац 15.58/24.93/вес 400 против 15/19.95/вес 300 · полотно grey-90 против grey-70 ·
+   нижнее поле 64 против 60. Итог — секция 1113.7 против 942.4, разница 171.3.
+   Что из этого эталон — решается словом, не кодом: развилка вынесена в
+   _scratch/handoff/taste-3107-b.md §Б4, до вердикта числа НЕ сводить. */
+.seo-section { position: relative; background: var(--grey-90); overflow: hidden; padding: var(--home-sec-y) var(--home-pad-x) 4rem; }
+.seo-bg { position: absolute; inset: 0; pointer-events: none; }
+.seo-bg img { position: absolute; width: 100%; object-fit: cover; }
+.seo-bg .base { inset: 0; height: 100%; }
+/* Кадрирование и затемнение — КАНОН МАКЕТА (`2234:83157`, снят get_design_context 31.07):
+   фото `top: -14.92% / height: 141.36%`, затемнение ровное `rgba(9,10,10,0.5)` = grey-90 50%.
+   Те же числа держит листинг — то есть канон один на обе страницы, второго рецепта нет.
+
+   ⚠ ЗДЕСЬ СТОЯЛ ЛОКАЛЬНЫЙ ФИКС (фото inset:0/height:100% + двухслойное затемнение 68% с
+   усилением сверху), заведённый по возврату №22: на секции главной с канон-процентами под
+   заголовок попадал белый шкаф и текст тонул. Фикс СНЯТ, потому что исчезла его причина:
+   он держался на том, что секция главной ВЫШЕ листинговой, а после сведения типографики к
+   макету (см. ниже) высота упала с 925.5 до 756 при макетных 764 — проценты снова попадают
+   куда рассчитаны. Оставлять фикс «на всякий случай» = слой совместимости с самим собой.
+
+   Снято НЕ на глаз: контраст заголовка к подложке замерен в обоих состояниях на двух
+   ширинах — @1920 канон 16.81 против 17.91 у фикса, @1440 канон 15.51 против 17.95.
+   Порог AA 4.5, AAA 7 — канон выше обоих с запасом больше двукратного. Плюс кадры глазами
+   (`s6-3107-b/n37-seo-*`), потому что возврат №22 был именно визуальным. */
+.seo-bg .photo { inset: auto; left: 0; top: -14.92%; height: 141.36%; }
+.seo-bg .shade {
+  position: absolute; inset: 0;
+  background: color-mix(in srgb, var(--grey-90) 50%, transparent);
+}
+.seo-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--home-gap); }
+.seo-title { font-size: 2.25rem; line-height: 1.11; letter-spacing: -0.0075em; color: var(--text-inverse); max-width: 27.75rem; }
+.seo-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--home-gap); }
+/* Типографика колонок — С МАКЕТА, а не на глаз. Числа сняты `get_design_context` по узлу
+   `2234:83157` (брейкпоинт 1920 секции 2234:83171) по разрешению лида 31.07:
+     h3      Simplepro Display Bold 24 / 28 / трекинг −0.06 (токен «1920/heading/h5»)
+     абзац   Geologica Light 15 / 20 / ВЕС 300 / трекинг −0.1125 (токен «1920/paragraph/p4 reg»)
+   До этого тут стояло 15.58 / 24.93 / вес 400 / трекинг normal, а у h3 трекинг −0.24 —
+   то есть блок расходился с макетом и с листингом, который эти же числа уже держал верно.
+   Развилка §Б4 вкусового файла закрыта ЧИСЛОМ: эталон — листинг, главная была отклонением.
+   Следствие: высота секции @1920 упала 925.5 → 756 при макетных 764 (дельта 8). */
+.seo-col h3 { font-size: 1.5rem; line-height: 1.75rem; letter-spacing: -0.0025em; color: var(--text-inverse); margin-bottom: var(--sp-20); text-transform: uppercase; }
+.seo-col p { font-weight: 300; font-size: 0.9375rem; line-height: 1.25rem; letter-spacing: -0.0075em; color: var(--text-inverse); margin: 0 0 var(--sp-12); max-width: 37.5rem; }
+
+/* ============================================================
+   БЛОК «УСТРОЙСТВО ВЫТЯЖНОГО ШКАФА» — скролл-сцена
+   ------------------------------------------------------------
+   Врезано 22.07 из принятой демки `_demo-block4-scroll.html`
+   (демо-страница ОСТАЁТСЯ эталоном механики — не сносить).
+   Слово Антона: «пока воткнуть чисто для демонстрации».
+   Скрипт — js/block4.js, кадры — assets/anim-b4/.
+   Три режима подачи: деск-сцена · моб-свайп · reduced-motion-список.
+   Моб- и reduced-правила держим ЗДЕСЬ, а не в mobile.css: блок приехал
+   самодостаточным куском, дробить его между файлами при врезке = терять
+   связь режимов. Снесут кадры из assets/anim-b4 — сцена молча опустеет.
+   ============================================================ */
+.b4-scene { position: relative; height: 500vh; background: var(--bg-surface); }
+
+.b4-sticky {
+  position: sticky; top: 0;
+  height: 100vh; overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28rem;
+  align-items: center;
+  gap: var(--sp-32);
+  padding: var(--sp-32) var(--sp-48);
+}
+
+.b4-stage { position: relative; height: 100%; min-width: 0; overflow: hidden; }
+.b4-frame {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  /* contain, а не cover: рендеры 1:1, при cover срезало бы верх (вентилятор)
+     и низ (тумбочка) — ровно то, ради чего кадр снят */
+  object-fit: contain; object-position: center;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.b4-card {
+  background: var(--bg-page);
+  border-radius: var(--r-8);
+  padding: var(--sp-24);
+  display: flex; flex-direction: column; gap: var(--sp-20);
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 12%);
+}
+.b4-card-pic {
+  width: 100%; aspect-ratio: 16 / 10;
+  border-radius: var(--r-4); overflow: hidden;
+  background: var(--bg-surface);
+  position: relative;
+}
+.b4-card-pic img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+  opacity: 0;
+}
+.b4-card-text { display: flex; flex-direction: column; gap: var(--sp-12); }
+.b4-card-text h4 { font-size: 1.25rem; color: var(--grey-70); }
+.b4-card-text p { font-size: var(--fs-p3); line-height: 1.47; color: var(--text-primary); margin: 0; }
+
+/* прогресс шагов — словарь моб-точек каруселей проекта (40×4, активная красная) */
+.b4-steps { display: flex; gap: var(--sp-12); margin-top: var(--sp-4); }
+.b4-steps span {
+  flex: 1 1 2.5rem; max-width: 2.5rem; height: 0.25rem;
+  border-radius: var(--r-pill);
+  background: var(--grey-30-brand);
+  transition: background 0.2s linear;
+}
+.b4-steps span.on { background: var(--action-primary); }
+
+.b4-hint {
+  position: absolute; left: 50%; bottom: var(--sp-24); transform: translateX(-50%);
+  font-size: var(--fs-p5); color: var(--text-secondary);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  transition: opacity 0.3s linear;
+}
+
+/* ── МОБ: липкую сцену не тянем, свайп-слайды тех же кадров ── */
+.b4-mob { display: none; }
+
+@media (max-width: 47.9375rem) {
+  .b4-scene { display: none; }
+  .b4-mob { display: block; padding: var(--sp-32) 0; background: var(--bg-surface); }
+
+  .b4-mob-track {
+    display: flex; gap: var(--sp-16);
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding: 0 var(--sp-16);
+  }
+  .b4-mob-track::-webkit-scrollbar { display: none; }
+
+  .b4-slide {
+    flex: 0 0 100%; scroll-snap-align: center;
+    display: flex; flex-direction: column; gap: var(--sp-16);
+  }
+  .b4-slide-pic {
+    width: 100%; aspect-ratio: 1 / 1;
+    border-radius: var(--r-8); overflow: hidden; background: var(--bg-page);
+  }
+  .b4-slide-pic img { width: 100%; height: 100%; object-fit: contain; }
+  .b4-slide-text h4 { font-size: var(--fs-h6); color: var(--grey-70); margin-bottom: var(--sp-8); }
+  .b4-slide-text p { font-size: var(--fs-p3); color: var(--text-primary); margin: 0; }
+
+  .b4-dots {
+    display: flex; gap: var(--sp-12); justify-content: center;
+    margin: var(--sp-24) var(--sp-16) 0;
+  }
+  .b4-dots span {
+    flex: 1 1 2.5rem; max-width: 2.5rem; height: 0.25rem;
+    border-radius: var(--r-pill); background: var(--grey-30-brand);
+    transition: background 0.2s linear;
+  }
+  .b4-dots span.on { background: var(--action-primary); }
+}
+
+/* ── REDUCED MOTION: не «анимация с нулевой длительностью», а другой режим подачи ── */
+.b4-static { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .b4-scene, .b4-mob { display: none !important; }
+  .b4-static {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--sp-48);
+    align-items: start;
+    padding: var(--sp-64) var(--sp-48);
+    background: var(--bg-surface);
+  }
+  .b4-static-pic { border-radius: var(--r-8); overflow: hidden; background: var(--bg-page); }
+  .b4-static-pic img { width: 100%; height: auto; }
+  .b4-static ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-24); }
+  .b4-static li { display: flex; gap: var(--sp-16); }
+  .b4-static li img {
+    width: 5rem; height: 5rem; flex: none; object-fit: cover;
+    border-radius: var(--r-4); background: var(--bg-page);
+  }
+  .b4-static h4 { font-size: var(--fs-h6); color: var(--grey-70); margin-bottom: var(--sp-4); }
+  .b4-static p { font-size: var(--fs-p3); color: var(--text-primary); margin: 0; }
+
+  @media (max-width: 47.9375rem) {
+    .b4-static { grid-template-columns: minmax(0, 1fr); padding: var(--sp-32) var(--sp-16); }
+  }
+}

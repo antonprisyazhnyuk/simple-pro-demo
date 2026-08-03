@@ -1,0 +1,886 @@
+/* Simple PRO — nav-семья (стенд). Манифестации ТРИ, все на ОДНОМ узле .nav-header
+   (кроме мобильной) — короткого хедера-двойника нет и не будет:
+     1. полный, верх страницы — подложки нет;
+     2. collapsed (.is-collapsed) — при скролле ВНИЗ остаётся один ряд категорий
+        на подложке; верхний ряд и лого-колонка схлопываются грид-треком;
+     3. мобильная — nav-bottom-bar + nav-menu-sheet ниже порога.
+   Скролл ВВЕРХ возвращает полный хедер закреплённым (.is-pinned), у самого верха
+   подложка гаснет. Направление считает JS (см. nav.js), CSS только рисует состояния.
+   Источник значений: Figma «0720» → секция menu (полный хедер 2173:119035,
+   подложка снята с ноды 2173:119470, кнопки 2173:125435).
+   Токены — ../product-card/css/tokens.css. Правила адаптива — collapse-rules.md. */
+
+:root {
+  /* nav-локальные токены (кандидаты в общий слой после приёмки) */
+  /* ⚠ Пропорция лого — из viewBox header-logo.svg (164×36). Прибивать её ОБЯЗАТЕЛЬНО:
+     сам SVG объявлен preserveAspectRatio="none", то есть растягивается в любой бокс и
+     плюёт на пропорцию. object-fit: contain тут бессилен (у картинки нет интринсик-
+     отношения — нечего сохранять). Единственное лечение — дать боксу ВЕРНОЕ отношение.
+     Боевой случай: в низ-баре стояло 112×20 (5.60) вместо 4.556 — лого было
+     растянуто на +23%, и два прошлых захода «фикс-габариты + contain» это не лечили. */
+  --logo-ratio: 164 / 36;
+  /* ПОЛЯ ХЕДЕРА — по макетному ряду (слово Антона 20.07), одним клампом без ступеней.
+     Бок:  16@1280 · 24@1440 · 36@1680 — линейно 16→36 на 1280→1680, дальше плато 36.
+     Верх: 12@1280 · 12@1440 · 18@1680 · 24@1920 (плато 12 до 1440, дальше рост).
+     Все четыре точки МЕРЯЕТ свип (проход B, блок «поля против макетного ряда») и валит
+     приёмку при расхождении. Сам ряд СВЕРЕН Антоном с макетом 21.07 (проходка ⑦,
+     дословно: «24 именно в макете») — прежняя оговорка «на слово, верность ряда не
+     доказана» снята. Подробности — collapse-rules.md. */
+  --nav-pad-x: clamp(1rem, calc(-3rem + 5vw), 2.25rem);
+  --nav-pad-top: clamp(0.75rem, calc(-1.5rem + 2.5vw), 1.5rem);
+  --nav-gap: clamp(0.375rem, 0.125rem + 0.3125vw, 0.5rem); /* воздух между чипами 6→8 */
+
+  /* ——— КЕГЛЬ ЧИПА — единственный размер чипа в rem ———
+     13→16 на 1280→1920. Всё остальное внутри чипа задано в em (долях ОТ него),
+     поэтому кнопка ужимается ЦЕЛИКОМ и пропорционально: паддинги, высота, гэп,
+     радиус и иконко-боксы едут за кеглем сами. Отдельного сжатия паддингов
+     при стоячем кегле в этой семье не существует — это и есть em-соразмерность. */
+  --nav-chip-fs: clamp(0.8125rem, 0.4375rem + 0.46875vw, 1rem);
+
+  /* ——— внутренние размеры чипа: доли кегля (em), не rem ——— */
+  --nav-chip-h: 1.75em;                 /* 28 при кегле 16 — сервисный чип */
+  --nav-cat-h: 2em;                     /* 32 при кегле 16 — каталожная пилюля */
+  --nav-chip-pad: 0.75em;               /* 12 при кегле 16 */
+  --nav-chip-pad-tight: 0.5em;          /* 8  — узкая сторона суффикс-чипа */
+  --nav-chip-pad-icon: 0.125em;         /* 2  — поля чипа-иконки */
+  --nav-chip-gap: 0.5em;                /* 8  — гэп «текст ↔ бокс» внутри чипа */
+  --nav-chip-gap-icon: 0.25em;          /* 4  — гэп внутри чипа-иконки */
+  --nav-box: 1.5em;                     /* 24 — квадрат иконко/суффикс-бокса */
+  /* 28 — канон-круг мессенджера (№21 «круг 28×28»): знак САМ является кнопкой, поэтому
+     он равен ЧИПУ (--nav-chip-h), а не иконко-боксу. Пока под знаком была белая плашка,
+     видимой кнопкой был чип 28 и разница с 24 не читалась; плашки нет с 30.07 (№28) —
+     разница стала нарушением канона на 4px. Свой токен, а не правка --nav-box: тот носят
+     суффикс-боксы, S-логотип и иконко-боксы, им 24 канонично. */
+  --nav-box-brand: 1.75em;              /* 28 — канон-круг ТГ/Max, знак = кнопка */
+  --nav-box-heart: 1.75em;              /* 28 — сердце избранного: носителя нет, знак = кнопка (№35) */
+  --nav-box-icon: 1.25em;               /* 20 — глиф внутри бокса */
+  --nav-box-icon-suffix: 1.125em;       /* 18 — глиф в суффикс-боксе */
+  --nav-chip-r: 0.25em;                 /* 4  — радиус покоя */
+  --nav-chip-r-hover: 0.5em;            /* 8  — «hover скругляет», слово Антона 20.07 */
+  --nav-box-r: 0.125em;                 /* 2  — радиус суффикс-бокса в покое (эталон 2173:118984) */
+  --nav-box-r-hover: 0.5em;             /* 8  — бокс скругляется вместе с чипом (эталон 2173:118979) */
+
+  /* подложка ЗАКРЕПЛЁННОГО хедера: grey-10 @ 25% + blur 6 (значения с ноды 2173:119470).
+     Одни и те же токены на обоих закреплённых состояниях — полном и collapsed. */
+  --nav-blur: 0.375rem;                 /* 6 */
+  --nav-veil: color-mix(in srgb, var(--grey-10) 25%, transparent);
+  /* схлопывание/возврат: трек едет дольше, чем гаснет содержимое, и с задержкой —
+     сперва уходит верхний ряд, только потом сжимается высота (иначе белые чипы
+     на пол-секунды наезжают на тёмные пилюли). Возврат — зеркально. */
+  --nav-collapse-t: 0.26s;              /* трек (грид-колонка/строка) */
+  --nav-fade-t: 0.12s;                  /* гашение содержимого */
+  --nav-chip-fw: 300;                   /* как в макете; развилка Р1 (300→400) решится общей типо-правкой */
+  --nav-z: 90;
+
+  /* ——— МОБИЛЬНАЯ манифестация: тач-цель и всё, что от неё зависит ———
+     Закон свода: тач-цель ≥48 (решение Антона 20.07 «поднять всё до 48») — он держится
+     на СТРОКАХ ШИТА, где ограничения по ширине нет и растить поле бесплатно.
+     Высота низ-бара и ВСЕ отступы под него ВЫВОДЯТСЯ отсюда, а не прибиты
+     по соседству: иначе поднятая кнопка оставляет за собой висящие старые
+     величины — молчаливый дефект, который не видно ни глазом, ни свипом.
+     Завязок ровно четыре, и все считаются: высота бара · нижнее поле body ·
+     низ шита · нижний отступ дев-дока на стенде.
+
+     ⚠ В САМОМ БАРУ тач-цель 40, а не 48 — по моб-макету Frame 1000005299 (360),
+     решение Антона 21.07. Прежний заход «48 в баре» ширину не сводил ни при каком
+     воздухе: содержимому нужно было 379.1px при полях 343 (дефицит 36.1, замер), и
+     кламп воздуха 4→8 лечил симптом. По макету арифметика сходится БЕЗ подгонки:
+     8 + [40 + воздух + лого 91.1] + распор + [4×40 = 160] + 8 — на 360 остаётся запас.
+     Поэтому воздух бара снова ОДНА величина 8, а не кламп. */
+  --nav-tap: 3rem;                    /* 48 — минимум тач-цели СТРОК ШИТА */
+  /* 44 — тач-минимум (П4/queue-hub №55, разрешение лида 31.07). До 31.07 здесь стояло
+     2.5rem = 40 «по макету Frame 1000005299».
+     ⚠ ЧЕСТНО: 40 входит в набор чисел бара, записанный решением Антона 21.07 (см. блок
+     «лестница жертв» ниже: «Числа канона (8 · 40 · 24 · 160) — решение Антона и не режутся»).
+     Число сдвинуто НЕ потому, что макет стал не важен, а потому, что 40 — ниже порога
+     доступности, и это Антон же велел решать («3 в и надо решать сегодня», №29-④).
+     Замер П4 показал: моб-бар — единственная тач-цель, общая ВСЕМ пяти страницам, 6 целей
+     на каждой, то есть одно это число чинит 30 целей.
+     Ширина проверена ЗАМЕРОМ на живом рендере, а не арифметикой: на 320/360/375/390
+     переполнения нет (вылет 0/0 на всех четырёх), бар растёт только в высоту 56 → 60,
+     карман страниц едет за токеном `--nav-bar-reserve` сам.
+     Не понравится Антону — ревертится одним числом обратно в 2.5rem. */
+  --nav-bar-btn: 2.75rem;             /* 44 — кнопка низ-бара (тач-минимум, было 40 по макету) */
+  --nav-bar-logo-h: 1.25rem;          /* 20 — высота словесного лого; ширина 91 ВЫВОДИТСЯ (×164/36) */
+  /* воздух бара: поле внутри, зазор от краёв экрана и гэп левой связки — одна величина */
+  --nav-bar-air: 0.5rem;                                              /* 8 — выбор Антона 21.07 */
+  --nav-bar-pad: var(--nav-bar-air);
+  --nav-bar-gap: var(--nav-bar-air);
+  --nav-bar-h: calc(var(--nav-bar-btn) + 2 * var(--nav-bar-pad));     /* 56 на всех моб-ширинах */
+  --nav-bar-reserve: calc(var(--nav-bar-h) + 2 * var(--nav-bar-gap)); /* 72 */
+
+  /* ——— ЛИСТ МЕНЮ: величины сняты ЗАМЕРОМ с канон-кадров (mob-canon, фрейм 360) ———
+     Мерил пиксельным сканом, а не на глаз: миниатюра 28×28 и шаг строки 36 —
+     семь раз подряд без разброса (first-2), фото баннера 139 (first-2),
+     фото категории 268–273 (first-3/first-4).
+     ⚠ ШАГ СТРОКИ 36 НЕ ВОСПРОИЗВОДИМ — и это осознанно. Закон свода «тач-цель ≥48»
+     (решение Антона 20.07, см. --nav-tap выше) прямо противоречит канонным 36.
+     Выбран закон: 36 — это промах мимо пальца, а канон-кадр рисовался до решения
+     о 48. Цена — первый уровень не садится в экран целиком и едет скроллом, тогда
+     как в каноне помещается весь. Развилка вынесена Антону в отчёт М1. */
+  --nav-sheet-banner-h: 8.6875rem;                      /* 139 — фото баннера (канон) */
+  /* Фото категории: канонные 270 — ПОТОЛОК, а не константа. Второй уровень держит
+     шапку прибитой (назад+заголовок+фото), и на коротком экране фикс-270 не оставил
+     бы списку ни строки: на 568 под список пришлось бы 13px. Поэтому высота едет от
+     экрана и упирается в канон сверху. */
+  --nav-sheet-hero-h: clamp(8rem, 34vh, 16.875rem);     /* ≤270 — фото категории (канон) */
+}
+
+/* ============ общий атом: menu-btn (чип) ============ */
+.menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nav-chip-gap);
+  height: var(--nav-chip-h);
+  padding-inline: var(--nav-chip-pad);
+  border: 0;
+  border-radius: var(--nav-chip-r);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: inherit;
+  /* единственный rem-размер чипа: от него em-долями пляшет всё внутреннее */
+  font-size: var(--nav-chip-fs);
+  font-weight: var(--nav-chip-fw);
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-radius 0.15s ease;
+}
+.menu-btn:hover { color: var(--grey-90); border-radius: var(--nav-chip-r-hover); }
+.menu-btn:active { color: var(--grey-100); }
+/* чипы не сжимаются молча — переполнение решается правилами брейкпоинтов */
+.nav-header .menu-btn { flex-shrink: 0; }
+.menu-btn img, .menu-btn svg { flex-shrink: 0; }
+
+/* чип-иконка (поиск/tg/max/сердце): узкие поля, квадрат 24 внутри */
+.menu-btn--icon { padding-inline: var(--nav-chip-pad-icon); gap: var(--nav-chip-gap-icon); }
+.menu-btn--icon .icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--nav-box);
+  height: var(--nav-box);
+  border-radius: var(--r-2);
+}
+.menu-btn--icon img, .menu-btn--icon svg { width: var(--nav-box-icon); height: var(--nav-box-icon); }
+/* [data-brand] носят РОВНО знаки ТГ/Max (проверено грепом 31.07: 5 страниц + nav/index.html,
+   больше нигде) — потому канон 28 садится сюда точечно и на другие носители --nav-box
+   не расползается. Поля чипа при этом обнуляются (правило ниже), иначе знак 28 в чипе
+   с полями 2 растянул бы кликзону до 32 и круг-подсветка стала бы эллипсом. */
+.menu-btn--icon img[data-brand], .menu-btn--icon svg[data-brand] { width: var(--nav-box-brand); height: var(--nav-box-brand); }
+
+/* чип с суффикс-квадратом (Регион⌄, телефон⧉, email⧉) */
+.menu-btn--suffix { padding-inline: var(--nav-chip-pad) var(--nav-chip-pad-icon); }
+.menu-btn--suffix.menu-btn--tight { padding-inline-start: var(--nav-chip-pad-tight); }
+.menu-btn .suffix-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--nav-box);
+  height: var(--nav-box);
+  border-radius: var(--nav-box-r);
+  background: var(--grey-20);
+  color: var(--text-primary);           /* глиф внутри — inline-svg на currentColor */
+  transition: background-color 0.15s ease, color 0.15s ease, border-radius 0.15s ease;
+}
+.menu-btn .suffix-box svg { width: var(--nav-box-icon-suffix); height: var(--nav-box-icon-suffix); }
+/* hover чипа = ИНВЕРСИЯ суффикс-бокса: тёмная плашка + белый глиф, радиус растёт
+   вместе с чипом (эталон «дефолт/ховер» 2173:118982 / 2173:118977 — grey-70, r 8) */
+.menu-btn:hover .suffix-box {
+  background: var(--action-secondary-hover);
+  color: var(--text-inverse);
+  border-radius: var(--nav-box-r-hover);
+}
+
+/* S-квадрат узкого деска: чип-квадрат по высоте верхнего ряда (всё в em от кегля).
+   Появляется media-правилом ступени 1; в широком деске его нет вовсе. */
+.menu-btn--logo-s {
+  display: none;
+  width: var(--nav-chip-h);        /* квадрат: ширина = высоте чипа (1.75em ≈ 28) */
+  padding-inline: 0;
+  justify-content: center;
+}
+.menu-btn--logo-s img { width: var(--nav-box); height: var(--nav-box); }
+
+/* маркер-точка «Лабораторные пространства» (декор, только этот пункт) */
+.menu-btn .special-dot {
+  width: 0.25em;
+  height: 0.25em;
+  border-radius: var(--r-pill);
+  background: var(--bg-accent);
+}
+
+/* каталожная пилюля (тёмная) */
+.menu-btn--cat {
+  height: var(--nav-cat-h);
+  background: var(--action-secondary);
+  color: var(--text-inverse);
+}
+.menu-btn--cat:hover,
+.menu-btn--cat[aria-expanded="true"] {
+  background: var(--action-secondary-hover);
+  color: var(--text-inverse);
+  border-radius: var(--nav-chip-r-hover);
+}
+.menu-btn--cat:active { background: var(--action-secondary-pressed); }
+
+/* ── ПРАВАЯ СВЯЗКА ХЕДЕРА: ЗНАК САМ ЕСТЬ КНОПКА (слово Антона 30.07, №28) ──────
+   Правка 29.07 (№5-а) исполнила слово ЗЕРКАЛЬНО: белую плашку сняли у одной корзины,
+   а она — не «подложка иконки», а общий атом .menu-btn (background: var(--bg-page)
+   выше по файлу), который носят и ТЕКСТОВЫЕ чипы (Регион/Компания/телефон/email —
+   им плашка НУЖНА). Вышло наоборот: у ТГ/Max/сердца квадратная кнопка осталась,
+   у корзины исчезла форма вовсе.
+   Слово Антона дословно: «у нас в хедере кружки у макса и тг под ними нет квадратной
+   кнопки эти кружки этими кнопками и являются, я это прописывал – но куда проебалось
+   с избранным тоже самое, единственное где не надо было убирать красную кнопку – это
+   корзина и ее на хер убрали».
+   Поэтому: плашку снимаем ТОЧЕЧНО у трёх знаков (ТГ · Max · сердце), корзине красную
+   кнопку ВОЗВРАЩАЕМ, общий атом и текстовые чипы не трогаем.
+   ⛔ Лупа поиска — такой же иконочный чип на плашке, но Антон её не называл: вопрос
+   у него, до ответа плашка остаётся. Селекторы ниже адресные — лупу не заденут. */
+
+/* корзина (красный чип) — возврат к состоянию до 29.07.
+   ⚠ Цена снятия этой плашки — не «глиф без формы», а НЕВИДИМАЯ кнопка: глиф
+   header-cart.svg нарисован stroke="var(--stroke-0, white)", а в <img> внешние
+   переменные не долетают — остаётся белое по белому. Красная плашка тут не декор,
+   она носитель контраста. Снесут её снова — сперва перекрасить ассет.
+   Слово Антона 30.07: «она и должна остаться красной и в хедере и в моб меню»
+   (моб-бар .bar-btn--cart ниже её и не терял — после этой правки связка сходится). */
+.menu-btn--cart { background: var(--action-primary); }
+.menu-btn--cart:hover { background: var(--action-primary-hover); border-radius: var(--nav-chip-r-hover); }
+.menu-btn--cart:active { background: var(--action-primary-pressed); }
+
+/* ТГ · Max — плашки нет: кнопка = сам канон-круг (assets/figma/icon-tg.svg ·
+   icon-max.svg, канон №21). Габарит чипа СОХРАНЁН (28×28; с 31.07 это круг 28 без полей,
+   до того — поля 2 + круг 24), меняются только фон и форма — кликзона прежняя.
+   Ховер = «чутка градиент, который и так есть в подложках» (дословно Антон 29.07,
+   слово в силе): тот же градиент иконки, разбавленный до 14% (--brand-*-wash).
+   ⚠ Подсветка рисуется КРУГОМ-ПСЕВДОЭЛЕМЕНТОМ, а не радиусом самого чипа, и это не
+   украшательство: свип-приёмка nav держит закон em-соразмерности (радиус/кегль —
+   константа по всем ширинам), а круглый радиус на боксе его ломает при любой записи.
+   62.5rem — абсолют, плывёт грубо; 0.875em (ровно половина высоты) браузер клампит
+   половиной бокса и округляет — плыло 0.1154 при допуске 0.0985. Псевдоэлемент под мерку
+   свипа не попадает вовсе, а inset:0 + 50% даёт точный круг на любом кегле. */
+/* Канон 28 (№30, 31.07): знак заполняет чип ЦЕЛИКОМ, поэтому поля чипа-иконки (2)
+   у бренд-знаков снимаются. Кликзона от этого не меняется — она была и остаётся
+   28×28 (было: поля 2 + круг 24; стало: круг 28), высота ряда тоже. */
+.menu-btn--icon[data-brand-chip] { background: none; position: relative; padding-inline: 0; }
+.menu-btn--icon[data-brand-chip]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transition: background-image 0.15s ease;
+  pointer-events: none;
+}
+.menu-btn--icon[data-brand-chip="tg"]:hover::before  { background-image: var(--brand-tg-wash); }
+.menu-btn--icon[data-brand-chip="max"]:hover::before { background-image: var(--brand-max-wash); }
+
+/* Сердце избранного — плашки нет, остаётся контур grey-60 на прозрачном.
+   Ищем по aria-label, а не по классу: класс .menu-btn--fav вешает nav.js уже после
+   загрузки, и до его отработки плашка успевала бы мигнуть. Тот же селектор, что и
+   в nav.js (§избранное); префикс ^= держит и подпись со счётом «Избранное, товаров: N».
+   Ховера с фоном тут нет намеренно: его не было и с плашкой (общий .menu-btn:hover
+   красит только текст и радиус) — состояние показывает сам знак, заливкой и цифрой.
+   Радиус чипа не трогаем: он невидим на прозрачном, а свип на него смотрит. */
+/* РАЗМЕР СЕРДЦА (слово Антона 31.07, queue-hub №35-①: «иконка избранного несоразмерна
+   иконкам макса тг и кнопке корзины, а должна быть пропорционально увеличена под высоту
+   этих элементов»). Причина мелкоты — в НОСИТЕЛЕ: у корзины видимый размер даёт красный
+   чип 28 (глиф 20 внутри него), у ТГ/Max с 31.07 сам круг 28. У сердца носителя нет вовсе,
+   голый контур на прозрачном — и оно жило на 20, то есть на 8 мельче связки.
+   Тот же приём, что в П1: СВОЙ токен, а не правка общего --nav-box-icon (его носят fav,
+   cart и лупа вместе, а корзине и лупе 20 внутри плашки канонично). Поля чипа-иконки (2)
+   обнуляются, иначе знак 28 растянул бы кликзону до 32; кликзона остаётся 28×28. */
+.menu-btn--icon[aria-label^="Избранное"] { background: none; padding-inline: 0; }
+.menu-btn--icon[aria-label^="Избранное"] .icon-box { width: var(--nav-box-heart); height: var(--nav-box-heart); }
+.menu-btn--icon[aria-label^="Избранное"] img { width: var(--nav-box-heart); height: var(--nav-box-heart); }
+
+/* ── СЧЁТЧИК ИЗБРАННОГО (слово Антона 29.07, №5-б) ────────────────────────────
+   Пусто — контурное сердце grey-60, как было. Непусто — сердце заливается фирменным
+   красным (подменой ассета в nav.js, блок «избранное») и справа-сверху появляется цифра.
+   Счёт локальный, живёт в localStorage стенда; сервера у стенда нет. */
+.menu-btn--fav { position: relative; }
+.menu-btn--fav .fav-count {
+  position: absolute;
+  top: -0.125rem;
+  right: -0.125rem;
+  min-width: 1rem;
+  height: 1rem;
+  padding-inline: 0.1875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-pill);
+  background: var(--action-primary);
+  color: var(--text-inverse);
+  font-family: "Geologica", sans-serif;
+  font-weight: 400;
+  font-size: 0.625rem;               /* 10 — бейдж не спорит с чипом (16) */
+  line-height: 1;
+  letter-spacing: -0.01em;
+  pointer-events: none;              /* цифра не перехватывает клик по кнопке */
+}
+.menu-btn--fav:not(.is-on) .fav-count { display: none; }
+
+/* ============ nav-header: единственный деск-хедер, три состояния ============
+   Короткого хедера-двойника НЕТ (решение Антона 20.07): один и тот же узел живёт
+   в трёх видах — полный на верху страницы (подложки нет), полный закреплённый
+   (.is-pinned, подложка) и collapsed (.is-collapsed, один ряд категорий).
+   Классы вешает JS по НАПРАВЛЕНИЮ скролла; здесь только рисование.
+
+   ⚠ Грид, а не флекс. Лого-колонка схлопывается ТРЕКОМ (auto → 0fr), верхний ряд —
+   строкой (1fr → 0fr): так плавность берётся из самой раскладки и в схлопывании нет
+   ни одной прибитой величины (max-height/translate потребовали бы числа в px). */
+.nav-header {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: var(--nav-z);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);   /* лого-колонка · ряды */
+  align-items: stretch;
+  gap: var(--nav-gap);
+  padding: var(--nav-pad-top) var(--nav-pad-x);
+  transition: background-color 0.25s ease, backdrop-filter 0.25s ease,
+              grid-template-columns var(--nav-collapse-t) ease,
+              column-gap var(--nav-collapse-t) ease;
+}
+.nav-header.is-pinned {
+  background: var(--nav-veil);
+  backdrop-filter: blur(var(--nav-blur));
+  -webkit-backdrop-filter: blur(var(--nav-blur));
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* инвариант: высота плашки = высоте двух рядов кнопок (stretch, не фикс) */
+  align-self: stretch;
+  /* min-width: 0 — обязательное условие схлопывания трека: у 0fr автоминимум равен
+     min-content, и без этого колонка встала бы враспор вместо того чтобы уйти в ноль */
+  min-width: 0;
+  padding: 0.625rem clamp(0.75rem, 0.08rem + 0.7vw, var(--sp-16));
+  border-radius: var(--nav-chip-r);
+  background: var(--bg-page);
+  transition: opacity var(--nav-fade-t) ease var(--nav-fade-t), visibility 0s;
+}
+.nav-logo img {
+  /* полное лого: плавный скейл ШИРИНОЙ 96→146 на 1280→1920, высота выводится из
+     пропорции viewBox (два клампа рассинхронились бы и растянули знак).
+     Плашка-инвариант (высота = двум рядам) задаётся не здесь, а align-self: stretch
+     на .nav-logo, и её это не трогает. */
+  width: clamp(6rem, -0.25rem + 7.8125vw, 9.125rem);
+  height: auto;
+  aspect-ratio: var(--logo-ratio);
+}
+.nav-rows {
+  display: grid;
+  grid-template-rows: 1fr auto;                /* верхний ряд · ряд категорий */
+  min-width: 0;
+  gap: var(--nav-gap);
+  transition: grid-template-rows var(--nav-collapse-t) ease,
+              row-gap var(--nav-collapse-t) ease;
+}
+/* min-height: 0 — то же условие, что и min-width у лого: без него 0fr упрётся
+   в min-content верхнего ряда и высота не схлопнется */
+.nav-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nav-gap);
+  min-height: 0;
+  transition: opacity var(--nav-fade-t) ease var(--nav-fade-t), visibility 0s;
+}
+.nav-row-top .row-left, .nav-row-top .row-middle, .nav-row-top .row-right {
+  display: flex;
+  align-items: center;
+  gap: var(--nav-gap);
+}
+.nav-row-cats { display: flex; align-items: center; gap: var(--nav-gap); }
+
+/* ============ состояние collapsed: остаётся только ряд категорий ============
+   Включается скроллом ВНИЗ (см. nav.js), всегда вместе с .is-pinned — то есть
+   всегда на подложке. Гасим содержимое ЧЕРЕЗ visibility, а не overflow: hidden:
+   overflow на .nav-row-top обрезал бы дропдаун региона, который по замыслу
+   проходит сквозь ряд категорий (см. .nav-mega-menu z-index).
+   Схлопывание асимметрично: сюда — сперва гаснет, потом сжимается (задержка на
+   треке); обратно — сперва растёт трек, потом проявляется (задержка на opacity,
+   она задана в базовых правилах .nav-logo / .nav-row-top). */
+.nav-header.is-collapsed {
+  grid-template-columns: 0fr minmax(0, 1fr);
+  column-gap: 0;
+  transition: background-color 0.25s ease, backdrop-filter 0.25s ease,
+              grid-template-columns var(--nav-collapse-t) ease var(--nav-fade-t),
+              column-gap var(--nav-collapse-t) ease var(--nav-fade-t);
+}
+.nav-header.is-collapsed .nav-rows {
+  grid-template-rows: 0fr auto;
+  row-gap: 0;
+  transition: grid-template-rows var(--nav-collapse-t) ease var(--nav-fade-t),
+              row-gap var(--nav-collapse-t) ease var(--nav-fade-t);
+}
+.nav-header.is-collapsed .nav-logo,
+.nav-header.is-collapsed .nav-row-top {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--nav-fade-t) ease, visibility 0s linear var(--nav-fade-t);
+}
+/* лого-плашка в нуле трека: снимаем поля, иначе её padding-box торчит из 0-й колонки */
+.nav-header.is-collapsed .nav-logo { padding-inline: 0; overflow: hidden; }
+
+/* ============ поиск-раскрытие (полный хедер) ============
+   Строка растёт ВЛЕВО из-под значка до левого края .nav-rows (то есть до лого).
+   Ключевое: строка position: absolute — она НЕ участвует в раскладке ряда, поэтому
+   раскрытый поиск физически не может добавить переполнения (проверяется свипом).
+   Ширину в открытом состоянии считает JS: «до лого» — величина живая, от ширины окна. */
+.search-wrap { position: relative; display: inline-flex; align-items: center; }
+.search-wrap .menu-btn { position: relative; z-index: 1; }   /* значок поверх строки */
+.search-field {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  min-width: 0;
+  height: var(--nav-chip-h);
+  padding-inline: var(--nav-chip-pad) 2.25em;  /* правое поле — под значок */
+  border: 0;
+  border-radius: var(--nav-chip-r-hover);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--nav-chip-fs);
+  font-weight: var(--nav-chip-fw);
+  opacity: 0;
+  pointer-events: none;
+  transition: width 0.28s ease, opacity 0.18s ease;
+}
+.search-field::placeholder { color: var(--text-secondary); }
+.search-wrap.is-open .search-field { opacity: 1; pointer-events: auto; }
+
+
+
+/* ============ nav-mega-menu (дропдаун категории) ============ */
+.nav-mega-menu {
+  position: absolute;
+  top: calc(100% + var(--sp-4));
+  left: 0;
+  /* панель обязана лежать ПОВЕРХ соседних рядов: регион живёт в верхнем ряду, и его
+     дропдаун проходит сквозь ряд категорий — без этого пилюли перекрывают первый пункт */
+  z-index: 2;
+  min-width: 16rem;
+  max-height: min(60vh, 40rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding: var(--sp-8);
+  border-radius: var(--r-8);
+  background: var(--bg-page);
+  box-shadow: 0 0.75rem 2rem color-mix(in srgb, var(--grey-90) 14%, transparent);
+  display: none;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+/* region-wrap живёт на той же панели, что и категории: одна механика, одни стили.
+   Разница ровно одна — категории открываются наведением, регион только кликом,
+   поэтому hover-моста у него нет. */
+.cat-wrap, .region-wrap { position: relative; }
+/* открытая обёртка поднимается над соседями — иначе её панель тонет под ними */
+.cat-wrap.is-open, .region-wrap.is-open { z-index: 2; }
+.cat-wrap.is-open .nav-mega-menu,
+.region-wrap.is-open .nav-mega-menu { display: flex; }
+/* hover-мост: держит наведение в зазоре между пилюлей и панелью */
+.cat-wrap.is-open::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: var(--sp-8);
+}
+.mega-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  padding: var(--sp-8) var(--sp-10);
+  border-radius: var(--r-4);
+  color: var(--text-primary);
+  font-size: var(--fs-p3);
+  font-weight: 300;
+  line-height: 1.4;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.mega-item:hover { background: var(--bg-surface); color: var(--grey-90); }
+/* строки-кнопки (регион): сбрасываем кнопочное, чтобы строка читалась как в мега-меню */
+button.mega-item {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--fs-p3);
+  font-weight: 300;
+  text-align: left;
+  cursor: pointer;
+}
+.mega-item[aria-selected="true"] { color: var(--action-primary); }
+/* Правило .mega-item .mega-thumb снято вместе с самими миниатюрами (№6, Антон 29.07):
+   пункты меню — только текст, картинок в них больше не создаётся. */
+
+/* ============ nav-bottom-bar (моб): белая floating-плашка ============ */
+.nav-bottom-bar {
+  position: fixed;
+  inset-inline: var(--nav-bar-gap);
+  bottom: var(--nav-bar-gap);
+  z-index: calc(var(--nav-z) + 3);
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nav-bar-air);
+  padding: var(--nav-bar-pad);
+  border-radius: var(--r-12);
+  background: var(--bg-page);
+  box-shadow: 0 0.375rem 1.5rem color-mix(in srgb, var(--grey-90) 16%, transparent);
+  /* Бар — контейнер запроса: лого считает свою ширину от ЕГО inline-size (100cqi), а не
+     от vw. Это не украшение, а единственный честный источник: 100vw ВКЛЮЧАЕТ классический
+     скроллбар, и на окне 320 с ним формула ошиблась бы ровно на его 15px — то есть в самом
+     узком случае, ради которого и считается. cqi меряет живую плашку и ошибиться не может. */
+  container-type: inline-size;
+}
+.nav-bottom-bar .bar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--nav-bar-btn);
+  height: var(--nav-bar-btn);
+  /* НЕ сжимаются: флекс-усушка увела бы тач-цель ниже нормы молча — ровно так на 375
+     бургер садился до 37.8, пока свип не стал мерить каждую кнопку, а не первую */
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: var(--r-8);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+/* две группы вплотную, распор МЕЖДУ ними (а не равномерная россыпь по всей ширине) */
+.nav-bottom-bar .bar-group {
+  display: flex;
+  align-items: center;
+  gap: var(--nav-bar-air);
+  /* СТРАХОВКА от наезда. Без `flex` группа получает дефолт 0 1 auto — усушка разрешена,
+     а ВСЕ её дети защищены (.bar-btn и .bar-logo-link стоят на flex: 0 0 auto). Итог:
+     коробка группы жмётся, содержимое нет — оно вылезает наружу и правая связка ложится
+     на лого. Дефект МОЛЧАЛИВЫЙ: scrollWidth−clientWidth самого бара при этом = 0
+     (переполнение сидит ВНУТРИ групп, не в баре), и проверкой «бар не переполнен» он не
+     ловится вовсе — ловится только замером «правый край лого vs левый край первой иконки».
+     С канона 21.07 наезд ушёл по построению (см. --nav-bar-btn), эта строка — предохранитель. */
+  flex: 0 0 auto;
+}
+/* правая связка: 4 иконки ВПЛОТНУЮ, ровно 160 = 4×40 (макет Frame 1000005299) */
+.nav-bottom-bar .bar-group--icons { gap: 0; }
+.nav-bottom-bar .bar-btn svg, .nav-bottom-bar .bar-btn img { width: 1.5rem; height: 1.5rem; }
+.nav-bottom-bar .bar-btn--burger { background: var(--action-secondary); color: var(--text-inverse); }
+.nav-bottom-bar .bar-btn--burger:active { background: var(--action-secondary-pressed); }
+.nav-bottom-bar .bar-btn--cart { background: var(--action-primary); color: var(--text-inverse); }
+.nav-bottom-bar .bar-btn--cart:active { background: var(--action-primary-pressed); }
+/* Область нажатия лого — ССЫЛКА, а не картинка. Знак остаётся 20 высотой (макет),
+   до тач-цели добирается ПОЛЕМ вокруг него. Растить саму картинку нельзя: пропорция
+   выводится из viewBox, и любое вмешательство в габариты возвращает граблю +23%. */
+.nav-bottom-bar .bar-logo-link {
+  display: flex;
+  align-items: center;
+  min-height: var(--nav-bar-btn);
+  /* ——— ЛЕСТНИЦА ЖЕРТВ канона 21.07: лого — единственная уступающая величина ———
+     Канону нужно 315.1 (8 + 40 + 8 + лого 91.1 + 160 + 8), и это влезает только с
+     clientWidth ≈347. Ниже правая связка ВЫЛЕЗАЛА за белую плашку — замер 21.07:
+     19.1px на 320, 34.1px на 320 со скроллбаром, 14.1px на 340 со скроллбаром.
+     Числа канона (8 · 40 · 24 · 160) — решение Антона и не режутся; уступает то, что
+     он сам разрешил уменьшить («лого можно подуменьшить»), и уступает ЦЕЛИКОМ,
+     пропорционально, а не усушкой в ширину.
+     Считаем ВЫЧИТАНИЕМ от плашки, а не флекс-усушкой: группы стоят на flex: 0 0 auto
+     (страховка выше), давлению просто неоткуда пройти внутрь группы — переполнение
+     вылезло бы наружу молча. Слагаемые — те же токены, ни одного числа руками.
+     ⚠ 100cqi — это КОНТЕНТ-бокс плашки: поля из него уже вычтены самим cqi. Вычитать
+     --nav-bar-pad ещё раз (первый заход этой правки) = отнять 16 дважды и зря обкорнать
+     знак: на 320 со скроллбаром он садился до 49×10.8 вместо честных 57.
+     Остаётся: пять кнопок 40 (бургер + четыре иконки) и ДВА воздуха — гэп внутри левой
+     связки и распор между связками (второй легко забыть, он живёт на самом баре).
+     ⚠ Ширина канона живёт ЗДЕСЬ, на ссылке, а не на картинке: процент на самом <img>
+     ломает интринсик-вклад SVG (у header-logo.svg нет собственных размеров, и на
+     процентной ширине браузер берёт дефолт 300×150 — замер: связка раздулась до
+     347.95 и торчала из плашки на 228px). На ссылке ширина определённая, и проценту
+     картинки внутри есть от чего считаться.
+     ⚠ flex: 0 0 auto тут КРИТИЧЕН, а не украшение: усыхающая ссылка давила бы картинку
+     в ширину, и знак уезжал до 65.2×20 — перекос −28.4%, та самая грабля
+     preserveAspectRatio с другого конца. Формула выше гарантирует, что жать и не надо. */
+  width: min(
+    calc(var(--nav-bar-logo-h) * var(--logo-ratio)),                      /* 1.25rem × 164/36 = 91.1 */
+    calc(100cqi - 5 * var(--nav-bar-btn) - 2 * var(--nav-bar-air))
+  );
+  /* ⚠ ДНА У ЛЕСТНИЦЫ НЕТ — и поставить его нельзя, это доказано замером, а не мнением.
+     Пробовал `min-width: var(--nav-bar-btn)` (31.07): на стрессовой ширине свипа
+     305 = 320 со скроллбаром связка полезла за поле плашки на 7px. Арифметика ширины
+     там такая: контент плашки 273 = 305 − 16 (зазоры от краёв) − 16 (поля), из них
+     бургер 44 + гэп 8 + распор 8 + правая связка 176 = 236, лого достаётся ровно 37.
+     То есть при кнопках 44 логотип НЕ МОЖЕТ быть тач-целью 44 на этой ширине — не
+     «мы не захотели», а не помещается физически.
+     Цена роста кнопок 40 → 44 названа числом: правая связка выросла 160 → 176, и лого
+     на 305 село с 57 до 37. На реальных 320 без скроллбара лого 52 — выше порога;
+     305 воспроизводится только классическим скроллбаром, то есть на настольном узком
+     окне, не на телефоне. Свип держит это открытым нарушением НАРОЧНО (см. его §E):
+     зелёный чек, скрывающий известную дырку, хуже красного. Решение — за Антоном. */
+  flex: 0 0 auto;
+}
+/* Лого бара: СЛОВЕСНОЕ, 91×20 по макету Frame 1000005299. Знак S в баре ОТМЕНЁН
+   Антоном 21.07 («лого должно быть полностью текстом») — подмены на узких нет и
+   заводить её нельзя; S-чип ступени 1400 (.menu-btn--logo-s) — другое место, он жив.
+   Высота задана, ширина ВЫВОДИТСЯ из пропорции viewBox: 1.25rem × 164/36 = 91.1 ≈ 91.
+   Задавать обе стороны руками нельзя — любое расхождение с 164/36 растягивает знак
+   (см. --logo-ratio). Здесь ширина считается сама и разъехаться не может. */
+.nav-bottom-bar .bar-logo {
+  /* Картинка занимает ссылку целиком, высота выводится aspect-ratio. Так 91×20 макета
+     получается САМО (91.1 задано на ссылке высотой канона × пропорцию), обе стороны
+     руками нигде не стоят, а при сжатии ссылки уменьшается вся картинка ЦЕЛИКОМ —
+     пропорция держится, перекоса быть не может (меряется на каждой ширине). */
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--logo-ratio);
+}
+.nav-bottom-bar .bar-btn--burger .icon-close { display: none; }
+.nav-bottom-bar.is-menu-open .bar-btn--burger .icon-burger { display: none; }
+.nav-bottom-bar.is-menu-open .bar-btn--burger .icon-close { display: block; }
+
+/* ============ nav-menu-sheet (моб-меню: лист над баром) ============ */
+/* ⚠ ОБЩАЯ ЗЕМЛЯ — ПОЧЕМУ ЗДЕСЬ ВСЁ ПОД СКОУПОМ.
+   Модуль подключён к продуктовой ССЫЛКОЙ (../nav/nav.css), то есть каждое правило
+   отсюда живёт на боевой странице. Имена листа расхожие до опасного — .sheet-item,
+   .sheet-list, .arrow, .item-lead: объяви их голыми, и лист начнёт диктовать вид
+   любому одноимённому узлу страницы-хозяина. Боевой случай дома: footer.css объявил
+   .btn--primary глобально и перебил ВСЕ кнопки страницы — правый сегмент CTA раздуло,
+   иконку схлопнуло в ноль. Поэтому ни одного голого имени: всё висит под
+   .nav-menu-sheet. Правило простое — модуль не экспортирует наружу общих имён. */
+.nav-menu-sheet {
+  position: fixed;
+  inset-inline: var(--sp-8);
+  top: 3.5rem;
+  bottom: var(--nav-bar-reserve);
+  z-index: calc(var(--nav-z) + 2);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r-12);
+  background: var(--bg-page);
+  box-shadow: 0 0.375rem 2rem color-mix(in srgb, var(--grey-90) 18%, transparent);
+  padding: var(--sp-16);
+  /* Скроллит НЕ лист, а активная панель. На втором уровне шапка (назад + заголовок +
+     фото) обязана стоять, а ехать должен только список подкатегорий — так в каноне:
+     на first-4 ползунок стоит РЯДОМ СО СПИСКОМ (замер: y 486..564), выше фото его нет.
+     Лист с overflow:auto увозил бы шапку вместе со списком. */
+  overflow: hidden;
+  scrollbar-width: thin;
+  transform: translateY(110%);
+  visibility: hidden;
+  transition: transform 0.25s ease, visibility 0.25s;
+}
+.nav-menu-sheet.is-open { transform: translateY(0); visibility: visible; }
+
+/* ЯВНОЕ глушение анимации листа — не полагаемся на глобальную страховку.
+   В tokens.css стоит бланкет `* { transition-duration: 0.01ms !important }`, и он
+   даёт «почти ноль», а не ноль: замер до правки показывал 1e-05s. Два довода за
+   собственное правило: (1) бланкет — чужая страховка, модуль обязан отвечать за свою
+   анимацию сам и не разваливаться, если страховку однажды снимут; (2) 0.01ms — всё
+   ещё переход, со своим tick'ом и событием transitionend, а при reduce открытие
+   должно быть МГНОВЕННЫМ. !important тут вынужденный и единственно рабочий: бланкет
+   объявлен с !important, без него правило модуля до вычисленного стиля не доходит.
+   nav.css подключается ПОСЛЕ tokens.css на обеих страницах — при равной важности
+   побеждает последний. */
+@media (prefers-reduced-motion: reduce) {
+  .nav-menu-sheet { transition-duration: 0s !important; }
+}
+
+/* ——— панели уровней и кто из них скроллится ——— */
+.nav-menu-sheet .sheet-panel {
+  /* min-height:0 обязателен: флекс-ребёнок по умолчанию не даёт сжать себя ниже
+     содержимого, и внутренний overflow не включается ВООБЩЕ — классическая грабля
+     флекса, из-за которой «скролл не работает», хотя overflow выставлен. */
+  min-height: 0;
+  flex: 1 1 auto;
+}
+/* [hidden] обязан бить display второго уровня ниже — специфичности хватает (0,3,0) */
+.nav-menu-sheet .sheet-panel[hidden] { display: none; }
+/* Первый уровень едет ЦЕЛИКОМ. В каноне он помещался в экран (строки 36), у нас
+   строки 48 по закону тач-цели — весь список в экран не садится, и это принятая
+   цена решения, а не недосмотр (см. --nav-sheet-banner-h). */
+.nav-menu-sheet [data-panel-root] { overflow-y: auto; }
+/* Второй уровень: шапка прибита, едет только список подкатегорий */
+.nav-menu-sheet [data-panel-cat] { display: flex; flex-direction: column; }
+.nav-menu-sheet [data-panel-cat] > * { flex: 0 0 auto; }
+/* идёт ПОСЛЕ строки выше при равной специфичности (0,2,0) — и потому побеждает */
+.nav-menu-sheet [data-cat-list] { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+
+.nav-menu-sheet .sheet-search {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  padding: var(--sp-10) var(--sp-12);
+  border: var(--hairline) solid var(--border-default);
+  border-radius: var(--r-8);
+  margin-bottom: var(--sp-12);
+}
+.nav-menu-sheet .sheet-search input {
+  border: 0;
+  outline: none;
+  flex: 1;
+  font: inherit;
+  font-size: var(--fs-p2);
+  color: var(--text-primary);
+  background: transparent;
+}
+.nav-menu-sheet .sheet-search svg { width: 1.25rem; height: 1.25rem; color: var(--action-primary); }
+.nav-menu-sheet .sheet-list { display: flex; flex-direction: column; }
+.nav-menu-sheet .sheet-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-8);
+  width: 100%;
+  /* Высота строки = ровно закон тач-цели. Поле 8 + миниатюра 28 дают 44 — до 48
+     добирает min-height, и строка встаёт в закон БЕЗ запаса сверху. Прежние
+     --sp-12 давали 53: и мимо канона (36), и мимо закона (48) — просто «побольше». */
+  min-height: var(--nav-tap);
+  padding: var(--sp-8) 0.125rem;
+  border: 0;
+  border-bottom: var(--hairline) solid var(--border-default);
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--fs-p2);
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+}
+.nav-menu-sheet .sheet-item:last-child { border-bottom: 0; }
+.nav-menu-sheet .sheet-item .item-lead { display: flex; align-items: center; gap: var(--sp-10); }
+/* Миниатюра строки листа снята (№6, Антон 29.07) — в меню остаётся только текст. */
+.nav-menu-sheet .sheet-item .arrow { width: 1.25rem; height: 1.25rem; color: var(--action-primary); flex-shrink: 0; }
+.nav-menu-sheet .sheet-banner {
+  display: block;
+  border: var(--hairline) solid var(--border-default);
+  border-radius: var(--r-8);
+  overflow: hidden;
+  margin-block: var(--sp-12);
+  color: var(--text-primary);
+}
+.nav-menu-sheet .sheet-banner img { width: 100%; height: var(--nav-sheet-banner-h); object-fit: cover; }
+.nav-menu-sheet .sheet-banner .banner-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-12);
+  font-size: var(--fs-p2);
+}
+.nav-menu-sheet .sheet-banner .arrow { width: 1.25rem; height: 1.25rem; color: var(--action-primary); }
+.nav-menu-sheet .sheet-secondary { display: flex; flex-direction: column; }
+.nav-menu-sheet .sheet-back {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--fs-p3);
+  /* тач-цель добирается ПОЛЕМ (закон ≥48), кегль не трогаем */
+  min-height: var(--nav-tap);
+  padding: var(--sp-4) 0 var(--sp-12);
+  cursor: pointer;
+}
+.nav-menu-sheet .sheet-back .arrow { width: 1.25rem; height: 1.25rem; color: var(--action-primary); transform: rotate(180deg); }
+/* КАПС заголовка приходит по наследству: h1..h6 в tokens.css стоят на
+   text-transform: uppercase. Своего правила не заводим — канон уже выполнен
+   общим слоем, дубль был бы лишним объявлением того же самого. */
+.nav-menu-sheet .sheet-cat-title { margin-bottom: var(--sp-12); }
+.nav-menu-sheet .sheet-hero {
+  border-radius: var(--r-8);
+  background: var(--bg-surface);
+  margin-bottom: var(--sp-12);
+  overflow: hidden;
+}
+.nav-menu-sheet .sheet-hero img { width: 100%; height: var(--nav-sheet-hero-h); object-fit: contain; }
+.nav-menu-sheet .sheet-flat-item {
+  /* флекс, а не блок: так строка центрируется в увеличенной тач-цели */
+  display: flex;
+  align-items: center;
+  min-height: var(--nav-tap);
+  padding: var(--sp-10) 0.125rem;
+  color: var(--text-primary);
+  font-size: var(--fs-p2);
+  text-decoration: none;
+}
+.nav-menu-sheet .sheet-flat-item:hover { color: var(--grey-90); }
+
+/* ============ брейкпоинты ============ */
+/* СОСТАВ внутри деска не меняется ни на одной ширине: контакты текстом, соц-иконки и
+   все 7 категорий живут везде. Жмут их две непрерывные механики — воздух (--nav-gap
+   клампом) и em-кегль чипа (--nav-chip-fs); ступеней «контакты → иконки» нет.
+   Порогов ВСЕГО ДВА, оба ниже: ступень 1 (раскладка знака, 1400) и смена манифестации
+   деск→моб (1230). Схлопывание по скроллу порогом ширины не является — оно зависит
+   от НАПРАВЛЕНИЯ и одинаково работает на всех деск-ширинах. */
+
+/* СТУПЕНЬ 1 (единственная внутри деска) = ПЕРЕСТРОЙКА, не подмена картинки.
+   Порог 1400 — ЗАМЕР в СВОЕЙ раскладке (свип, подпроход A1): лого-колонка перестаёт
+   влезать на 1392. Ниже порога колонка исчезает целиком, знак S встаёт первым чипом
+   верхнего ряда, ряд категорий получает ВСЮ ширину. Состав не меняется.
+   Порог переехал 1360 → 1400 после макетных полей (на узких бок вырос 12 → 16). */
+@media (max-width: 87.5rem) {
+  /* ⚠ Колонки лого тут нет ВОВСЕ → грид обязан схлопнуться в ОДИН трек.
+     В флексе display:none убирал элемент вместе с гэпом; в гриде трек объявлен
+     шаблоном и живёт даже пустым — остался бы мёртвый gap слева (6–8px),
+     который сдвинул бы весь хедер и увёл пороги. Правило дублируется для
+     .is-collapsed: у него своя grid-template-columns той же специфичности. */
+  .nav-header,
+  .nav-header.is-collapsed { grid-template-columns: minmax(0, 1fr); }
+  .nav-logo { display: none; }
+  .menu-btn--logo-s { display: inline-flex; }
+}
+
+/* ПОРОГ МОБИЛКИ = 720 (переехал с 1230 — решение Антона 21.07, вместе с rem-зумом).
+   ⚠ ПРЕЖНИЙ порог 1230 был ЗАМЕРОМ: в раскладке с S-квадратом хедер не влезал на 1227.
+   Замер верен и сейчас — но он снят БЕЗ зума. С 768 по 1230 теперь стоит
+   html { font-size: 1.25vw } (tokens.css), и на 768 хедер получает эквивалент 1280
+   «десктопных» — то есть влезает ПО ПОСТРОЕНИЮ, а не впритык. Поэтому мобильная
+   манифестация опускается к телефонам: единый порог страницы, nav и футера = 720.
+   Двигать этот порог в одиночку, без зума, НЕЛЬЗЯ: ряд категорий переливается уже
+   на 1100 (замер разбора 21.07). Число и зум сцеплены. */
+@media (max-width: 45rem) {
+  .nav-header { display: none; }
+  .nav-bottom-bar { display: flex; }
+  body { padding-bottom: var(--nav-bar-reserve); }
+}
+/* выше порога шит не существует (пара к 45rem — без зазора) */
+@media (min-width: 45.0625rem) {
+  .nav-menu-sheet { display: none; }
+}
+
+/* ═══════════ КАНОН «СКОПИРОВАНО» в хедер-пилюлях (решение Антона 21.07) ═══════════
+   ⚠ ДО этой правки стиля не было ВОВСЕ: nav.js вешал .is-copied, а css на него не отвечал —
+   копирование в хедере визуально молчало. То есть здесь канон не переделывается, а заводится
+   впервые; прежнего зелёного состояния тут просто не существовало.
+
+   Рецепт тот же, что у копи-кнопок продуктовой (components.css): прячем содержимое кнопки
+   и рисуем галку маской на ней самой — внутри бывает и <svg>, и <img>, одним правилом
+   иначе не накрыть. Краска — currentColor, канон требует «цвет не меняется».
+   Глиф берём общим токеном --icon-check из tokens.css: оба стенда грузят этот файл,
+   поэтому путь живёт в ОДНОМ месте и разъехаться между модулями не может.
+   Имя класса своё (.is-copied, а не .copied) — у модуля свой словарь, менять его логику
+   ради совпадения имён смысла нет; общая у состояний суть и длительность, а не селектор. */
+.nav-header .is-copied { position: relative; }
+.nav-header .is-copied > * { visibility: hidden; }
+.nav-header .is-copied::after {
+  content: ""; position: absolute; inset: 0; margin: auto;
+  width: 1.25rem; height: 1.25rem;
+  background: currentColor;
+  -webkit-mask: var(--icon-check) center / contain no-repeat;
+  mask: var(--icon-check) center / contain no-repeat;
+}

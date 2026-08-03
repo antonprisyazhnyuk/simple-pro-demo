@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- ⛔ NOINDEX — не опция, а требование паспорта гига. Это демо-копия страниц живого
+       simple-pro.com; попав в индекс, она станет ДУБЛЕМ сайта клиента, чьё SEO ведёт
+       его собственный подрядчик. Мета стоит на КАЖДОЙ странице сборки и работает
+       независимо от того, куда её положили. Второй контур — code/robots.txt, но он
+       читается только из КОРНЯ домена: ляжет сборка в подкаталог проекта Pages —
+       робот его не увидит вовсе, и эта строка останется единственной защитой.
+       Снимать только вместе с решением «сайт уезжает клиенту как боевой». -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>Вытяжные шкафы — Simple PRO (листинг)</title>
+  <link rel="icon" href="../assets/figma/s-logo.svg" type="image/svg+xml">
+  <!-- ТОКЕН-СЛОЙ — единый источник дома (шрифты, примитивы, семантика, rem-зум полосы).
+       Своих копий цветов/кеглей у листинга больше нет. -->
+  <link rel="stylesheet" href="../product-card/css/tokens.css">
+  <!-- Кнопки/копи-канон — общий компонентный слой продуктовой, не свой дубль -->
+  <link rel="stylesheet" href="../product-card/css/components.css">
+  <link rel="stylesheet" href="css/listing.css">
+  <link rel="stylesheet" href="css/mobile.css">
+  <!-- Модули nav и footer — ПОСЛЕДНИМИ и в этом порядке (как в продуктовой):
+       их em-своды обязаны выигрывать у одноимённых правил сборки при равной специфичности. -->
+  <link rel="stylesheet" href="../nav/nav.css">
+  <link rel="stylesheet" href="../footer/footer.css">
+  <!-- DEBUG:vw-badge — вырезать при сборке -->
+  <!-- служебная плашка ширины: КАНОН один на дом — ../product-card/debug.* (№42, 31.07);
+       своей копии у листинга больше нет, правится в одном месте -->
+  <link rel="stylesheet" href="../product-card/debug.css">
+  <!-- /DEBUG:vw-badge -->
+</head>
+<body>
+
+<!-- ═══ ХЕДЕР — МОДУЛЬ (code/nav/). Разметка снята с ЭТАЛОНА модуля (nav/index.html)
+     один-в-один, стили и скрипт живут в модуле, листинг на них ССЫЛАЕТСЯ.
+     Врезано 22.07 взамен встроенного .site-header (полный + «шорт» + свои крошки, 62 строки).
+     Что снятый хедер отдавал по наследству и чего у модуля НЕТ:
+       · крошки (жили ВНУТРИ .site-header) — переехали в .cat-hero, моб-правило им выдано
+         ЯВНО в css/mobile.css (на мобе донор крошек не показывает);
+       · ряд категорий .cat-strip — у модуля свой data-cats из nav.js, дубля не держим.
+     СВЕРКА С ГЛАВНОЙ 22.07 (слово Антона «хедер должен быть как на продуктовой и на главной»):
+     блок ниже приведён к БАЙТОВОМУ совпадению с home/index.html и product-card/index.html
+     (76 строк). Разъезд копий был ТОЛЬКО в комментариях-пояснениях (у листинга их не было —
+     отсюда «65 против 76» в замере хаба): состав узлов, порядок и обе иконки мессенджеров
+     (Telegram + MAX) у листинга уже совпадали с главной, ни один узел не добавлен и не снят,
+     наследовать было нечему. ═══ -->
+  <header class="nav-header">
+    <!-- Лого-колонка на два ряда. На узком деске (≤ точки слома полного лого) она
+         ИСЧЕЗАЕТ целиком, а знак S уходит первым чипом в верхний ряд (см. .menu-btn--logo-s):
+         ряд категорий получает всю ширину. Состав хедера при этом не меняется. -->
+    <a class="nav-logo" href="#" aria-label="Simplepro — на главную">
+      <img src="../assets/figma/header-logo.svg" alt="Simplepro">
+    </a>
+    <div class="nav-rows">
+      <div class="nav-row-top">
+        <div class="row-left">
+          <!-- S-квадрат: живёт ТОЛЬКО на узком деске, когда лого-колонка исчезла.
+               Высота = высоте чипа верхнего ряда (28-базис в em), стоит первым, слева от Региона. -->
+          <a class="menu-btn menu-btn--logo-s" href="#" aria-label="Simplepro — на главную">
+            <img src="../assets/figma/s-logo.svg" alt="Simplepro">
+          </a>
+          <!-- Регион: чип + дропдаун на панели мега-меню (список перенесён с продуктовой).
+               Глиф — inline-svg на currentColor: в <img> внешний CSS не проникает,
+               а на hover бокс инвертируется и глиф обязан стать белым. -->
+          <div class="region-wrap">
+            <button class="menu-btn menu-btn--suffix" type="button" data-region-btn
+                    aria-haspopup="listbox" aria-expanded="false">
+              <span data-region-label>Регион</span>
+              <span class="suffix-box">
+                <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.75 9 11.25l4.5-4.5"/></svg>
+              </span>
+            </button>
+            <div class="nav-mega-menu" role="listbox" aria-label="Выбор региона" data-region-menu></div>
+          </div>
+        </div>
+        <nav class="row-middle" aria-label="Разделы сайта">
+          <a class="menu-btn" href="#"><span class="special-dot" aria-hidden="true"></span>Лабораторные пространства</a>
+          <a class="menu-btn" href="#">Компания</a>
+          <a class="menu-btn" href="#">Проекты</a>
+          <a class="menu-btn" href="#">Гарантии</a>
+          <a class="menu-btn" href="#">Цены</a>
+          <a class="menu-btn" href="#">Контакты</a>
+        </nav>
+        <div class="row-right">
+          <!-- поиск: hover/фокус раскрывает строку ВЛЕВО до лого; строка absolute,
+               поэтому раскладку ряда не двигает и переполнения дать не может -->
+          <div class="search-wrap" data-search>
+            <input class="search-field" type="search" placeholder="Поиск по каталогу" aria-label="Поиск по каталогу" tabindex="-1">
+            <button class="menu-btn menu-btn--icon" type="button" aria-label="Поиск" data-search-btn>
+              <span class="icon-box"><img src="../assets/figma/header-zoom.svg" alt=""></span>
+            </button>
+          </div>
+          <!-- контакты ТЕКСТОМ с копи-кнопками на любой деск-ширине: ступени «текст→иконка» нет -->
+          <button class="menu-btn menu-btn--suffix menu-btn--tight" type="button" data-copy="+78006004069" aria-label="Скопировать телефон">
+            +7 (800) 600 40 69
+            <span class="suffix-box">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.009 12.553a1.8 1.8 0 0 1-.759-1.303V3.75c0-.825.675-1.5 1.5-1.5h7.5c.563 0 .869.289 1.125.75M5.25 7.25a2 2 0 0 1 2-2h6.5a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2h-6.5a2 2 0 0 1-2-2z"/></svg>
+            </span>
+          </button>
+          <button class="menu-btn menu-btn--suffix menu-btn--tight" type="button" data-copy="info@simple-pro.com" aria-label="Скопировать email">
+            info@simple-pro.com
+            <span class="suffix-box">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.009 12.553a1.8 1.8 0 0 1-.759-1.303V3.75c0-.825.675-1.5 1.5-1.5h7.5c.563 0 .869.289 1.125.75M5.25 7.25a2 2 0 0 1 2-2h6.5a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2h-6.5a2 2 0 0 1-2-2z"/></svg>
+            </span>
+          </button>
+          <a class="menu-btn menu-btn--icon" href="#" aria-label="Telegram" data-brand-chip="tg">
+            <img data-brand src="../assets/figma/icon-tg.svg" alt="">
+          </a>
+          <a class="menu-btn menu-btn--icon" href="#" aria-label="MAX" data-brand-chip="max">
+            <img data-brand src="../assets/figma/icon-max.svg" alt="">
+          </a>
+          <button class="menu-btn menu-btn--icon" type="button" aria-label="Избранное">
+            <span class="icon-box"><img src="../assets/figma/header-heart.svg" alt=""></span>
+          </button>
+          <button class="menu-btn menu-btn--icon menu-btn--cart" type="button" aria-label="Корзина">
+            <span class="icon-box"><img src="../assets/figma/header-cart.svg" alt=""></span>
+          </button>
+        </div>
+      </div>
+      <nav class="nav-row-cats" aria-label="Каталог" data-cats></nav>
+    </div>
+  </header>
+
+  <!-- ============ nav-bottom-bar (моб): белая floating-плашка ============ -->
+  <div class="nav-bottom-bar">
+    <div class="bar-group">
+      <button class="bar-btn bar-btn--burger" type="button" data-burger aria-label="Меню" aria-expanded="false">
+        <svg class="icon-burger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
+      <a class="bar-logo-link" href="#" aria-label="Simplepro — на главную"><img class="bar-logo" src="../assets/figma/header-logo.svg" alt="Simplepro"></a>
+    </div>
+    <div class="bar-group bar-group--icons">
+      <a class="bar-btn" href="mailto:info@simple-pro.com" aria-label="Email">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+      </a>
+      <a class="bar-btn" href="#" aria-label="Telegram"><img src="../assets/figma/icon-tg.svg" alt=""></a>
+      <a class="bar-btn" href="#" aria-label="MAX"><img src="../assets/figma/icon-max.svg" alt=""></a>
+      <button class="bar-btn bar-btn--cart" type="button" aria-label="Корзина">
+        <img src="../assets/figma/header-cart.svg" alt="">
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ nav-menu-sheet (моб-меню: bottom-sheet, два экрана) ============ -->
+  <div class="nav-menu-sheet" role="dialog" aria-modal="true" aria-label="Меню">
+    <div class="sheet-panel" data-panel-root>
+      <div class="sheet-search">
+        <input type="search" placeholder="Поиск">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg>
+      </div>
+      <nav class="sheet-list" aria-label="Каталог" data-root-list></nav>
+      <a class="sheet-banner" href="#">
+        <img src="../assets/figma/adv-pic2.png" alt="">
+        <span class="banner-row">
+          Лабораторные пространства
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>
+        </span>
+      </a>
+      <nav class="sheet-secondary" aria-label="Разделы сайта" data-secondary-list></nav>
+    </div>
+    <div class="sheet-panel" data-panel-cat hidden>
+      <button class="sheet-back" type="button">
+        <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>
+        Назад
+      </button>
+      <h4 class="sheet-cat-title" data-cat-title></h4>
+      <div class="sheet-hero"><img data-cat-hero src="../assets/figma/adv-pic1.png" alt=""></div>
+      <nav class="sheet-list" data-cat-list></nav>
+    </div>
+  </div>
+
+<main>
+
+<!-- ═══════════════ БЛОК 1: hero категории (донор 88:23649) ═══════════════ -->
+<section class="cat-hero" id="listingHero">
+
+  <!-- Крошки (донор 88:23715). Дом — .cat-hero (position: relative): прежний хозяин
+       .site-header снят вместе с врезкой модуля. BreadcrumbList-семантику терять нельзя. -->
+  <nav class="breadcrumbs" aria-label="Хлебные крошки">
+    <a href="#" class="back"><img src="../assets/figma/crumb-arrow-left.svg" alt="">Вернуться</a>
+    <a href="#" class="crumb">Главная</a>
+    <a href="#" class="crumb">Каталог</a>
+    <span class="current">Шкафы лабораторные</span>
+  </nav>
+
+  <div class="cat-head">
+    <h1>Вытяжные шкафы</h1>
+    <div class="cat-tools">
+      <button class="tool-btn" type="button">Скачать прайс – лист<img src="assets/icon-download-price.svg" alt=""></button>
+      <button class="tool-btn" type="button">Скачать Каталог<img src="assets/icon-download-catalog.svg" alt=""></button>
+    </div>
+  </div>
+
+  <!-- сетка подкатегорий 4×2, 7 карточек (донор: 8-й слот пустует) -->
+  <div class="cat-grid">
+    <a href="../product-card/index.html" class="cat-card">
+      <img src="assets/card-01-himicheskiy.webp" alt="Шкаф вытяжной химический">
+      <span class="cat-card-body">
+        <span class="cat-card-title">Шкаф<br>вытяжной<br>химический</span>
+        <span class="cat-card-meta">
+          <span class="cat-price"><span class="from">от</span><span class="val">198 640 ₽</span></span>
+          <span class="cat-chip">Подробнее</span>
+        </span>
+      </span>
+    </a>
+    <a href="../product-card/index.html" class="cat-card">
+      <img src="assets/card-02-metallicheskiy.webp" alt="Шкаф вытяжной металлический">
+      <span class="cat-card-body">
+        <span class="cat-card-title">Шкаф<br>вытяжной<br>металлический</span>
+        <span class="cat-card-meta">
+          <span class="cat-price"><span class="from">от</span><span class="val">156 220 ₽</span></span>
+          <span class="cat-chip">Подробнее</span>
+        </span>
+      </span>
+    </a>
+    <a href="../product-card/index.html" class="cat-card">
+      <img src="assets/card-03-panoramnyy.webp" alt="Шкаф вытяжной панорамный">
+      <span class="cat-card-body">
+        <span class="cat-card-title">Шкаф<br>вытяжной<br>панорамный</span>
+        <span class="cat-card-meta">
+          <span class="cat-price"><span class="from">от</span><span class="val">165 480 ₽</span></span>
+          <span class="cat-chip">Подробнее</span>
+        </span>
+      </span>
+    </a>
+    <a href="../product-card/index.html" class="cat-card">
+      <img src="assets/card-04-napolnyy.webp" alt="Шкаф вытяжной напольный">
+      <span class="cat-card-body">
+        <span class="cat-card-title">Шкаф<br>вытяжной<br>напольный</span>
+        <span class="cat-card-meta">
+          <span class="cat-price"><span class="from">от</span><span class="val">296 960 ₽</span></span>
+          <span class="cat-chip">Подробнее</span>
+        </span>
+      </span>
+    </a>
+    <a href="../product-card/index.html" class="cat-card">
+      <img src="assets/card-05-mufelnyy.webp" alt="Шкаф вытяжной для муфельных печей">
+      <span class="cat-card-body">
+        <span class="cat-card-title">Шкаф<br>вытяжной<br>для муфельных печей</span>
+        <span class="cat-card-meta">
+          <span class="cat-price"><span class="from">от</span><span class="val">105 170 ₽</span></span>
+          <span class="cat-chip">Подробнее</span>
+        </span>
+      </span>
+    </a>
+    <a href="../product-card/index.html" class="cat-card">
+      <img src="assets/card-06-zonty.webp" alt="Зонты вытяжные">
+      <span class="cat-card-body">
+        <span class="cat-card-title">Зонты<br>вытяжные</span>
+        <span class="cat-card-meta">
+          <span class="cat-price"><span class="from">от</span><span class="val">14 990 ₽</span></span>
+          <span class="cat-chip">Подробнее</span>
+        </span>
+      </span>
+    </a>
+    <a href="../product-card/index.html" class="cat-card">
+      <img src="assets/card-07-ventilyator.webp" alt="Кислотостойкий вентилятор">
+      <span class="cat-card-body">
+        <span class="cat-card-title">Кислотостойкий<br>вентилятор</span>
+        <span class="cat-card-meta">
+          <span class="cat-price"><span class="from">от</span><span class="val">63 380 ₽</span></span>
+          <span class="cat-chip">Подробнее</span>
+        </span>
+      </span>
+    </a>
+  </div>
+
+  <!-- CTA-плашка (донор 88:23720; email-рыба «Кнопка» → канон: чистый info@) -->
+  <div class="cta-bar consult-bar">
+    <h4>Нужна<br>консультация?</h4>
+    <div class="cta-bar-groups">
+      <div class="cta-field w298">
+        <span class="lbl">Телефон</span>
+        <!-- ⚠ 31.07 (находка приёмщика): здесь «Регион» был <span> — выглядел кнопкой
+             (шеврон, ховер-стиль .region-chip), но ничем не был: ни <button>, ни
+             data-region-phone, ни списка. При этом ВТОРАЯ полоса этой же страницы
+             (блок «Бесплатный онлайн проект») несла рабочий дроп — то есть один и тот же
+             элемент на одной странице жил в двух видах. Приведено к рабочей разметке
+             один-в-один с ней; механика не дописывалась — универсальный инлайн-скрипт
+             внизу файла сам навешивается на ЛЮБОЙ [data-region-phone]. -->
+        <div class="phone-box" data-region-phone>
+          <button type="button" class="region-chip" data-region-btn aria-haspopup="listbox" aria-expanded="false">
+            <span data-region-label>Регион</span>
+            <span class="chev"><img src="../assets/figma/cta-icon-chevron-down.svg" alt=""></span>
+          </button>
+          <a href="tel:+78006004069" class="phone-link" data-region-tel>+7 (800) 600 40 69</a>
+          <button class="copy-plain copy-btn" type="button" data-copy="+7 (800) 600 40 69" data-region-copy aria-label="Копировать телефон">
+            <img src="../assets/figma/cta-icon-copy.svg" alt="">
+          </button>
+          <ul class="region-drop" data-region-menu role="listbox" aria-label="Выбор региона" hidden></ul>
+        </div>
+      </div>
+      <div class="cta-field w298">
+        <span class="lbl">Email</span>
+        <div class="dbl">
+          <a href="mailto:info@simple-pro.com" class="btn btn--primary btn--grow email-btn">info@simple-pro.com</a>
+          <button class="btn btn--primary btn--icon copy-btn" type="button" data-copy="info@simple-pro.com" aria-label="Копировать адрес">
+            <img src="../assets/figma/cta-icon-send.svg" alt="">
+          </button>
+        </div>
+      </div>
+      <!-- КАНОН-ИНВАРИАНТ СОСТАВА (2-Д «а», слово Антона 23.07): [Помощь эксперта] — это
+           ЛЕЙБЛ + ДВЕ двойные пары (Telegram+QR, Max+QR), а не одна тёмная кнопка с
+           телеграм-иконкой и подписью «Помощь эксперта». Лейблы и тексты вариативны по
+           месту, СОСТАВ — нет. Вид кнопок оставлен листинговый (серый контекст полосы,
+           .w298/.btn--grow/.qr-btn--dark): 2-Д «б» прямо говорит листинг НЕ белить. -->
+      <div class="cta-field w298">
+        <span class="lbl">Помощь эксперта</span>
+        <div class="cta-field-row">
+          <div class="dbl">
+            <a href="#" class="btn btn--secondary btn--grow"><img src="../assets/figma/cta-icon-telegram.svg" alt="">Telegram</a>
+            <button class="qr-btn qr-btn--dark" type="button" aria-label="QR-код Telegram">
+              <img src="../assets/figma/icon-qr.svg" alt="">
+            </button>
+          </div>
+          <div class="dbl">
+            <a href="#" class="btn btn--secondary btn--grow btn--max"><img src="../assets/figma/icon-max.svg" alt="">Max</a>
+            <button class="qr-btn qr-btn--dark" type="button" aria-label="QR-код Max">
+              <img src="../assets/figma/icon-qr.svg" alt="">
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ БЛОК 2: модели вытяжных шкафов (донор 88:23734) ═══════════════ -->
+<section class="models-section">
+  <h2>Модели вытяжных шкафов</h2>
+  <!-- ⛔ БЕЗ role="tablist"/"tab"/aria-selected — снято 31.07 (находка приёмщика).
+       Роли объявляли таб-интерфейс, которого нет: панелей (role="tabpanel") на странице
+       НОЛЬ, а обработчик (js/app.js §2) только красит активную кнопку и ничего не
+       переключает. Роль без панели — ложь в разметке: читалка обещает пользователю
+       переключение содержимого, которого не произойдёт. Ровно по этой причине мы не
+       поставили ARIA табам главной (queue-hub №32) — здесь тот же случай, только
+       наоборот: роли уже стояли.
+       Появятся панели — роли вернуть ВМЕСТЕ с ними, не раньше. Кнопки остаются кнопками,
+       активное состояние несёт класс .is-active. -->
+  <div class="models-tabs" aria-label="Серии моделей">
+    <button class="mtab" type="button">Шкаф вытяжной 1800</button>
+    <button class="mtab" type="button">Вытяжной шкаф 1500</button>
+    <button class="mtab" type="button">Шкаф вытяжной керамика</button>
+    <button class="mtab" type="button">Шкаф вытяжной с мойкой</button>
+  </div>
+
+  <div class="models-card">
+    <div class="models-filters">
+      <button class="filter-btn" type="button">Сначала популярные<span class="chev"><img src="assets/icon-chevron-small.svg" alt=""></span></button>
+      <button class="filter-btn" type="button">Высота<span class="chev"><img src="assets/icon-chevron-small.svg" alt=""></span></button>
+      <button class="filter-btn" type="button">Ширина, мм<span class="chev"><img src="assets/icon-chevron-small.svg" alt=""></span></button>
+      <button class="filter-btn" type="button">Тип<span class="chev"><img src="assets/icon-chevron-small.svg" alt=""></span></button>
+    </div>
+
+    <div class="mrow mrow--head">
+      <div class="mcell c-name">Комплект</div>
+      <div class="mcell c-w">Ширина, мм</div>
+      <div class="mcell c-h">Высота, мм</div>
+      <div class="mcell c-top">Столешница<img src="assets/icon-info.svg" alt=""></div>
+      <div class="mcell c-price">Цена за комплект</div>
+      <div class="mcell c-act"></div>
+    </div>
+
+    <div class="mrow mrow--body">
+      <div class="mcell c-name"><a href="../product-card/index.html">Шкаф вытяжной напольный ЛК-1900 ШВН</a></div>
+      <div class="mcell c-w">1920</div>
+      <div class="mcell c-h">2300</div>
+      <div class="mcell c-top"></div>
+      <div class="mcell c-price">359 440 ₽</div>
+      <div class="mcell c-act"><a href="../product-card/index.html" class="to-item">К товару</a></div>
+    </div>
+    <div class="mrow mrow--body">
+      <div class="mcell c-name"><a href="../product-card/index.html">Шкаф вытяжной напольный ЛК-1600 ШВН</a></div>
+      <div class="mcell c-w">1620</div>
+      <div class="mcell c-h">2300</div>
+      <div class="mcell c-top"></div>
+      <div class="mcell c-price">327 880 ₽</div>
+      <div class="mcell c-act"><a href="../product-card/index.html" class="to-item">К товару</a></div>
+    </div>
+    <div class="mrow mrow--body">
+      <div class="mcell c-name"><a href="../product-card/index.html">Шкаф вытяжной напольный ЛК-1300 ШВН</a></div>
+      <div class="mcell c-w">1320</div>
+      <div class="mcell c-h">2300</div>
+      <div class="mcell c-top"></div>
+      <div class="mcell c-price">296 960 ₽</div>
+      <div class="mcell c-act"><a href="../product-card/index.html" class="to-item">К товару</a></div>
+    </div>
+    <div class="mrow mrow--body">
+      <div class="mcell c-name"><a href="../product-card/index.html">Зонт вытяжной ЛК-900 ЗВН (настенный)</a></div>
+      <div class="mcell c-w">900</div>
+      <div class="mcell c-h">440</div>
+      <div class="mcell c-top"></div>
+      <div class="mcell c-price">17 670 ₽</div>
+      <div class="mcell c-act"><a href="../product-card/index.html" class="to-item">К товару</a></div>
+    </div>
+    <div class="mrow mrow--body">
+      <div class="mcell c-name"><a href="../product-card/index.html">Зонт вытяжной настенный ЛК-600 ЗВН</a></div>
+      <div class="mcell c-w">600</div>
+      <div class="mcell c-h">440</div>
+      <div class="mcell c-top"></div>
+      <div class="mcell c-price">14 900 ₽</div>
+      <div class="mcell c-act"><a href="../product-card/index.html" class="to-item">К товару</a></div>
+    </div>
+    <div class="mrow mrow--body">
+      <div class="mcell c-name"><a href="../product-card/index.html">Шкаф вытяжной химический (кислотостойкий) ЛК-900 ШВП (полипропилен)</a></div>
+      <div class="mcell c-w">960</div>
+      <div class="mcell c-h">2300/950</div>
+      <div class="mcell c-top">DURCON</div>
+      <div class="mcell c-price">198 640 ₽</div>
+      <div class="mcell c-act"><a href="../product-card/index.html" class="to-item">К товару</a></div>
+    </div>
+    <div class="mrow mrow--body">
+      <div class="mcell c-name"><a href="../product-card/index.html">Шкаф вытяжной химический (кислотостойкий) ЛК-1800 ШВП (Полипропилен)</a></div>
+      <div class="mcell c-w">1860</div>
+      <div class="mcell c-h">2300/950</div>
+      <div class="mcell c-top"></div>
+      <div class="mcell c-price">284 680 ₽</div>
+      <div class="mcell c-act"><a href="../product-card/index.html" class="to-item">К товару</a></div>
+    </div>
+  </div>
+
+  <button class="models-more" type="button">Показать еще</button>
+</section>
+
+<!-- ═══════════════ БЛОК 3: УТП «Надёжность» (в листинге full-bleed, донор y2392 h672) ═══════════════ -->
+<section class="utp-section">
+  <!-- data-ring="spin" — канон перелива кольца (components.css, слово Антона 21.07).
+       Листинг стоял БЕЗ него и без обёрток .utp-card-ic, поэтому колец у него не было
+       вовсе, хотя именно их Антон хвалит; находка приёмщика 31.07. -->
+  <div class="utp" id="utpBlock" data-ring="spin">
+    <div class="utp-title">
+      <h2>Надежность,<br>проверенная<br>временем</h2><!-- рыба донора, без «ё» -->
+    </div>
+    <div class="utp-scroll"><!-- десктоп: display:contents (grid-areas живут); моб: скролл-ряд — приём с продуктовой (blocks.css/mobile.css) -->
+    <div class="utp-card utp-card--delivery">
+      <span class="utp-card-ic"><img class="utp-card-icon" src="../assets/figma/utp-icon-delivery.svg" alt=""></span>
+      <h5>Доставка заказа</h5>
+      <p>Мы настолько уверены в качестве своей продукции что даем самую большую гарантию на рынке лабораторной мебели.  76% выпускаемой мебели - это повторные заказы наших клиентов.</p>
+      <a href="#" class="utp-card-link">Рассчитать срок доставки</a>
+    </div>
+    <div class="utp-card utp-card--terms">
+      <span class="utp-card-ic"><img class="utp-card-icon" src="../assets/figma/utp-icon-time.svg" alt=""></span>
+      <h5>Сроки</h5>
+      <p>Мы настолько уверены в качестве своей продукции что даем самую большую гарантию на рынке лабораторной мебели.  76% выпускаемой мебели - это повторные заказы наших клиентов.  Мы считаем, что гарантия — это основной критерий качества и надежности нашей продукции. Гарантия указана в договоре. Если что то сломалось, вы всегда сможете написать нам рекламацию.</p>
+    </div>
+    <div class="utp-card utp-card--warranty">
+      <span class="utp-card-ic"><img class="utp-card-icon" src="../assets/figma/utp-icon-5years.svg" alt=""></span>
+      <h5>Гарантия 5 лет</h5>
+      <p>Мы настолько уверены в качестве своей продукции что даем самую большую гарантию на рынке лабораторной мебели.  76% выпускаемой мебели - это повторные заказы наших клиентов.  Мы считаем, что гарантия — это основной критерий качества и надежности нашей продукции. Гарантия указана в договоре. Если что то сломалось, вы всегда сможете написать нам рекламацию.</p>
+    </div>
+    </div>
+    <!-- МОБ: дот-индикатор скролл-ряда УТП (канон продуктовой .offer-dots, полоски 40×4).
+         На деске карточки лежат гридом и индикатор гасится (listing.css). -->
+    <div class="utp-dots" id="utpDots" aria-hidden="true"><span class="on"></span><span></span><span></span></div>
+    <span class="utp-watermark" id="utpWatermark">simplepro</span>
+  </div>
+</section>
+
+<!-- ═══════════════ БЛОК 4: бесплатный онлайн проект лаборатории (донор 88:23811) ═══════════════
+     КАНОН «ТЕНДЕР» (../product-card/css/components.css §ТЕНДЕР). Решение Антона 22.07:
+     идентичные блоки продуктовой переезжают на остальные страницы КАНОНОМ, а не копией.
+     Разметка — эталон product-card/index.html .tender-section один в один по скелету:
+       .tender-section → .tender-body → [ .tender-title · .tender-visual · карточка · .cta-bar ]
+     DOM-порядок ровно тот же (заголовок → визуал → белая карта → CTA), и он же задаёт
+     мобильный поток: на деске раскладку держат grid-template-areas у .tender-body,
+     на мобе грид разбирается в столбик и работает именно этот порядок.
+     Своего у листинга ровно две вещи, и обе КОНТЕНТНЫЕ — канон их не описывает:
+       · ассеты визуала: дуга + монитор донора 88:23811 вместо флешки-рутокена
+         (классы .lab-project-arc/.lab-project-monitor — не двойники канонных
+         .tender-ellipse/.tender-rutoken: те несут поворот −48.84° под флешку);
+       · тексты блока (их менять нельзя — это контент листинга, а не тендера).
+     Карточка одна (у тендера их четыре), поэтому обёртки .tender-grid нет: канонный
+     .tender-card садится в area «grid» страничным правилом-позиционером listing.css.
+     .lab-project на секции оставлен ТОЛЬКО как страничный хук позиционирования. ═══ -->
+<section class="tender-section lab-project">
+  <div class="tender-body">
+    <h2 class="tender-title">Бесплатный онлайн проект лаборатории</h2>
+    <div class="tender-visual">
+      <img class="lab-project-arc" src="assets/tender-arc.svg" alt="">
+      <img class="lab-project-monitor" src="assets/tender-monitor.webp" alt="">
+    </div>
+    <div class="tender-card">
+      <!-- один ребёнок у .tender-card НАРОЧНО: канон-карточка — flex-колонка с gap 20 между
+           детьми, а у донора абзацы стоят вплотную и разделяются только классом .gap.
+           Обёртка делает канонный gap инертным, и переопределять канон не приходится. -->
+      <div class="lab-project-text">
+        <p>Запланируем с вашей командой онлайн конференцию (ВКС). В ходе обсуждения с общим экраном, наш специалист подберет мебель под ваши задачи и расставит в помещении.</p>
+        <p class="gap">Бесплатно вы получите:</p>
+        <p class="gap">план помещения с расставленной мебелью и размерами,</p>
+        <p>3D изображения ваших помещений с трех ракурсов,</p>
+        <p>смету на выбранную вами мебель, сроки поставки и сборки.</p>
+      </div>
+    </div>
+    <!-- CTA-полоса блока = КАНОН .cta-bar (../product-card/css/components.css §CTA), вариант
+         «тендер» (.cta-bar--plain: серая рамка телефон-бокса + тёмные чернила номера — донор
+         88:23811 совпадает с тендер-донором 18:9906). Паритет с полосой тендера продуктовой
+         (product-card/index.html 835–889) обязателен ПО СОСТАВУ, ЛЕЙБЛАМ И ГРУППИРОВКЕ
+         (решение Антона 21.07) — до 22.07 здесь не было ни рабочего регион-дропа, ни пары
+         Telegram+Max, а из трёх лейблов стоял один.
+         Страничный класс .lab-project-cta СНЯТ 22.07: он держал ровно две вещи — радиус донора 8
+         и Geologica-заголовок вместо канон-Display, — а обе теперь приезжают из канона сами
+         (`.tender-section .cta-bar` и `.tender-section .cta-bar h4.cta-plain-title`), как только
+         секция стала .tender-section. Оставлять его = держать замороженный снимок канона. -->
+    <div class="cta-bar cta-bar--plain">
+      <h4 class="cta-plain-title">Расскажите о вашей задаче</h4>
+      <div class="cta-bar-groups">
+        <div class="cta-field">
+          <span class="lbl">Телефон</span>
+          <!-- Регион-дроп: разметка канона (data-region-*), механика — универсальный инлайн-скрипт
+               внизу файла, перенесён с продуктовой один-в-один. В components.css скрипта НЕТ —
+               страница, берущая .phone-box[data-region-phone], обязана принести его сама. -->
+          <div class="phone-box phone-box--grey" data-region-phone>
+            <button type="button" class="region-chip" data-region-btn aria-haspopup="listbox" aria-expanded="false">
+              <span data-region-label>Регион</span>
+              <span class="chev"><img src="../assets/figma/tender-icon-chevron-down.svg" alt="" width="18" height="18"></span>
+            </button>
+            <a href="tel:+78006004069" class="phone-link phone-link--plain" data-region-tel>+7 (800) 600 40 69</a>
+            <button class="copy-plain copy-btn" type="button" data-copy="+7 (800) 600 40 69" data-region-copy aria-label="Копировать телефон">
+              <img src="../assets/figma/tender-icon-copy-phone.svg" alt="" width="18" height="18">
+            </button>
+            <ul class="region-drop" data-region-menu role="listbox" aria-label="Выбор региона" hidden></ul>
+          </div>
+        </div>
+        <div class="cta-field">
+          <span class="lbl">Email</span>
+          <div class="dbl">
+            <a href="mailto:info@simple-pro.com" class="btn btn--primary email-btn">info@simple-pro.com</a>
+            <button class="btn btn--primary btn--icon copy-btn" type="button" data-copy="info@simple-pro.com" aria-label="Копировать адрес">
+              <img src="../assets/figma/tender-icon-copy-email.svg" alt="" width="24" height="24">
+            </button>
+          </div>
+        </div>
+        <div class="cta-field"><!-- пара Telegram+Max под ОДНИМ лейблом (.cta-field-row, гэп 8 против
+             межгруппового 20) — иначе общий лейбл не читается как общий; так же в тендере. -->
+          <span class="lbl">Помощь эксперта</span>
+          <div class="cta-field-row">
+            <div class="dbl">
+              <a href="#" class="btn btn--secondary"><img src="../assets/figma/tender-icon-telegram.svg" alt="" width="24" height="24">Telegram</a>
+              <button class="qr-btn qr-btn--dark" type="button" aria-label="QR-код Telegram">
+                <img src="../assets/figma/icon-qr.svg" alt="" width="24" height="24">
+              </button>
+            </div>
+            <div class="dbl"><!-- .qr-btn--dark = страничное имя того же тона, что .qr-btn--secondary
+                 продуктовой: базовый .qr-btn канон НЕ несёт (он живёт в blocks.css продуктовой,
+                 листинг её не грузит) — своя база .qr-btn лежит в css/listing.css §CTA. -->
+              <a href="#" class="btn btn--secondary btn--max"><img src="../assets/figma/icon-max.svg" alt="" width="24" height="24">Max</a>
+              <button class="qr-btn qr-btn--dark" type="button" aria-label="QR-код Max">
+                <img src="../assets/figma/icon-qr.svg" alt="" width="24" height="24">
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ БЛОК 5: SEO «Мебель для лабораторий» (донор 88:23824) ═══════════════ -->
+<section class="seo-section">
+  <div class="seo-bg">
+    <img class="base" src="../assets/photo/seo-bg-photo.webp" alt=""><!-- слой-подложка донор-композита (в Figma перекрыт фото, воспроизводим стек 1:1) -->
+    <img class="photo" src="../assets/photo/seo-bg-photo2.webp" alt="">
+    <span class="shade"></span>
+  </div>
+  <h2 class="seo-title">Мебель<br>для лабораторий —<br>наша специализация</h2><!-- переносы донора 88:23828 -->
+  <div class="seo-cols">
+    <div class="seo-col">
+      <h3>Производство лабораторной мебели</h3>
+      <p>Компания СпецБалтМебель занимается производством лабораторной мебели с 2002 года. Мы прошли путь от небольшой компании до одного из крупнейших заводов лабораторной мебели в России, продукцию которого покупают добывающие и перерабатывающие комплексы и производства страны. Мы нарастили мощности и накопили опыт: автоматизация процессов, контроль качества, расширение ассортимента, собственные логистические структуры обеспечивают исполнение в срок даже сложных заказов. Среди наших клиентов – мировые бренды и небольшие компании, которым важна эргономика и безопасность работы в лабораториях.</p>
+    </div>
+    <div class="seo-col">
+      <h3>Почему мы</h3>
+      <div>
+        <p>Мы не пользуемся услугами сторонних подрядчиков – вся мебель производится в собственных цехах компании, что минимизирует брак, срыв сроков, отклонение от стандартов.</p>
+        <p class="gap">Время изготовления составляет от 15 дней в зависимости от категории оборудования, объема заказа.</p>
+        <p class="gap">Возможна доработка типовых модулей, производство нестандартной мебели по индивидуальному проекту.</p>
+        <p class="gap">Лабораторная мебель от производителя СпецБалтМебель доступна к заказу в Санкт-Петербурге, Москве, близлежащих городах. Заказы в регионах выполняются через развитую дилерскую сеть.</p>
+      </div>
+    </div>
+    <div class="seo-col">
+      <h3>Оснащение лабораторий под ключ</h3>
+      <div>
+        <p>У нас можно купить лабораторную мебель из кислотостойких полимеров, стали, ЛДСП для нефтехимических, горнопромышленных, фармакологических, пищевых и других производств. Основной каталог предлагает вытяжные и лабораторные шкафы, рабочие столы, мойки, стулья для лабораторий, включая модели, специально предназначенные для химической лаборатории. Также у нас можно заказать шкафчики для одежды, мебель для школьных лабораторий в кабинетах химии и физики.</p>
+        <p class="gap">Оборудование и элементы обстановки имеют единый стиль и унифицированные габариты, что позволяет выбирать комплектацию в зависимости от задач и бюджета. Мы предложим дизайн лаборатории под ключ с учетом текущей обстановки и требований к условиям работы персонала. Срок гарантии на изделия из кислотостойкого полипропилена 5 лет.</p>
+      </div>
+    </div>
+    <div class="seo-col">
+      <h3>Наши цены</h3>
+      <p>Собственное производство и налаженные связи с поставщиками сырья гарантируют конкурентоспособность лабораторной мебели нашего завода и сохранение баланса цены и качества. При повышении цен стоимость размещенных заказов и условия поставки не изменяются. Прайс-лист можно скачать на сайте в разделе интересующей вас продукции или запросить у консультанта по телефону. Мы поддерживаем ассортимент, предлагаем скидки и специальные условия для новых и постоянных клиентов. Обеспечиваем качество, функциональность, надежность, долговечность мебели и оборудования для лабораторий и исследовательских центров, включая решения, предназначенные для химической отрасли.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ═══ ФУТЕР — МОДУЛЬ (code/footer/). Разметка снята с ЭТАЛОНА модуля (footer/index.html)
+     один-в-один, стили и скрипт живут в модуле. Врезано 22.07 взамен встроенного футера
+     (17 имён классов совпадали один-в-один, сосуществовать физически не могли).
+     Копирайт — строка модуля «© 2002-2026 Simplepro»; локальной версии года у листинга
+     больше нет (был устаревший «© 2002-2025»). ═══ -->
+  <footer class="site-footer" id="footSection">
+    <img class="footer-watermark" src="../assets/figma/footer-right-logo-watermark.svg" alt="">
+    <div class="footer-grid">
+      <form class="status-panel" aria-labelledby="sp-title">
+        <p class="sp-title" id="sp-title">Проверить статус заказа</p>
+        <div class="sp-fields">
+          <label class="sp-field" for="sp-order">Номер счета ( все цифры и буквы )
+            <input id="sp-order" name="order" type="text" placeholder="Ф-004143-Л01" required autocomplete="off">
+          </label>
+          <label class="sp-field" for="sp-email">Email (указанный в заказе)
+            <input id="sp-email" name="email" type="email" placeholder="Ваш email" required autocomplete="email">
+          </label>
+        </div>
+        <button class="btn btn--primary sp-btn" type="submit">Посмотреть</button>
+      </form>
+      <nav class="footer-cols" aria-label="Разделы сайта">
+        <div class="footer-col">
+          <button class="fc-title" type="button">Лабораторная мебель</button>
+          <div class="fc-list">
+            <a href="#">Вытяжные шкафы</a><a href="#">Столы лабораторные</a><a href="#">Шкафы лабораторные</a><a href="#">Мойки лабораторные</a><a href="#">Кабинеты химии / физики</a><a href="#">Тумбы</a><a href="#">Стулья лабораторные</a><a href="#">Раздевалки</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">Проекты</button>
+          <div class="fc-list">
+            <a href="#">Образование</a><a href="#">Фармацевтика</a><a href="#">Пищевая</a><a href="#">Металлургия и ГОК</a><a href="#">Нефть и газ</a><a href="#">Наука</a><a href="#">Энергетика</a><a href="#">Химическая</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">О компании</button>
+          <div class="fc-list">
+            <a href="#">Партнерам</a><a href="#">Центральный офис и завод</a><a href="#">Дилеры</a><a href="#">Где посмотреть мебель</a><a href="#">Производство</a><a href="#">Вакансии</a><a href="#">СОУТ</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">Материалы</button>
+          <div class="fc-list">
+            <a href="#">Применяемые материалы</a><a href="#">Полезное</a><a href="#">Скачать карту выставки</a><a href="#">Проектировщикам</a><a href="#">BIM модели Revit</a><a href="#">BIM модели Renga</a><a href="#">Дизайнерам 3D модели</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">Покупателю</button>
+          <div class="fc-list">
+            <a href="#">Цены</a><a href="#">Сроки изготовления</a><a href="#">Доставка</a><a href="#">Гарантийные обязательства</a><a href="#">Сертификаты</a><a href="#">Отзывы</a><a href="#">Как заказать</a>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <div class="footer-row2">
+      <p class="footer-copy">© 2002-2026 Simplepro</p>
+      <div class="footer-row2-cols">
+        <div class="footer-contacts">
+          <p class="fc-title">Контакты</p>
+          <div class="fc-pairs">
+            <div class="fc-pair"><span class="k">Email</span><span class="v">info@simple-pro.com</span></div>
+            <div class="fc-pair"><span class="k">Регионы</span><span class="v">+7 (800) 350 60 36</span></div>
+            <div class="fc-pair"><span class="k">Москва</span><span class="v">+7 (495) 646 80 57</span></div>
+            <div class="fc-pair"><span class="k">СПб</span><span class="v">+7 (812) 448 13 97</span></div>
+          </div>
+        </div>
+        <div class="footer-legal">
+          <span>ООО «СпецБалтМебель»</span><span>ИНН 7804158696</span><span>ОГРН 1027802485457</span>
+        </div>
+        <div class="footer-links">
+          <a href="#">Договор оферты</a><a href="#">Стандарт «ISO 9001»</a><a class="pd-link" href="#">Обработка персональных данных</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+<script src="js/app.js" defer></script>
+<!-- Регион-дроп CTA-полосы блока 4. Перенесён с продуктовой (product-card/index.html 1081–1125)
+     БЕЗ правок: он универсален — навешивается на ЛЮБОЙ [data-region-phone] в документе.
+     Живёт инлайном, а не в js/app.js, по идиоме продуктовой (в каноне components.css скрипта нет,
+     страница обязана принести его с собой). Стоит ПОСЛЕ js/app.js и ДО nav.js — как там.
+     Номера — МАКЕТНАЯ РЫБА (слово Антона): 495/812 заведомо пустые, с живого сайта ничего не взято;
+     8-800 оставлен как в доноре 18:9529. -->
+<script>
+(() => {
+  const REGIONS = [
+    { name: "Москва",           tel: "+7 (495) 000 00 00" },
+    { name: "Санкт-Петербург",  tel: "+7 (812) 000 00 00" },
+    { name: "Регионы",          tel: "+7 (800) 600 40 69" },
+  ];
+  document.querySelectorAll("[data-region-phone]").forEach((box) => {
+    const btn   = box.querySelector("[data-region-btn]");
+    const label = box.querySelector("[data-region-label]");
+    const menu  = box.querySelector("[data-region-menu]");
+    const tel   = box.querySelector("[data-region-tel]");
+    const copy  = box.querySelector("[data-region-copy]");
+    if (!btn || !label || !menu || !tel) return;
+
+    const close = () => { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); };
+    const open  = () => { menu.hidden = false; btn.setAttribute("aria-expanded", "true"); };
+
+    REGIONS.forEach((r) => {
+      const item = document.createElement("li");
+      const b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("role", "option");
+      b.setAttribute("aria-selected", "false");
+      b.textContent = r.name;
+      b.addEventListener("click", () => {
+        label.textContent = r.name;
+        tel.textContent = r.tel;
+        /* href и data-copy едут за номером — иначе «скопировать» отдаст чужой */
+        tel.href = "tel:" + r.tel.replace(/[^\d+]/g, "");
+        if (copy) copy.dataset.copy = r.tel;
+        menu.querySelectorAll("button").forEach((el) => el.setAttribute("aria-selected", String(el === b)));
+        close();
+        btn.focus();
+      });
+      item.append(b);
+      menu.append(item);
+    });
+
+    btn.addEventListener("click", (e) => { e.stopPropagation(); menu.hidden ? open() : close(); });
+    document.addEventListener("click", (e) => { if (!box.contains(e.target)) close(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  });
+})();
+</script>
+<script src="../nav/nav.js"></script>
+<script src="../footer/footer.js"></script>
+<!-- DEBUG:vw-badge — вырезать при сборке -->
+<div class="debug-vw-badge" id="debugVwBadge" aria-hidden="true"></div>
+<script src="../product-card/debug.js" defer></script>
+<!-- /DEBUG:vw-badge -->
+</body>
+</html>

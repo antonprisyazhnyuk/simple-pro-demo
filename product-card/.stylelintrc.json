@@ -1,0 +1,6 @@
+{
+  "plugins": ["stylelint-rem-over-px"],
+  "rules": {
+    "rem-over-px/rem-over-px": true
+  }
+}

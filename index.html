@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <!-- ⛔ NOINDEX — витрина стендов тоже публичная страница и попадает в индекс легче
+       всех: на неё ведут все ссылки сборки. Обоснование то же, что на страницах
+       (демо-копия сайта клиента, SEO у него ведёт свой подрядчик). robots.txt в
+       подкаталоге Pages не читается — эта строка несущая, а не дублирующая. -->
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simple PRO — демо-стенды</title>
+  <link rel="icon" href="assets/figma/s-logo.svg" type="image/svg+xml">
+  <!-- токен-слой и шрифты — единый источник проекта; своих цветов и кеглей тут нет.
+       Модули nav/footer и скрипты сознательно НЕ подключены: это точка входа, а не экран. -->
+  <link rel="stylesheet" href="product-card/css/tokens.css">
+<style>
+/* Навигатор по стендам: одна точка входа для отсмотра, едет на GitHub.
+   Единицы — rem/%, цвета — только var() из tokens.css. */
+body { background: var(--bg-surface); padding: var(--sp-64) var(--sp-32); }
+.st-wrap { max-width: 60rem; margin: 0 auto; }
+h1 {
+  font-family: "Simplepro Display", sans-serif;
+  font-size: clamp(2rem, 3vw, 3rem); line-height: 1.06;
+  color: var(--text-primary); margin: 0 0 var(--sp-32);
+}
+.st-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-12); }
+.st-card {
+  display: block; text-decoration: none;
+  background: var(--bg-page); border-radius: var(--r-8); padding: var(--sp-24);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.st-card:hover { transform: translateY(-0.125rem); box-shadow: 0 0.875rem 2.25rem color-mix(in srgb, var(--grey-100) 8%, transparent); }
+.st-card:focus-visible { outline: 0.1875rem solid var(--text-link); outline-offset: 0.125rem; }
+.st-name {
+  display: block; font-family: "Simplepro Display", sans-serif;
+  font-size: 1.5rem; line-height: 1.1; color: var(--text-primary);
+  margin-bottom: var(--sp-8);
+}
+.st-note { display: block; font-size: var(--fs-p3); line-height: 1.5; color: var(--text-secondary); }
+.st-path { color: var(--text-link); }
+
+@media (prefers-reduced-motion: reduce) {
+  .st-card { transition: none; }
+  .st-card:hover { transform: none; }
+}
+@media (max-width: 45rem) {
+  body { padding: var(--sp-32) var(--sp-16); }
+  .st-card { padding: var(--sp-16); }
+  .st-name { font-size: 1.25rem; }
+}
+</style>
+</head>
+<body>
+<div class="st-wrap">
+
+  <h1>Simple PRO — демо-стенды</h1>
+
+  <ul class="st-list">
+    <li><a class="st-card" href="home/" target="_blank" rel="noopener">
+      <span class="st-name">Главная</span>
+      <span class="st-note">Первый экран с видео, карточки категорий с живой мебелью,
+        скролл-сцена «устройство вытяжного шкафа», карточка-таймлапс «Лаборатория под ключ».
+        <span class="st-path">/home/</span></span></a></li>
+
+    <li><a class="st-card" href="product-card/" target="_blank" rel="noopener">
+      <span class="st-name">Продуктовая (вытяжной шкаф)</span>
+      <span class="st-note">Карточка товара целиком: галерея с 3D, табы, конструктор,
+        сравнительная таблица, кейсы с фулвью, «Надёжность», тендер.
+        <span class="st-path">/product-card/</span></span></a></li>
+
+    <li><a class="st-card" href="product-card-stol/" target="_blank" rel="noopener">
+      <span class="st-name">Продуктовая на живых данных (островной стол)</span>
+      <span class="st-note">Тот же канон на другом товаре — проверка, что он переносится
+        без правок под конкретную позицию.
+        <span class="st-path">/product-card-stol/</span></span></a></li>
+
+    <!-- «Проект: кейс» (`project/`) снят с витрины словом Антона 03.08 17:18 —
+         в заливку страница не идёт. Сама папка заморожена с 22.07 и остаётся на диске. -->
+
+    <li><a class="st-card" href="about/" target="_blank" rel="noopener">
+      <span class="st-name">О компании</span>
+      <span class="st-note">Философия, таймлайн 2002–2025, экскурсия, производство, выставки.
+        <span class="st-path">/about/</span></span></a></li>
+
+    <li><a class="st-card" href="listing/" target="_blank" rel="noopener">
+      <span class="st-name">Листинг: вытяжные шкафы</span>
+      <span class="st-note">Каталожная выдача категории.
+        <span class="st-path">/listing/</span></span></a></li>
+  </ul>
+
+  <!-- Служебная строка (витрины модулей `nav/` и `footer/`, демка скролл-сцены,
+       донорская сборка) снята словом Антона 03.08 17:24 — витрина показывает клиенту
+       только пять страниц. Сами файлы живы на диске: `home/_demo-block4-scroll.html` и
+       `donor-build.html` под стоп-листом паспорта гига, `nav/index.html` и
+       `footer/index.html` — рабочие витрины модулей для нас.
+       ⚠ В заливку эти четыре адреса не кладём: ссылок на них с витрины больше нет,
+       а публичными они остались бы. Проверка «отработал ли Jekyll» после заливки
+       делается без них — `curl -I <адрес>/.nojekyll` и любая страница на 200. -->
+
+</div>
+</body>
+</html>

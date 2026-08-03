@@ -1,0 +1,525 @@
+/* Блок 1–2 — первый экран продуктовой: хедер (full→short) + hero-сцена
+   (шторка-рендер → галерея → панель товара с табами → CTA).
+   Скролл-трансформацию ведёт js/app.js (top/height панели через rAF). */
+
+/* ============================================================
+   Хедер продуктовой — с 21.07 МОДУЛЬ code/nav/ (направленный стики v3).
+   Встроенный .site-header (плавающие пилюли, header-full/header-short,
+   лого-бокс, hpill-семья, cat-strip, мега-панель) снят целиком: 125 строк.
+   Латать не пробовали — у модуля своя манифестация и свой свод.
+   Крошки остались здесь: у модуля их нет, а терять нельзя (BreadcrumbList).
+   ============================================================ */
+
+/* крошки — белая пилюля-бар в фикс-слое хедера */
+.breadcrumbs {
+  position: absolute; top: 6.25rem; left: 2.25rem; z-index: 5; pointer-events: auto;
+  display: flex; align-items: center; gap: var(--sp-4);
+  width: fit-content; max-width: calc(100% - 4.5rem);
+  padding: 0.125rem; background: var(--bg-page); border-radius: var(--r-4);
+  font-weight: 400; font-size: var(--fs-p4); line-height: 1; white-space: nowrap;
+  transition: opacity 0.2s ease;
+}
+.breadcrumbs .back {
+  display: inline-flex; align-items: center; gap: var(--sp-4);
+  height: 1.5rem; padding: 0 0.5rem 0 0.25rem;
+  background: var(--bg-surface); border-radius: var(--r-4); color: var(--text-secondary);
+}
+.breadcrumbs .crumb { padding: 0 0.25rem; color: var(--border-strong); }
+.breadcrumbs a.crumb:hover, .breadcrumbs .back:hover { color: var(--action-primary); }
+.breadcrumbs .sep { display: flex; align-items: center; flex: none; }
+.breadcrumbs .current { padding: 0 0.25rem; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; }
+
+/* ============================================================
+   Hero-сцена: 280vh (рендер 100vh + подъезд/пин галереи + залип)
+   ============================================================ */
+/* ширина панели пропорциональна вьюпорту (замер Figma: 1920→912, 1440→776, 1280→732 = 28.125vw+372px);
+   галерея забирает остаток — блок плавно сжимается 1280↔1920, а не фиксом (правка Антона) */
+/* ВЕРХ КОНТЕНТ-ЗОНЫ (задача №7а): по макету 104@1280 · 112@1440 · 140@1920 — панель
+   поднимается так, чтобы кап-высота заголовка легла на линию верха рейки/фото.
+   Токен объявлен ЗДЕСЬ и читается из app.js (§2), а не дублируется константой: пока
+   число жило только в JS, оно уже разъезжалось с CSS при rem-зуме (грабля 21.07).
+   ⚠ Линейная формула на три точки ложится с погрешностью 1px: даёт 113@1440 при
+   макетных 112 (шаги 1280→1440 и 1440→1920 имеют разный наклон). В пределах допуска. */
+.product-hero { position: relative; height: 280vh; --panel-w: clamp(38rem, 28.125vw + 23.25rem, 57rem);
+  --panel-top-final: clamp(6.5rem, calc(2rem + 5.625vw), 8.75rem); }
+.hero-curtain { position: relative; height: 100vh; z-index: 1; }
+.hero-media { position: absolute; inset: 0; overflow: hidden; background: var(--bg-surface-accent); }
+.hero-media img, .hero-media .hero-photo { width: 100%; height: 100%; object-fit: cover; }
+
+.hero-stage { position: sticky; top: 0; height: 100vh; overflow: hidden; background: var(--bg-page); z-index: 1; }
+.hero-panel-layer { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+
+/* панель + CTA — одна плашка; низ прибит к 100vh-24, верх ведёт JS (vh-297 → 140) */
+.hero-panels {
+  position: sticky; margin-left: auto; margin-right: 2.25rem;
+  top: calc(100vh - 18.5625rem); height: 17.0625rem;
+  width: var(--panel-w); max-width: calc(100vw - 4.5rem);
+  display: flex; flex-direction: column; gap: var(--sp-8); pointer-events: auto;
+}
+.hero-panels .panel-card { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.panel-card {
+  padding: var(--sp-24); background: var(--bg-page); border-radius: var(--r-12);
+}
+/* №7а — КАП-ВЫСОТА ЗАГОЛОВКА НА ЛИНИЮ ВЕРХА РЕЙКИ (правка Антона по скрину с красной линией).
+   Верхи плашки и рейки совмещены, но ГЛАЗ ловит не край коробки, а верх букв — а он уходил
+   вниз на 28: 24 паддинга плюс ~4 внутри строки. Компенсируем сумму и поднимаем плашку;
+   белая кромка при этом уходит ВЫШЕ линии — так и на скрине Антона.
+
+   Два слагаемых, и оба обязаны ехать сами:
+   · var(--sp-24) — тот же токен, которым задан padding выше: правка паддинга не разъедет
+     компенсацию (числом 1.5rem это бы молча сломалось);
+   · 0.12em кегля заголовка — полулидинг 0.045 + (ascent 0.775 − cap 0.700). Метрики сняты
+     с живого Simplepro Display на кегле 800 (на мелком браузер округляет ascent до целого
+     и коэффициент пляшет 0.112–0.126). Кегль заголовка — var(--fs-h3), он текучий,
+     поэтому доля, а не фикс.
+
+   Только в раскрытом состоянии: в компакте у плашки паддинга нет вовсе (padding: 0 ниже),
+   и та же компенсация утащила бы карточку вверх без причины. */
+.product-hero.expanded .panel-card {
+  margin-top: calc(-1 * (var(--sp-24) + 0.12 * var(--fs-h3)));
+}
+/* дивайдеры между секциями карточки (макет: линии, теней в блоке 2 нет) */
+.panel-divider { flex: none; width: 100%; height: var(--hairline); margin: 0; border: 0; background: var(--border-default); }
+
+/* ---------- ДВА СОСТОЯНИЯ ПАНЕЛИ (одна панель, скролл-трансформация) ----------
+   компакт (первый экран): заголовок+цена · ссылки · конструктор · CTA — БЕЗ табов/описания/дивайдеров;
+   раскрытая (блок 2): полная карточка с дивайдерами. Разводим модификатором .expanded, чтобы правка
+   блока 2 не текла в hero (регресс 14.07). */
+.product-hero:not(.expanded) .panel-divider,
+.product-hero:not(.expanded) .tabs-nav,
+.product-hero:not(.expanded) .tab-panels { display: none; }
+/* компакт: панель = ДВА самостоятельных белых блока с прогалом (донор: верх 2051:101477, низ 2051:101471);
+   в раскрытой панель снова единая карточка — блоки становятся прозрачными обёртками.
+   Прогал соразмерен скейлу панели: 6@1280 → 8@1920 (слово Антона) */
+.product-hero:not(.expanded) .panel-card {
+  background: transparent; padding: 0; overflow: visible;
+  justify-content: flex-end; gap: clamp(0.375rem, 0.125rem + 0.3125vw, 0.5rem); /* 6→8 на 1280→1920 */
+}
+.product-hero:not(.expanded) .panel-head,
+.product-hero:not(.expanded) .cta-zone {
+  flex: none; background: var(--bg-page); border-radius: var(--r-12); padding: var(--sp-24);
+}
+
+/* margin-bottom — не «отступ по вкусу», а вычисленный: видимые 16 минус воздух под
+   заголовочным блоком (0.19 кегля). Разбор — у .panel-bottom-row ниже.
+   ⚠ Второго слагаемого (воздух над ссылками) здесь БОЛЬШЕ НЕТ: после красной правки Антона
+   нижняя граница зазора — верхняя КРОМКА РЯДА (край кнопки), а не чернила ссылок. */
+.title-row { display: flex; align-items: flex-start; gap: var(--sp-16); margin-bottom: calc(1rem - 0.19 * var(--fs-h3)); }
+/* заголовок заполняет строку (Figma: 690 Fill); зона всегда в 2 строки — геометрия панели не зависит от длины названия.
+   text-wrap: balance — ровное распределение по двум строкам; принудительное деление коротких заголовков ведёт хелпер в app.js */
+.panel-card .title { flex: 1 1 auto; min-width: 0; min-height: 2lh; margin-bottom: 0; font-size: var(--fs-h3); line-height: 1.11; text-wrap: balance; }
+.price-row { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: var(--sp-4); white-space: nowrap; }
+.price-row .cap { font-size: var(--fs-p5); color: var(--text-secondary); }
+.price-row .price-line { display: flex; align-items: baseline; gap: 0.375rem; }
+.price-row .from { font-size: var(--fs-p5); color: var(--text-secondary); }
+.price-row .val { font-family: "Simplepro Display", sans-serif; font-size: var(--fs-h3); font-weight: 700; line-height: 1.11; color: var(--grey-90); }
+
+/* №7д — ОДИН РЯД (красная правка Антона 21.07 ночь, «это пиздец» на два ряда).
+   Слева синяя строка ссылок, справа сердечко + «Конструктор». Высоту ряда задают КНОПКИ
+   (44), ссылки садятся ПО НИЗУ кнопок — `align-items: flex-end`.
+
+   ПОЧЕМУ ТОЧКА ОТСЧЁТА СМЕНИЛАСЬ. Путь-2 (своя строка для ссылок) родился как раз потому,
+   что внутри ряда над ссылками висит пустая половина (кнопка 44 против строки 22.5 → 21.5
+   воздуха), и равенство ПО ЧЕРНИЛАМ ССЫЛОК требовало зазора −20. Антон посмотрел глазами
+   и сказал: пустая половина — это и есть канон, а равенство считать от КРОМОК РЯДА:
+     [низ чернил заголовочного блока ↔ верх ряда] = [низ ряда ↔ верх табов] = 16.
+   Верх и низ ряда — края кнопок, у них воздуха нет: боксовое число там равно видимому.
+   Компенсация осталась ровно одна и только сверху — воздух под заголовочным блоком,
+   ≈0.19 его кегля (см. .title-row). Разброс доли по трём ширинам 0.180–0.196 —
+   меньше пикселя, глазом не ловится.
+
+   ⚠ Считать надо от НИЖНИХ ЧЕРНИЛ ЗАГОЛОВОЧНОГО БЛОКА, а это не всегда заголовок:
+   рядом в .title-row стоит цена, и ниже может оказаться она.
+   ⚠ Снесут `align-items: flex-end` — ссылки уедут вверх/по центру ряда, и красная правка
+   молча отменится: она держится именно этим свойством. */
+.panel-bottom-row { display: flex; align-items: flex-end; gap: var(--sp-12); flex-wrap: wrap; }
+.panel-bottom-row .constructor-link { margin-left: auto; height: 2.75rem; min-height: 2.75rem; padding-block: 0; }
+.product-hero.expanded .panel-bottom-row .constructor-link { margin-left: 0; }
+.doc-links { display: flex; flex-wrap: wrap; gap: var(--sp-16); }
+.doc-links a { color: var(--text-link); font-size: var(--fs-p4); }
+.doc-links a:hover { color: var(--blue-link-hover); text-decoration: underline; }
+/* Сердечко БЕЗ ОБВОДКИ (слово Антона 29.07, №5-г: «очевидно что теперь смысла в кнопке
+   с обводкой нет, если у нас в хедере без нее»). Класс .btn--inverse в разметке остаётся —
+   от него нужны высота и геометрия канон-кнопки; гасим здесь только рамку и фон, включая
+   тёмный ховер канона (иначе при наведении вылезала бы плашка, которой Антон не просил).
+   Инверсия иконки на ховере ушла вместе с тёмным фоном — инвертировать стало нечего. */
+.panel-bottom-row .fav-btn { display: none; flex: none; background: none; border-color: transparent; }
+.panel-bottom-row .fav-btn:hover,
+.panel-bottom-row .fav-btn:active { background: none; border-color: transparent; }
+/* Состояние «в избранном» подаёт САМ ЗНАК, как в хедере (слово Антона 30.07, №29-⑨) —
+   красная плашка под белым сердцем снята, сердце заливается подменой ассета в nav.js.
+   Правится ВМЕСТЕ с продуктовой: канон живёт там, это его копия в сборке стола. */
+.fav-btn.is-fav { background: none; border-color: transparent; }
+.constructor-link .lbl-short { display: none; }
+.product-hero.expanded .constructor-link .lbl-full { display: none; }
+.product-hero.expanded .constructor-link .lbl-short { display: inline; }
+.product-hero.expanded .panel-bottom-row .fav-btn { display: inline-flex; margin-left: auto; }
+
+/* воздух карточки (fixes №6, раскрытая панель — не трогает компактную two-block заморозку):
+   (б) отступ над верхним дивайдером ряда табов, чтобы строка ссылок и кнопки не липли к линии;
+   (а) верхний отступ CTA-зоны = нижнему (низ = паддинг карточки sp-24) — симметрия вместо прилипания */
+/* НИЖНИЙ зазор пары (низ ряда ↔ верх табов) — вторая половина равенства красной правки.
+   Число голое, без компенсации: снизу граница — край кнопки, сверху — линия границы
+   .tabs-nav; воздуха строки ни там, ни там нет. Меняешь тут — меняй и .title-row. */
+.product-hero.expanded .panel-head { margin-bottom: var(--sp-16); }
+.product-hero.expanded .cta-zone { margin-top: var(--sp-24); }
+
+/* ряд табов — полоса h44 строго, границы 1px сверху И снизу своим цветом (greys/10) —
+   заменяют бывшие panel-divider вокруг ряда; типографика заголовочная (Display 700 18 caps).
+   Ширины табов hug контента (Figma 94/79/213/175/60 — браузер считает сам).
+   leading-trim из Figma-копипаста в браузерах не работает — вертикаль центровкой в h44 */
+.tabs-nav {
+  flex: none; display: flex; align-items: stretch; gap: var(--sp-16);
+  height: 2.75rem;
+  border-block: var(--hairline) solid var(--grey-10);
+}
+.tab-btn {
+  position: relative; display: inline-flex; align-items: center;
+  background: none; border: 0; padding: 0.375rem 0;
+  font-family: "Simplepro Display", "Geologica", sans-serif;
+  font-weight: 700; font-size: 1.125rem;
+  letter-spacing: -0.0075em; text-transform: uppercase;
+  color: var(--grey-60-brand); white-space: nowrap;
+}
+.tab-btn:hover { color: var(--grey-70); }
+.tab-btn.is-active { color: var(--grey-70); }
+/* активная риска 2px (action-primary) ЛЕЖИТ поверх нижней границы ряда, красного текста в табах нет:
+   таб растянут на высоту ряда (stretch), риска свешена на 1px вниз — накрывает границу заподлицо */
+.tab-btn.is-active::after {
+  content: ""; position: absolute; left: 0; right: 0;
+  bottom: calc(-1 * var(--hairline)); height: 0.125rem;
+  background: var(--action-primary);
+}
+/* контент табов — растущая зона со скроллом (описание) */
+.tab-panels { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding-block: var(--sp-16); }
+.tab-panel { display: none; font-size: var(--fs-p3); color: var(--text-primary); line-height: 1.55; }
+.tab-panel.is-active { display: block; }
+.tab-panel p { margin-bottom: 0.7em; }
+.tab-panel .muted { color: var(--text-secondary); }
+.spec-list { display: grid; grid-template-columns: 1fr auto; gap: var(--sp-8) var(--sp-24); }
+.spec-list dt { color: var(--text-secondary); }
+.spec-list dd { margin: 0; color: var(--grey-70); text-align: right; }
+
+/* Экран 2: левая колонка галереи (рейка + фото), высота = высоте панели */
+.hero-gallery {
+  /* ВЕРХ ГАЛЕРЕИ = тот же токен контент-зоны, что у панели (№7а). Был прибит 8.75rem
+     (140) намертво, и при текучей посадке панели рейка оставалась на 140 на всех
+     ширинах — на 1280 заголовок уезжал ВЫШЕ рейки на 12 (замер). Одна линия у обоих. */
+  position: absolute; left: 2.25rem; top: var(--panel-top-final); bottom: 1.5rem;
+  right: calc(2.25rem + var(--panel-w) + var(--gap-photo-panel));
+  display: flex; flex-direction: column; gap: var(--sp-12);
+
+  /* ЗАЗОР ФОТО↔ПАНЕЛЬ (№7д): макет 24@1920 → 0@1440 → 0@1280. Ноль не «слиплось»:
+     у панели свой паддинг (20/16), он и даёт видимый воздух — так в макете.
+     Линейно 1440→1920, ниже 1440 плато на нуле: 0.05·W px = 5vw, минус 72px на сдвиг. */
+  --gap-photo-panel: clamp(0rem, calc(5vw - 4.5rem), 1.5rem);
+
+  /* ШИРИНА ФОТО — КАНОН МАКЕТА 476@1280 · 532@1440 · 757@1920 (две ступени, как у рейки:
+     макет ломает темп на 1440 — до него +56 за 160px, после +225 за 480px).
+     Ступень A (1280→1440) упирается в 33.25rem сверху, ступень B (1440→1920) — в те же
+     33.25rem снизу; сумма всегда = одно живое слагаемое + константа, её и вычитаем.
+     Проверка: 1280 → 476+532−532 = 476 · 1440 → 532+532−532 = 532 · 1920 → 532+757−532 = 757.
+
+     ⚠ ЭТО ПОТОЛОК, А НЕ ГАРАНТИЯ. Канон-число влезает целиком только на 1920. Причина
+     арифметическая и доложена лиду: у макета этой секции полей почти нет (на 1280 на оба
+     поля остаётся 4px), а наш поле-канон 36/36 сильнее. Фактический потолок при нашем
+     контракте: 1920 — 820 (канон 757 влезает, ✓), 1440 — 520 (канон 532, −12),
+     1280 — 424 (канон 476, −52). Поэтому сторона квадрата берётся как МИНИМУМ из этого
+     клампа, доступной ширины и доступной высоты (js/app.js §3c) — молча тянуть фото
+     за счёт рейки или полей запрещено. */
+  --photo-canon: calc(
+    clamp(29.75rem, calc(35vw + 1.75rem), 33.25rem)        /* ступень 1280→1440: 476→532 */
+    + clamp(33.25rem, calc(46.875vw - 8.9375rem), 47.3125rem) /* ступень 1440→1920: 532→757 */
+    - 33.25rem                                             /* стык: на 1440 обе дают 532 */
+  );
+}
+/* зазор главный кадр↔рейка и ширина рейки ужаты под макет 1440 — квадрат забирает больше ширины;
+   рейка = 5rem под миниатюру 80px (Figma), кадр остаётся квадратом (aspect-ratio 1/1 + fitSquare) */
+.gallery-body { flex: 1 1 auto; min-height: 0; display: flex; gap: var(--sp-12); align-items: stretch; }
+/* РЕЙКА ТЕКУЧАЯ (макет 2181:94436, задача №7б): миниатюра 40@1280 → 60@1440 → 80@1920.
+   Размер объявлен ОДНИМ токеном, и от него пляшет всё остальное — ширина колонки рейки
+   и 3D-слот. Иначе три числа про одно живут порознь и разъезжаются при первой же правке.
+   Гэп 12 — константа по макету, не скейлится.
+
+   ДВЕ СТУПЕНИ, а не одна прямая. Макет ломает темп на 1440: до него +20 набегает за 160px,
+   после — те же +20 растянуты на 480px. Одним клампом такое не описать (прежняя линейная
+   редакция брала концы верно, а на 1440 выдавала 50 вместо 60) — нужны два отрезка.
+
+   Как склеены. Каждая ступень — свой кламп, который ЗА своим отрезком встаёт на плато:
+   первая упирается в 3.75rem сверху, вторая в те же 3.75rem снизу. Значит их сумма всегда
+   содержит ровно одно «живое» слагаемое плюс константу 3.75rem, которую и вычитаем.
+   Сумма, а не min/max: min берёт нижнюю ступень и врёт выше 1440, max — наоборот ниже.
+   Проверка по трём точкам: 1280 → 40+60−60 = 40 · 1440 → 60+60−60 = 60 · 1920 → 60+80−60 = 80.
+   На полосе rem-зума (721–1230) обе ступени лежат на своих плато, и размер едет за кеглем,
+   то есть за тем же k = W/1280, что и весь лейаут. */
+.gallery-rail {
+  --thumb-size: calc(
+    clamp(2.5rem, calc(12.5vw - 7.5rem), 3.75rem)   /* ступень 1280→1440: 40→60 */
+    + clamp(3.75rem, 4.16667vw, 5rem)               /* ступень 1440→1920: 60→80 */
+    - 3.75rem                                       /* стык: на 1440 обе дают 60, лишнее снимаем */
+  );
+  /* РЕЙКА-ЗОНА = ОСТАТОК (решение лида по №7д): ширину колонки задаёт не миниатюра, а то,
+     что осталось от зоны галереи после канон-фото. Миниатюра стоит в этом остатке ЦЕНТРОМ.
+     ⚠ В пады макета (52/7/16 разницы «бокс рейки минус миниатюра») НЕ целимся сознательно:
+     они непоследовательны по ширинам — рваный слоп старой секции, а не правило (слово лида).
+     min-width держит миниатюру: остаток не имеет права ужать колонку уже неё. */
+  flex: 1 1 auto; min-width: var(--thumb-size); height: 100%;
+  display: flex; flex-direction: column; align-items: center; gap: var(--sp-12);
+  overflow-y: auto; scrollbar-width: none;
+}
+.gallery-rail::-webkit-scrollbar { display: none; }
+.gallery-rail .thumb { width: var(--thumb-size); height: auto; aspect-ratio: 1 / 1; padding: 0; flex: none; }
+/* 3D-слот — того же размера, что миниатюры (задача №7г), и едет за тем же токеном */
+.gallery-rail .thumb.is-3d { width: var(--thumb-size); height: auto; aspect-ratio: 1 / 1; margin: 0.25rem auto 0; }
+/* колонка «квадрат + подписи»: ширину ставит JS (fitSquare) = min(доступная ширина, высота),
+   чтобы кадр остался квадратом на любом вьюпорте, а подписи легли по краям квадрата */
+/* max-width — КАП КАНОН-ШИРИНЫ ФОТО (№7д), единственное место, где это число живёт.
+   JS ставит инлайн-ширину = min(доступная ширина, доступная высота); кап макета режет её
+   сверху уже здесь. Снесут max-width — квадрат снова раздуется до всей зоны и съест рейку. */
+.gallery-view { flex: 0 0 auto; min-width: 0; max-width: var(--photo-canon); align-self: flex-start; display: flex; flex-direction: column; gap: var(--sp-12); }
+/* главный кадр — ВСЕГДА квадрат: ширина 100% колонки, высота = ширине (aspect-ratio 1:1) */
+.gallery-main {
+  position: relative; flex: none; width: 100%; aspect-ratio: 1 / 1;
+  border-radius: var(--r-12); overflow: hidden; background: var(--bg-surface);
+}
+.gallery-main img { width: 100%; height: 100%; object-fit: contain; }
+.gallery-main .viewer-3d { position: absolute; inset: 0; max-width: none; background: var(--bg-page); }
+.viewer-3d { display: grid; place-items: center; cursor: ew-resize; }
+.viewer-3d > img { grid-area: 1 / 1; width: 100%; height: 100%; object-fit: contain; opacity: 0; }
+.viewer-3d > img.is-shown { opacity: 1; }
+.viewer-3d .hint {
+  position: absolute; left: 50%; bottom: var(--sp-16); transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: var(--sp-8);
+  padding: var(--sp-8) var(--sp-12); border-radius: var(--r-pill);
+  background: rgba(9, 10, 10, 0.72); color: var(--text-inverse);
+  font-size: var(--fs-p5); white-space: nowrap; pointer-events: none;
+}
+/* подписи под квадратом: 1920 — название слева / дисклеймер справа; ≤1679 — столбик слева (см. @media ниже) */
+.gallery-caption {
+  flex: none; display: flex; justify-content: space-between; gap: var(--sp-16);
+  font-size: var(--fs-p5); color: var(--text-secondary);
+}
+@media (max-width: 104.9375rem) { /* = 1679 */
+  .gallery-caption { flex-direction: column; align-items: flex-start; gap: var(--sp-4); }
+}
+
+/* тамбнейл-свопер (кнопка): клик подставляет кадр в главный квадрат */
+.thumb {
+  width: 4rem; height: 4.5rem; padding: 0.25rem; overflow: hidden; cursor: pointer;
+  background: var(--bg-page); border: var(--hairline) solid var(--border-default); border-radius: var(--r-4);
+  font: inherit; color: inherit;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+.thumb:hover { border-color: var(--border-strong); }
+/* ВЫДЕЛЕНИЕ ВЫБРАННОЙ — финальный стиль (выбор Антона по демке v2): ОДНА волосяная
+   красная линия. Прежняя редакция красила и border, и outline — две линии подряд, отчего
+   красный читался тяжелее серых вариантов демки при формально равной толщине. Удвоение
+   снято, толщина осталась той же (--hairline у .thumb выше), сменился только цвет.
+   Этот же стиль — канон галерей №14 (карусели и фулвью), когда до них дойдёт. */
+.thumb.is-selected { border-color: var(--action-primary); }
+/* 3D-СЛОТ — канон-иконка вместо красной кнопки-круга (№7г, слово Антона: «3d — своя же
+   иконка вместо кнопки»). Красный круг ушёл ВОВСЕ: ни рамки, ни заливки, ни радиуса —
+   весь визуал даёт сам ассет, коробка кнопки становится прозрачной.
+
+   ⚠ МИНА АССЕТА: icon-3d-ring.svg объявлен preserveAspectRatio="none" — он растянется
+   в ЛЮБОЙ бокс и на пропорцию плюёт, а object-fit тут бессилен: интринсик-отношения у него
+   нет. Поэтому пропорция прибита рукой — aspect-ratio: 1 по viewBox 80×80. Ровно на этой
+   мине nav-лого растянуло на +23%.
+
+   Размер слота = токен рейки (--slot ← --thumb-size): одно число на миниатюру, ширину
+   колонки и 3D-слот, чтобы три размера про одно не разъезжались. Кегль живого текста
+   считается от него же — иначе на полосе зума текст останется десктопным в уменьшенном кольце.
+
+   Постоянного выделения слот НЕ заводит (решение лида): «выбрано» получит финальный стиль
+   после выбора Антона по демке v2, и до тех пор 3D-слот подсвечивается ровно как соседние
+   миниатюры — общим правилом .thumb.is-selected, без собственного языка. */
+.thumb.is-3d {
+  --slot: var(--thumb-size);
+  display: grid; place-items: center;
+  padding: 0; background: none; border: 0; border-radius: 0;
+}
+.thumb.is-3d > * { grid-area: 1 / 1; }                     /* кольцо и текст — одной клеткой, друг поверх друга */
+.thumb-3d-ring { width: 100%; height: auto; aspect-ratio: 1 / 1; display: block; }
+.thumb-3d-label {
+  font-family: "Simplepro Display", sans-serif; font-weight: 700; line-height: 1;
+  /* 0.35 — КАНОН, подтверждён по Figma (node 2189:38044): 28 при слоте 80 = ровно 0.35.
+     Доля, а не фикс: слот текучий, кегль обязан ехать вместе с ним. */
+  font-size: calc(var(--slot) * 0.35);
+  color: var(--grey-60-brand);
+}
+
+/* ХОВЕР 3D-СЛОТА — вариант A по выбору Антона: перелив кольца 1.7s.
+   ⚠ Кейфреймы БЕРЁМ КАНОН-ЖЕ (utp-ring-spin из blocks.css, кольца блока 6), а не копию:
+   Антон выбирал «как в блоке 6», значит это должно быть ТО ЖЕ движение, а не похожее.
+   Свою копию пришлось бы вручную догонять при каждой правке канона. Обратная сторона
+   осознанная: переименуют/снесут utp-ring-spin — ховер здесь молча перестанет играть,
+   поэтому связь помечена тут. Сам канон в blocks.css НЕ тронут (правка Антона). */
+.thumb.is-3d:hover .thumb-3d-ring { animation: utp-ring-spin 1.7s cubic-bezier(.4, 0, .2, 1); }
+@media (prefers-reduced-motion: reduce) {
+  /* глобальный reduce-motion в tokens.css только урезает длительность до 0.01ms — кольцо
+     всё равно прыгнет в конечный угол за кадр (та же мина, что у канона УТП). Глушим явно. */
+  .thumb.is-3d:hover .thumb-3d-ring { animation: none; }
+}
+
+/* «ВЫБРАНО» У 3D-СЛОТА (3D-вью открыт) — решение Антона: краснеет ТЕКСТ, рамки нет вовсе.
+   Гасить рамку отдельным правилом БОЛЬШЕ НЕ НУЖНО: общее .thumb.is-selected теперь красит
+   только border-color, а коробка слота прозрачна (border: 0 выше) — рисовать нечем.
+   Прежняя редакция снимала здесь outline, потому что общее правило его ставило и он лёг бы
+   КВАДРАТОМ вокруг круглого кольца; с уходом удвоения (выбор Антона) правило умерло
+   и снято, а не оставлено «на всякий случай». */
+.thumb.is-3d.is-selected .thumb-3d-label { color: var(--action-primary); }
+
+/* ---------- Лайтбокс: клик по главному квадрату → фуллскрин, светлый фон, красный крест ---------- */
+.gallery-main > img { cursor: zoom-in; }
+.lightbox {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: var(--sp-48);
+  /* ТЁМНЫЙ СКРИМ — решение лида 21.07 по эталону фулвью 2184:36730. Прежний светлый
+     rgba(244,245,246,0.94) был ничьим решением (никто его не принимал), а замер эталона
+     дал тёмную полупрозрачную подложку поверх притушенной страницы. Канон сильнее.
+     Полупрозрачность здесь несущая: сквозь неё видно, что страница на месте, — иначе
+     фулвью читается как переход на другой экран, а не как слой поверх.
+     ⚠ Плотность подобрана ГЛАЗОМ по кадру, не замером: на 0.72 текст описания и заголовок
+     панели читались сквозь подложку и спорили с кадром. Контроль этого не ловит вовсе —
+     он проверяет, что подложка ТЁМНАЯ, а не что страница перестала конкурировать. */
+  background: rgba(9, 10, 10, 0.88);
+}
+.lightbox[hidden] { display: none; }
+body.lightbox-open { overflow: hidden; }
+.lightbox-img { max-width: min(90vw, 60rem); max-height: 90vh; object-fit: contain; border-radius: var(--r-8); }
+.lightbox-close {
+  position: fixed; top: var(--sp-24); right: var(--sp-24);
+  width: 2.75rem; height: 2.75rem; display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: var(--r-4); cursor: pointer;
+  background: var(--action-primary); color: var(--text-inverse);
+  transition: background-color 0.15s ease, border-radius 0.15s ease;
+}
+.lightbox-close:hover { background: var(--action-primary-hover); border-radius: var(--r-8); }
+.lightbox-close:active { background: var(--action-primary-pressed); }
+
+/* ---------- №14г Фулвью-канон: рейка миниатюр слева, ДОПОЛНЯЕТ лайтбокс выше (не второй лайтбокс) ----------
+   Эталон 2184:36730, кадр research/figma-drops/fullview-gallery-2184.png (замер 21.07,
+   экспорт 1600×800 = ×0.8333 от реальных 1920×960 — подтверждено сверкой с table-2184,
+   единственным дропом с известной metadata.xml на той же сетке). Рейка 80×80/гэп 12
+   подтверждена по кадру (шаг миниатюра+гэп ≈76.7px в экспорте × 1.2 ≈ 92px реал = 80+12);
+   те же токены, что у .gallery-rail панели — состояния .thumb (hover/is-selected) НЕ
+   дублируются, канон один (см. коммент у .thumb.is-selected выше: «этот же стиль —
+   канон галерей №14, когда до них дойдёт»).
+   Позиция: absolute внутри уже position:fixed .lightbox — существующую flex-центровку
+   картинки НЕ трогаю, рейка вынесена из потока и не спорит с ней за место (в эталоне
+   крупный кадр стоит по центру ВСЕГО вьюпорта, не остатка после рейки — замер §1 отчёта).
+   ⚠ left: var(--sp-64) — округление измеренных ~61px до ближайшего токена, не точный замер
+   (см. отчёт §6): в эталоне рейка стартует НИЖЕ верхней кромки крупного кадра, похоже на
+   позицию встроенной рейки страницы под шапкой, а не на намеренную вертикальную центровку
+   фулвью-рейки. Взял vertical-center как безопасный дефолт модалки, а не как замер факта. */
+.lightbox-rail {
+  --thumb-size: 5rem;                      /* 80px фикс — НЕ fluid как у панели (там 40→80) */
+  position: absolute; top: 50%; left: var(--sp-64); transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: var(--sp-12);
+  max-height: calc(100% - var(--sp-96)); overflow-y: auto; scrollbar-width: none;
+}
+.lightbox-rail::-webkit-scrollbar { display: none; }
+.lightbox-rail .thumb { width: var(--thumb-size); height: auto; aspect-ratio: 1 / 1; padding: 0; flex: none; }
+/* Кап крупного кадра под замер эталона: card-стейдж ~910×910 при 1920×960 (поля 25/25
+   сверху-снизу — половина остатка 960−910). Существующий .lightbox-img (max-width:
+   min(90vw,60rem)=960) НЕ трогаю — добавляю более специфичный селектор (.lightbox
+   .lightbox-img), каскад берёт его без правки старой строки.
+   transition/reduced-motion — под смену кадра по клику рейки, спека логики §4 отчёта. */
+/* СТЕЙДЖ, а не просто картинка. В эталоне под кадром лежит светлая квадратная подложка
+   ~910×910 (замер дал ровно тон --bg-surface), и фото вписано в неё с полями. Без подложки
+   картинка растягивалась по высоте вьюпорта в портрет 800×900: замер «ширина не больше
+   910» при этом честно зеленел, а глаз видел, что стейджа нет вовсе — число описывало
+   не тот признак. Отсюда квадрат задаётся аспектом, а не капом ширины.
+   contain + фон: поля стейджа видны там, где кадр не квадратный, — это и есть подложка. */
+.lightbox .lightbox-img {
+  /* ⚠ Вертикальный предел ДОЛЖЕН стоять в той же формуле ширины, а не отдельным
+     max-height: при аспекте 1/1 max-height режет ТОЛЬКО высоту, и квадрат молча становится
+     прямоугольником (910×900 на окне 1000 — поймано контролем «стейдж квадратный»). */
+  /* ВЕРТИКАЛЬНЫЙ ЧЛЕН — ПОЛЯ ЭТАЛОНА, А НЕ 90vh. Был `90vh`, и на РОДНОЙ высоте эталона
+     (1920×960) он давал 864 вместо 910: лента там ровно 757 = Rectangle 187, то есть
+     эталону соответствовала лента, а фулвью промахивался — ×1.141 вместо ×1.202.
+     Число берём из самого замера, новых не заводим: стейдж 910 в окне 960 = поля 25/25
+     сверху-снизу (комментарий выше), значит предел = высота минус 50 = 3.125rem.
+     Проверка: @960 → min(1728, 910, 910) = 910 ✅ ровно эталон; @1080 → 910 ✅. */
+  width: min(90vw, calc(100vh - 3.125rem), 56.875rem); height: auto;  /* 910 @1920 — замер эталона */
+  /* ⚠ max-* ГАСИМ ЯВНО. Базовая строка `.lightbox-img` (выше в файле) несёт
+     `max-width: min(90vw, 60rem)` и `max-height: 90vh` — специфичность у неё МЕНЬШЕ,
+     поэтому width она не перебивала и про неё забыли, но max-* никем не перекрыты
+     и работают поверх формулы. Ровно две беды: max-width 90vw держал фулвью ýже ленты
+     на мобе даже после правки ширины, а max-height 90vh (=864 @960) при aspect-ratio 1/1
+     превратил бы новый 910 в прямоугольник 910×864 — та самая оплаченная грабля.
+     Весь предел живёт в формуле ширины, здесь только снимаем чужие каппы. */
+  max-width: none; max-height: none;
+  aspect-ratio: 1 / 1;
+  object-fit: contain; background: var(--bg-surface);
+  transition: opacity 0.15s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lightbox .lightbox-img { transition: none; }
+}
+/* 3D-СЛОТ В ФУЛВЬЮ — решение лида: в центре стоит ЖИВОЙ интерактивный вьювер, не картинка.
+   Вьювер не копируется и не пересоздаётся: app.js ПЕРЕНОСИТ сам узел #viewer3d из
+   .gallery-main в лайтбокс и возвращает обратно при закрытии. Обработчики (mousemove/
+   touchmove) висят на самом узле и переезжают вместе с ним, кадры уже загружены —
+   второй экземпляр означал бы вторую загрузку 15 кадров и второй источник правды
+   о текущем ракурсе.
+   ⚠ Позиционирование вьювера прибито к контексту галереи (`.gallery-main .viewer-3d`
+   — absolute inset:0). В лайтбоксе того контекста нет, поэтому размер задаём здесь;
+   без этого правила перенесённый узел схлопывается в ноль. */
+/* Формула размера — ТА ЖЕ, что у фото-стейджа, и flex:none обязателен: без него вьювер
+   как флекс-элемент ужимался вдвое (460 против 900) и 3D-стейдж выходил заметно меньше
+   фотографического. Контроль «квадрат и не схлопнут» это пропускал — он не сравнивал
+   вьювер С ФОТО-СТЕЙДЖЕМ, а по отдельности оба были квадратными. */
+.lightbox .viewer-3d {
+  /* формула ОДИН-В-ОДИН с фото-стейджем выше, включая вертикальный член 100vh−3.125rem:
+     разъедутся числа — разъедутся кадр и слот при переключении (уже ловили 460 против 900) */
+  flex: none; width: min(90vw, calc(100vh - 3.125rem), 56.875rem); height: auto; aspect-ratio: 1 / 1;
+  /* ⚠ max-width: none ОБЯЗАТЕЛЕН. Имя .viewer-3d объявлено ДВАЖДЫ в разных файлах: здесь
+     и в blocks.css, и там стоит `max-width: 28.75rem` (460). blocks.css грузится позже,
+     его кап резал стейдж ровно вдвое — 460 против 900 у фото. Ширину я задавал верно,
+     а капало её чужое правило: тот же класс мин, что рванул с .btn--primary футера.
+     Сносить чужую строку не стал — она держит вьювер в панели; снимаем кап точечно
+     и только в контексте лайтбокса. */
+  max-width: none;
+  background: var(--bg-page); border-radius: var(--r-8);
+}
+/* ── ДЕФЕКТ ПО НАЗНАЧЕНИЮ: НА МОБЕ «УВЕЛИЧИТЬ» ОТДАВАЛО КАДР МЕНЬШЕ ЛЕНТЫ ──
+   Замер 31.07: слайд ленты у стола на мобе = 100vw − 1.5rem (поля страницы), а фулвью
+   считался как `90vw` — 351 против 366 на 390×844. ×0.959 линейно, ×0.920 по площади
+   (на 414 — ×0.955, на 360 — ×0.964): кнопка «увеличить» УМЕНЬШАЛА кадр. Мерили оба
+   числа — бокс <img> и видимое изображение внутри бокса: у стола кадр квадратный, бокс
+   и видимое совпадают, отношение одно и то же — то есть это код, а не артефакт замера.
+   ЛЕЧИМ ТОЙ ЖЕ ФОРМУЛОЙ: горизонтальный член на мобе = 100vw, то есть весь экран.
+   Лента у стола ýже экрана на поля, поэтому здесь фулвью честно БОЛЬШЕ ленты
+   (×1.062…×1.071) — но это потолок: дальше только настоящий зум с панорамированием,
+   а это фича, а не починка (вопрос вынесен Антону в taste-vecher-3107).
+   Вертикальный член — В ТОЙ ЖЕ формуле (иначе аспект 1/1 даст прямоугольник): у стола
+   моб-блока лайтбокса нет вовсе, рейка так и стоит absolute поверх кадра и высоту не
+   занимает, поэтому хром = только поля лайтбокса 2×--sp-48. На портрете не связывает
+   (390×844 → бюджет 748 против 390), держит ландшафт. dvh со сносом на vh — как в доме. */
+@media (max-width: 45rem) {
+  .lightbox .lightbox-img, .lightbox .viewer-3d {
+    width: min(100vw, calc(100vh - (2 * var(--sp-48))), 56.875rem);
+    width: min(100vw, calc(100dvh - (2 * var(--sp-48))), 56.875rem);
+  }
+}
+/* активная миниатюра 3D — красный текст «3d» по канону №7г; рамки у неё нет вовсе
+   (слово Антона: «квадратной обводки не надо») — оба правила уже общие, тут ничего
+   не дублируем, слот лишь получает размер рейки фулвью через --thumb-size выше. */
+
+/* CTA-карточка под панелью: лид + email/Telegram/MAX */
+.cta-zone { flex: none; display: flex; align-items: center; gap: var(--sp-8); flex-wrap: wrap; }
+.cta-zone .lead { flex: none; margin-right: auto; max-width: 11rem; font-size: var(--fs-p4); line-height: 1.4; color: var(--grey-70); }
+.cta-group { display: inline-flex; align-items: center; gap: var(--sp-2); flex: none; }
+/* ширина кнопок по контенту (иначе базовый min-width 7.5rem распирает Max и ряд переносится — регресс №0/2а);
+   высота строго 2.75rem, паддинг ужат чтобы ряд лид+кнопки влезал в узкую панель на 1440 */
+.cta-zone .btn { min-width: 0; min-height: 2.75rem; padding-block: 0; padding-inline: var(--sp-10); font-size: var(--fs-p4); }
+.qr-btn {
+  flex: none; width: 2.75rem; height: 2.75rem; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--action-secondary); border: 0; border-radius: var(--r-4);
+}
+.qr-btn:hover { background: var(--action-secondary-hover); }
+/* зелёная заливка copied СНЯТА (канон Антона 21.07 — теперь галка, см. components.css) */
+
+/* Регион-дроп и hpill-семья жили во ВСТРОЕННОМ хедере — сняты 21.07 вместе с ним.
+   У nav-модуля свой регион-чип и свои копи-кнопки (data-copy). */

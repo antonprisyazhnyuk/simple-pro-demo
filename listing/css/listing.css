@@ -1,0 +1,374 @@
+/* ============================================================
+   Simple PRO — ЛИСТИНГ (категорийная страница) · блоки страницы
+   Донор 88:25912 (канон 1920), макет Figma 2192:39525.
+
+   КАНОН-СКЕЛЕТ (22.07):
+   · токены и база — ../product-card/css/tokens.css (единый источник дома);
+   · кнопки/копи-канон — ../product-card/css/components.css;
+   · хедер и футер — модули ../nav/ и ../footer/ (ссылками, копий разметки нет);
+   · здесь ТОЛЬКО то, чего нет ни в токенах, ни в компонентах, ни в модулях.
+   Единицы: rem/em/% (px запрещены, исключение — токен --hairline). Цвет — только var().
+   ============================================================ */
+
+:root {
+  /* Боковое поле секций листинга. 36 донора — это ВЕРХ кривой, а не константа: канон дома
+     (2-Д «д» + №12) требует 28 на 1280, и замер фикса 2.25rem давал 36 и на 1440, и на 1280.
+     Формула взята у продуктовой (blocks.css) дословно — она же грузит этот tokens.css с
+     html{font-size:1.25vw} на полосе 721–1230, то есть сосуществование клампа с уезжающим
+     корнем на ней уже доказано боем, а не выведено рассуждением.
+     Листинг по-прежнему тянется на полные 1848 при 1920: верх кривой = прежние 36. */
+  --edge-pad: clamp(1.75rem, calc(-2.25rem + 5vw), 2.25rem);
+}
+
+/* ============================================================
+   КРОШКИ (донор 88:23715: белая пилюля h28, 4 крошки без точек)
+   Хозяин — .cat-hero: прежний .site-header снят вместе с врезкой nav-модуля.
+   ============================================================ */
+.breadcrumbs {
+  position: absolute; top: 6.25rem; left: 1.5rem; z-index: 5;
+  background: var(--bg-page); border-radius: var(--r-4); padding: 0.125rem;
+  display: flex; align-items: center; gap: 0.25rem;
+  /* 2-Д «г»: крошки к канону продуктовой — Geologica 400, кегль 0.936rem, строка 1.0.
+     Было 300 / 0.875rem / 1.14 (замер давал 14px при каноне 14.976 и lh 15.96 при каноне 14.976). */
+  font-weight: 400; font-size: 0.936rem; line-height: 1; letter-spacing: -0.005em;
+  width: fit-content; max-width: calc(100% - 3rem); white-space: nowrap;
+}
+.breadcrumbs .back {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  background: var(--bg-surface); border-radius: var(--r-2); height: 1.5rem; padding: 0 0.5rem 0 0.25rem;
+  color: var(--text-secondary);
+}
+.breadcrumbs .back img { width: 0.75rem; height: 0.75rem; }
+.breadcrumbs .crumb { padding: 0 0.25rem; color: var(--grey-30-brand); }
+.breadcrumbs a.crumb:hover, .breadcrumbs .back:hover { color: var(--action-primary); }
+.breadcrumbs .current { padding: 0 0.25rem; color: var(--text-secondary); }
+
+/* ============================================================
+   CTA-плашка канон №2 (телефон-бокс · email-пара · Помощь эксперта)
+   ------------------------------------------------------------
+   ⛔ СВОИХ ПРАВИЛ-ДВОЙНИКОВ ПОД КАНОН-КЛАССЫ ЗДЕСЬ БОЛЬШЕ НЕТ. 22.07 снесены страничные
+   копии .cta-bar · .cta-bar h4 · .cta-bar-groups · .cta-field · .cta-field .lbl ·
+   .phone-box · .phone-box--grey · .region-chip · .region-chip .chev · .phone-link ·
+   .phone-link--plain · .copy-plain · .cta-field .dbl (+ .btn, .btn--icon, .btn img):
+   всё это живёт в ../product-card/css/components.css §CTA, а components.css грузится
+   РАНЬШЕ этого файла — значит копия при равной специфичности била канон и держала его
+   ЗАМОРОЖЕННЫЙ доканонный снимок (мина зоны A). Что копия молча съедала: переменные
+   --cta-lbl-lh · --cta-lbl-gap · --cta-ctl-h канона (моб-переподписка роста контролов до 48),
+   Display-типографику заголовка полосы, межгрупповой гэп 18 против 20, hover/active/
+   focus-visible телефон-бокса, чипа региона и копи-кнопки (их у копии не было вовсе).
+   Осталось ровно то, чего в каноне НЕТ:
+     · размер ГЛИФОВ внутри чипа региона и копи-кнопки (см. правила ниже) — канон
+       размечает боксы (.chev 24×24, .copy-plain), а сам <img> сайзят HTML-атрибуты
+       width/height разметки тендера; у плашки «Нужна консультация?» (блок 1) их нет,
+       и без страничного правила SVG разворачивается в свой интринсик на всю полосу;
+     · снятие ложного min-width у сегментов пары (см. правило ниже);
+     · .btn--grow — страничная растяжка текстового сегмента (у продуктовой такого нет);
+     · .email-btn — табличные цифры адреса;
+     · база .qr-btn/.qr-btn--dark — канон несёт только .cta-bar .qr-btn (сегмент пары),
+       базовая плашка живёт в blocks.css продуктовой, а её листинг не грузит;
+     · .cta-field.w298 — донорская ширина полей плашки «Нужна консультация?» (ниже, блок 1).
+   ============================================================ */
+/* Глифы 18×18 внутри канон-боксов: у тендер-разметки их держат атрибуты width/height
+   самого <img>, у плашки блока 1 атрибутов нет — правило страховое и для обеих. */
+.region-chip .chev img { width: 1.125rem; height: 1.125rem; }
+.copy-plain img { width: 1.125rem; height: 1.125rem; }
+/* Базовый .btn канона несёт min-width 7.5rem (120) — для СЕГМЕНТА пары это ложный минимум:
+   «Max» по контенту 89.6, и с ним ряд «Помощь эксперта» перестаёт влезать в 888 полосы и
+   срывается на второй ряд (замер 22.07: 907.2 против 888). В components.css такого правила
+   нет — у соседа оно тоже страничное (product-card/css/blocks.css:18), берём его идиому. */
+.cta-field .dbl .btn { min-width: 0; }
+.cta-field .dbl .btn--grow { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; }
+.email-btn { font-variant-numeric: tabular-nums; }
+.qr-btn {
+  width: 2.75rem; height: 2.75rem; flex: none;
+  border: var(--hairline) solid var(--border-default); border-radius: var(--r-8);
+  display: grid; place-items: center; background: var(--bg-page);
+}
+.qr-btn img { width: 1.375rem; height: 1.375rem; }
+.qr-btn--dark { background: var(--action-secondary); border-color: var(--action-secondary); }
+.qr-btn--dark:hover { background: var(--action-secondary-hover); }
+
+/* ============================================================
+   БЛОК 1 — hero категории (донор 88:23649):
+   крошки y100 → H1-строка y168 → сетка подкатегорий 4×2 → CTA «Нужна консультация?»
+   ============================================================ */
+.cat-hero { position: relative; background: var(--bg-page); padding: 10.5rem var(--edge-pad) 3.75rem; }
+
+/* H1-строка: заголовок 52/56 слева + 2 ghost-кнопки с рамкой справа */
+.cat-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-24); flex-wrap: wrap; }
+.cat-head h1 {
+  font-size: clamp(2.5rem, 2.7vw, 3.25rem); line-height: 1.08; letter-spacing: -0.0125em;
+  color: var(--text-primary);
+}
+.cat-tools { display: flex; gap: var(--sp-20); align-items: center; flex-wrap: wrap; }
+.tool-btn {
+  display: inline-flex; align-items: center; gap: var(--sp-8);
+  background: var(--bg-page); border: var(--hairline) solid var(--action-secondary); border-radius: var(--r-4);
+  min-height: 2.75rem; padding: 0 var(--sp-12);
+  font-weight: 400; font-size: 1rem; line-height: 1.5; letter-spacing: -0.01em;
+  color: var(--text-primary); white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.tool-btn img { width: 1.5rem; height: 1.5rem; flex: none; }
+.tool-btn:hover { background: var(--action-secondary-hover); border-color: var(--action-secondary-hover); color: var(--text-inverse); }
+.tool-btn:hover img { filter: invert(1); }
+
+/* Сетка подкатегорий: 4 колонки, gap 24, карточка 1:1 (текст ПОВЕРХ фото) */
+.cat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-24); margin-top: var(--sp-40); }
+.cat-card {
+  position: relative; display: block; aspect-ratio: 1 / 1;
+  border-radius: var(--r-4); overflow: hidden; background: var(--bg-surface);
+  transition: transform 0.2s ease;
+}
+.cat-card:hover { transform: scale(1.03); z-index: 1; }
+.cat-card > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cat-card-body {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: var(--sp-24);
+  display: flex; flex-direction: column; gap: var(--sp-8); color: var(--text-inverse);
+}
+/* Заголовок карточки — span, а не h-тег: карточка целиком <a>, а внутри ссылки
+   заголовочная секционная разметка невалидна (и мусорит структурой документа для SEO). */
+.cat-card-title {
+  font-family: "Simplepro Display", "Geologica", sans-serif; font-weight: 700; text-transform: uppercase;
+  font-size: 1.25rem; line-height: 1.2; letter-spacing: 0; color: var(--text-inverse);
+}
+.cat-card-meta { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); }
+.cat-price { display: flex; align-items: baseline; gap: var(--sp-8); white-space: nowrap; }
+.cat-price .from { font-weight: 300; font-size: 0.875rem; line-height: 1.14; letter-spacing: -0.005em; }
+.cat-price .val { font-family: "Simplepro Display", sans-serif; font-weight: 700; font-size: 1.25rem; line-height: 1.2; }
+.cat-chip {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 1.75rem; padding: 0 var(--sp-8);
+  border: var(--hairline) solid var(--grey-0); border-radius: var(--r-4);
+  font-weight: 300; font-size: 1rem; line-height: 1.5; letter-spacing: -0.01em; color: var(--text-inverse);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.cat-card:hover .cat-chip { background: var(--bg-page); color: var(--text-primary); }
+
+/* CTA-плашка «Нужна консультация?» (донор 88:23720: grey-10, radius 12, h112) */
+.consult-bar { margin-top: var(--sp-40); background: var(--bg-surface); }
+.consult-bar h4 { font-size: 1.5rem; line-height: 1.17; letter-spacing: -0.0025em; }
+.cta-field.w298, .cta-field.w298 .dbl { width: 18.625rem; max-width: 100%; }
+/* 298 — ширина ОДНОЙ пары, а не поля вообще. У «Помощи эксперта» после разводки состава
+   по канон-инварианту (2-Д «а») пар ДВЕ, и донорская ширина их сплющивала: замер давал
+   поле 298 при двух вложенных парах по 298. Ширину держат сами пары, поле идёт по
+   содержимому. Через :has, чтобы правило само находило двухпарное поле и не требовало
+   ещё одного класса-модификатора в разметке. */
+.cta-field.w298:has(.cta-field-row) { width: auto; }
+
+/* ============================================================
+   БЛОК 2 — «Модели вытяжных шкафов» (донор 88:23734):
+   секция grey-10; h2 52 → табы-чипы → белая карта-таблица → «Показать еще»
+   ============================================================ */
+.models-section { background: var(--bg-surface); padding: 3.75rem var(--edge-pad) 5rem; }
+.models-section h2 {
+  font-size: clamp(2.5rem, 2.7vw, 3.25rem); line-height: 1.08; letter-spacing: -0.0125em;
+  color: var(--text-primary);
+}
+/* донор-гэп 24 от cap-trim заголовка; наш line-box добирает остальное */
+.models-tabs { display: flex; gap: var(--sp-12); margin-top: var(--sp-4); flex-wrap: wrap; }
+.mtab {
+  background: var(--bg-page); border: 0; border-radius: var(--r-4); height: 1.75rem; padding: 0 var(--sp-8);
+  display: inline-flex; align-items: center;
+  font-weight: 300; font-size: 1rem; line-height: 1.5; letter-spacing: -0.01em;
+  color: var(--text-primary); white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.mtab:hover { color: var(--action-primary); }
+.mtab.is-active { background: var(--action-secondary); color: var(--text-inverse); }
+
+.models-card { background: var(--bg-page); margin-top: var(--sp-24); padding: var(--sp-20) var(--sp-24); display: flex; flex-direction: column; gap: var(--sp-20); }
+
+/* строка сорт-фильтров: белые чипы h24 с рамкой.
+   ⚠ Имя СВОЁ (.filter-btn), а не .menu-btn донора: .menu-btn — публичное имя nav-модуля
+   (чипы хедера). Одноимённые классы в одном документе дерутся, и правило модуля,
+   подключённого последним, перебило бы фильтры листинга. */
+.filter-btn {
+  background: var(--bg-page); border: var(--hairline) solid var(--border-default); border-radius: var(--r-4);
+  height: 1.5rem; padding: 0 0.125rem 0 var(--sp-8);
+  display: inline-flex; align-items: center; gap: var(--sp-8);
+  font-weight: 300; font-size: 0.9375rem; line-height: 1.33; letter-spacing: -0.01em;
+  color: var(--text-primary); white-space: nowrap;
+}
+.filter-btn:hover { color: var(--action-primary); }
+.filter-btn .chev {
+  width: 1.25rem; height: 1.25rem; border-radius: var(--r-2); background: var(--bg-surface-accent);
+  display: flex; align-items: center; justify-content: center; flex: none;
+}
+.filter-btn .chev img { width: 1rem; height: 1rem; }
+
+/* Строки таблицы. Пропорции донора (756/132/132/288/288 + кнопка 124, gap 16) отданы
+   грид-долями, а не прибитой шириной: сумма фикс-колонок ровно 1800 сходилась ТОЛЬКО
+   на 1920 и на 1440 давала горизонтальное переполнение. В долях те же отношения живут
+   на любой ширине. */
+.mrow {
+  display: grid;
+  grid-template-columns: minmax(0, 756fr) minmax(0, 132fr) minmax(0, 132fr) minmax(0, 288fr) minmax(0, 288fr) minmax(0, 124fr);
+  align-items: center; gap: var(--sp-16);
+}
+.mcell {
+  display: flex; align-items: center; min-height: 3.75rem; padding: var(--sp-10) var(--sp-12) var(--sp-10) 0;
+  font-weight: 300; font-size: 0.9375rem; line-height: 1.33; letter-spacing: -0.007em; color: var(--text-primary);
+  min-width: 0;
+}
+.mcell.c-name { overflow-wrap: anywhere; }
+.mrow--head .mcell { min-height: 2.5rem; }
+.mrow--head .mcell.c-top { gap: var(--sp-10); justify-content: space-between; }
+.mrow--head .mcell.c-top img { width: 1.5rem; height: 1.5rem; flex: none; }
+.mrow--body .mcell { border-bottom: var(--hairline) solid var(--border-default); }
+.mrow--body .mcell.c-name { border-bottom: var(--hairline) solid var(--border-strong); }
+.mrow--body:last-of-type .mcell { border-bottom: 0; }
+.mrow .c-name a { font-weight: 400; font-size: 1rem; line-height: 1.5; letter-spacing: -0.01em; color: var(--text-link); }
+.mrow .c-name a:hover { color: var(--blue-link-hover); text-decoration: underline; }
+.mrow .c-price { font-weight: 600; }
+.mcell.c-act { padding-right: 0; justify-content: flex-end; }
+.to-item {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--action-secondary); border-radius: var(--r-4); width: 100%; max-width: 7.75rem; height: 2.75rem;
+  font-weight: 400; font-size: 1rem; line-height: 1.5; letter-spacing: -0.01em; color: var(--text-inverse);
+  transition: background-color 0.15s ease;
+}
+.to-item:hover { background: var(--action-secondary-hover); }
+
+/* «Показать еще» — тёмная кнопка донора (не ghost) */
+.models-more {
+  margin-top: var(--sp-24);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--action-secondary); border: 0; border-radius: var(--r-4); height: 2.75rem; padding: 0 var(--sp-12);
+  font-weight: 400; font-size: 1rem; line-height: 1.5; letter-spacing: -0.01em; color: var(--text-inverse);
+  transition: background-color 0.15s ease;
+}
+.models-more:hover { background: var(--action-secondary-hover); }
+
+/* ============================================================
+   БЛОК 3 — УТП «Надёжность» (блок принят Антоном; в листинге full-bleed
+   без секционных полей — донор 1920×672)
+   ============================================================ */
+.utp-section { padding: 0; }
+.utp {
+  background: var(--bg-page);
+  border-radius: 1.5rem;
+  padding: 3.5rem var(--edge-pad) var(--sp-24);
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas:
+    "title c1 c2"
+    ".     .  c3";
+  gap: var(--sp-24);
+}
+.utp-title { grid-area: title; }
+.utp-title h2 {
+  font-size: clamp(2rem, 2.7vw, 3.25rem);
+  line-height: 1.06; letter-spacing: -0.01em;
+  color: var(--text-primary); text-transform: none; margin: 0;
+}
+.utp-scroll { display: contents; } /* обёртка нужна только моб-скроллу (приём продуктовой) */
+.utp-dots { display: none; }       /* моб-индикатор ленты — включает mobile.css (канон .offer-dots) */
+.utp-card--delivery { grid-area: c1; }
+.utp-card--terms { grid-area: c2; }
+.utp-card--warranty { grid-area: c3; }
+/* ⛔ СВОЕЙ .utp-card ЗДЕСЬ БОЛЬШЕ НЕТ — карточку целиком держит канон
+   (components.css §.utp-card / h5 / p / .utp-card-link). Страница грузит канон ПЕРЕД
+   этим файлом, поэтому местные объявления были чистым оверрайдом поверх него, и
+   расходились они по мелочи: padding-right клампом 90→124 вместо канонного
+   calc(иконка+офсет+воздух)=127.84, у абзаца line-height 1.45 и трекинг −0.012em
+   против макетных 1.412/−0.011em. Итог замера @1920 — 600×272 при эталоне 2192:38770
+   600×268, то есть +4 из ничего; @1440 — 291.7 против 286.5. Снос оверрайда дал ровно
+   канон 600×267.5 / 440×286.5 (сверка 02.08, четыре страницы).
+   ⛔ ПОДЪЁМА И ТЕНИ НА ХОВЕРЕ НЕТ — слово Антона 31.07 (queue-hub №40-①): «при ховере
+   карточка приподнимается с тенью что не нужно и откуда это вообще». Ховер карточки —
+   это КОЛЬЦО (канон [data-ring] в components.css), его Антон как раз хвалит. Правило
+   уехало вместе с блоком: у канона подъёма нет вовсе, возвращать сюда нечего. */
+/* Позиционирование и размер иконки СНЯТЫ со страницы и отданы канону
+   (components.css §.utp-card-ic / .utp-card-icon): кольцо рисуется на ОБЁРТКЕ, а
+   страничное правило с absolute перебивало её и оставляло голый глиф без кольца.
+   Числа канона те же по смыслу (--utp-ic 64→100 клампом, офсет --sp-20), но живут
+   в одном месте вместе с самим кольцом — иначе они снова разъедутся. */
+
+.utp-watermark {
+  position: absolute; left: clamp(1.5rem, 3vw, 2.25rem); bottom: var(--sp-24); z-index: 0;
+  width: clamp(30rem, 55vw, 66.75rem); aspect-ratio: 1068 / 235;
+  font-size: 0; user-select: none;
+  background-image: radial-gradient(circle at var(--mx, -100%) var(--my, -100%), var(--red-brand) 0%, var(--red-hover) 18%, var(--grey-10) 46%);
+  background-color: var(--bg-surface);
+  -webkit-mask-image: url("../../assets/figma/utp-logo-watermark.svg");
+  -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: contain;
+  mask-image: url("../../assets/figma/utp-logo-watermark.svg");
+  mask-repeat: no-repeat; mask-position: center; mask-size: contain;
+}
+
+/* ============================================================
+   БЛОК 4 — «Бесплатный онлайн проект лаборатории» (донор 88:23811)
+   НА КАНОНЕ ТЕНДЕРА (../product-card/css/components.css §ТЕНДЕР).
+   Решение Антона 22.07: идентичные блоки продуктовой переезжают на остальные
+   страницы каноном. Красная плашка r24, грид .tender-body с именованными area,
+   заголовок, .tender-visual (со своим overflow), белая .tender-card и посадка
+   CTA-полосы (grid-area cta + радиус 8 + Geologica-заголовок) приезжают ОТТУДА.
+
+   ⛔ Снесены 22.07 как двойники канона: .lab-project (лейаут секции — теперь
+   .tender-section+.tender-body), .lab-project-visual (→ .tender-visual),
+   .lab-project-title (→ .tender-title), фон/радиус/паддинг текст-карты
+   (→ .tender-card), .lab-project-cta + .lab-project-cta .cta-plain-title
+   (→ `.tender-section .cta-bar` и его же h4-исключение в каноне).
+   Ниже — только то, чего канон не описывает: посадка ОДНОЙ карточки в area «grid»
+   (у тендера их четыре и их держит .tender-grid) и геометрия СВОИХ ассетов визуала.
+   ============================================================ */
+.lab-project .tender-card { grid-area: grid; }
+/* Дуга и монитор — ассеты донора 88:23811 на месте флешки-рутокена. Канонные
+   .tender-ellipse/.tender-rutoken сюда не годятся: они несут поворот −48.84° и центровку
+   под конкретную флешку. Обрезку декора даёт канон-.tender-visual (overflow: hidden) —
+   своего overflow секции блок больше не держит.
+   Вертикальная центровка монитора — не переопределение канона, а ДОБАВКА: display у
+   .tender-visual канон не объявляет вовсе (у него блок по умолчанию). Нужна потому, что
+   у канон-грида колонка визуала тянется на высоту правой (три ряда), а монитор — картинка
+   В ПОТОКЕ со своей пропорцией: на 1920 он ровно в рост колонки, а на 1280 колонка режется
+   до ~250 и картинка иначе прилипла бы к верху с полосой красного под ней (у соседа
+   центровку даёт absolute-центр флешки — у нас ассет не абсолютный). */
+.lab-project .tender-visual { display: flex; align-items: center; }
+.lab-project-arc { position: absolute; left: 0; top: -4.75rem; width: 48.25rem; max-width: none; height: auto; }
+.lab-project-monitor {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 35.25rem; aspect-ratio: 564 / 532;
+  object-fit: cover; border-radius: var(--r-4);
+}
+/* Текст донора внутри канон-карточки: типографику абзаца канон уже задал
+   (.tender-card p — 14/20, grey-60, 300), здесь только донорский разделитель абзацев —
+   в тендере его нет, у карточек там один абзац. */
+.lab-project-text p.gap { margin-top: var(--sp-24); }
+
+/* ============================================================
+   БЛОК 5 — SEO «Мебель для лабораторий» (донор 88:23824, 1920×764):
+   фото-фон с тёмным оверлеем 50%, заголовок слева, 4 колонки текста 2×2.
+   Абсолютные координаты донора (600px колонки в фикс-высоте) заменены гридом
+   по той же причине, что и в блоке 4.
+   ============================================================ */
+.seo-section {
+  position: relative; overflow: hidden; background: var(--grey-70);
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--sp-24) clamp(1.5rem, 3vw, 3rem);
+  padding: 3.75rem var(--edge-pad);
+}
+.seo-bg { position: absolute; inset: 0; pointer-events: none; }
+.seo-bg img { position: absolute; width: 100%; object-fit: cover; }
+.seo-bg .base { inset: 0; height: 100%; }
+.seo-bg .photo { left: 0; top: -14.92%; height: 141.36%; }
+.seo-bg .shade { position: absolute; inset: 0; background: color-mix(in srgb, var(--grey-90) 50%, transparent); }
+.seo-title {
+  position: relative; z-index: 1;
+  font-size: clamp(1.75rem, 1.9vw, 2.25rem); line-height: 1.11; letter-spacing: -0.0075em;
+  color: var(--text-inverse); text-transform: uppercase;
+}
+.seo-cols {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-40) clamp(1.5rem, 2.5vw, 3rem);
+}
+.seo-col { display: flex; flex-direction: column; gap: var(--sp-20); color: var(--text-inverse); }
+.seo-col h3 {
+  font-size: 1.5rem; line-height: 1.17; letter-spacing: -0.0025em; color: var(--text-inverse);
+  text-transform: uppercase; margin: 0;
+}
+.seo-col p { font-weight: 300; font-size: 0.9375rem; line-height: 1.33; letter-spacing: -0.007em; margin: 0; }
+.seo-col p.gap { margin-top: var(--sp-20); }
