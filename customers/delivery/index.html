@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- ⛔ NOINDEX — не опция, а требование паспорта гига. Это демо-копия страниц живого
+       simple-pro.com; попав в индекс, она станет ДУБЛЕМ сайта клиента, чьё SEO ведёт
+       его собственный подрядчик. Мета стоит на КАЖДОЙ странице сборки и работает
+       независимо от того, куда её положили. Второй контур — code/robots.txt, но он
+       читается только из КОРНЯ домена: ляжет сборка в подкаталог проекта Pages —
+       робот его не увидит вовсе, и эта строка останется единственной защитой.
+       Снимать только вместе с решением «сайт уезжает клиенту как боевой». -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>Доставка, отгрузка, приёмка — Simple PRO</title>
+  <meta name="description" content="Доставляем лабораторную мебель в любой город России и СНГ: расчёт срока по городу, правила отгрузки со склада, приёмки покупателем и перечень изделий под дополнительную обрешётку.">
+  <link rel="canonical" href="https://simple-pro.com/customers/delivery/">
+  <link rel="icon" href="../../assets/figma/s-logo.svg" type="image/svg+xml">
+  <!-- ТОКЕН-СЛОЙ — единый источник дома (шрифты, примитивы, семантика, rem-зум полосы).
+       Своих копий цветов/кеглей у хаба нет. -->
+  <link rel="stylesheet" href="../../product-card/css/tokens.css">
+  <!-- Кнопки/копи-канон — общий компонентный слой продуктовой, не свой дубль -->
+  <link rel="stylesheet" href="../../product-card/css/components.css">
+  <link rel="stylesheet" href="../css/customers.css">
+  <link rel="stylesheet" href="../css/mobile.css">
+  <!-- Модули nav и footer — ПОСЛЕДНИМИ и в этом порядке (как в продуктовой и листинге):
+       их em-своды обязаны выигрывать у одноимённых правил сборки при равной специфичности. -->
+  <link rel="stylesheet" href="../../nav/nav.css">
+  <link rel="stylesheet" href="../../footer/footer.css">
+  <!-- DEBUG:vw-badge — вырезать при сборке -->
+  <!-- служебная плашка ширины: КАНОН один на дом — ../../product-card/debug.* (№42, 31.07) -->
+  <link rel="stylesheet" href="../../product-card/debug.css">
+  <!-- /DEBUG:vw-badge -->
+</head>
+<body>
+
+<!-- ⚠ СТРАНИЦА СОБРАНА ШАБЛОНОМ _scratch/build.py. Разметка шапки, подвала и колонки
+     разделов одна на все девять разделов — править её здесь руками значит развести
+     эту копию с восемью остальными. Правка идёт в шаблон, потом пересборка. -->
+
+<!-- ═══ ХЕДЕР — МОДУЛЬ (code/nav/). Разметка/стили/скрипт живут в модуле, продуктовая
+     на них ССЫЛАЕТСЯ. Врезано 21.07 взамен встроенного .site-header (73 строки).
+     Режим — направленный (канон свода v8); дев-тумблер стенда СОЗНАТЕЛЬНО не перенесён,
+     nav.js без data-nav-mode сам берёт directional. Ветку «всегда полный» в модуле
+     не удаляем до слова клиента. ═══ -->
+  <header class="nav-header">
+    <!-- Лого-колонка на два ряда. На узком деске (≤ точки слома полного лого) она
+         ИСЧЕЗАЕТ целиком, а знак S уходит первым чипом в верхний ряд (см. .menu-btn--logo-s):
+         ряд категорий получает всю ширину. Состав хедера при этом не меняется. -->
+    <a class="nav-logo" href="#" aria-label="Simplepro — на главную">
+      <img src="../../assets/figma/header-logo.svg" alt="Simplepro">
+    </a>
+    <div class="nav-rows">
+      <div class="nav-row-top">
+        <div class="row-left">
+          <!-- S-квадрат: живёт ТОЛЬКО на узком деске, когда лого-колонка исчезла.
+               Высота = высоте чипа верхнего ряда (28-базис в em), стоит первым, слева от Региона. -->
+          <a class="menu-btn menu-btn--logo-s" href="#" aria-label="Simplepro — на главную">
+            <img src="../../assets/figma/s-logo.svg" alt="Simplepro">
+          </a>
+          <!-- Регион: чип + дропдаун на панели мега-меню (список перенесён с продуктовой).
+               Глиф — inline-svg на currentColor: в <img> внешний CSS не проникает,
+               а на hover бокс инвертируется и глиф обязан стать белым. -->
+          <div class="region-wrap">
+            <button class="menu-btn menu-btn--suffix" type="button" data-region-btn
+                    aria-haspopup="listbox" aria-expanded="false">
+              <span data-region-label>Регион</span>
+              <span class="suffix-box">
+                <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.75 9 11.25l4.5-4.5"/></svg>
+              </span>
+            </button>
+            <div class="nav-mega-menu" role="listbox" aria-label="Выбор региона" data-region-menu></div>
+          </div>
+        </div>
+        <nav class="row-middle" aria-label="Разделы сайта">
+          <a class="menu-btn" href="#"><span class="special-dot" aria-hidden="true"></span>Лабораторные пространства</a>
+          <a class="menu-btn" href="#">Компания</a>
+          <a class="menu-btn" href="#">Проекты</a>
+          <a class="menu-btn" href="#">Гарантии</a>
+          <a class="menu-btn" href="#">Цены</a>
+          <a class="menu-btn" href="#">Контакты</a>
+        </nav>
+        <div class="row-right">
+          <!-- поиск: hover/фокус раскрывает строку ВЛЕВО до лого; строка absolute,
+               поэтому раскладку ряда не двигает и переполнения дать не может -->
+          <div class="search-wrap" data-search>
+            <input class="search-field" type="search" placeholder="Поиск по каталогу" aria-label="Поиск по каталогу" tabindex="-1">
+            <button class="menu-btn menu-btn--icon" type="button" aria-label="Поиск" data-search-btn>
+              <span class="icon-box"><img src="../../assets/figma/header-zoom.svg" alt=""></span>
+            </button>
+          </div>
+          <!-- контакты ТЕКСТОМ с копи-кнопками на любой деск-ширине: ступени «текст→иконка» нет -->
+          <button class="menu-btn menu-btn--suffix menu-btn--tight" type="button" data-copy="+78006004069" aria-label="Скопировать телефон">
+            +7 (800) 600 40 69
+            <span class="suffix-box">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.009 12.553a1.8 1.8 0 0 1-.759-1.303V3.75c0-.825.675-1.5 1.5-1.5h7.5c.563 0 .869.289 1.125.75M5.25 7.25a2 2 0 0 1 2-2h6.5a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2h-6.5a2 2 0 0 1-2-2z"/></svg>
+            </span>
+          </button>
+          <button class="menu-btn menu-btn--suffix menu-btn--tight" type="button" data-copy="info@simple-pro.com" aria-label="Скопировать email">
+            info@simple-pro.com
+            <span class="suffix-box">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.009 12.553a1.8 1.8 0 0 1-.759-1.303V3.75c0-.825.675-1.5 1.5-1.5h7.5c.563 0 .869.289 1.125.75M5.25 7.25a2 2 0 0 1 2-2h6.5a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2h-6.5a2 2 0 0 1-2-2z"/></svg>
+            </span>
+          </button>
+          <a class="menu-btn menu-btn--icon" href="#" aria-label="Telegram" data-brand-chip="tg">
+            <img data-brand src="../../assets/figma/icon-tg.svg" alt="">
+          </a>
+          <a class="menu-btn menu-btn--icon" href="#" aria-label="MAX" data-brand-chip="max">
+            <img data-brand src="../../assets/figma/icon-max.svg" alt="">
+          </a>
+          <button class="menu-btn menu-btn--icon" type="button" aria-label="Избранное">
+            <span class="icon-box"><img src="../../assets/figma/header-heart.svg" alt=""></span>
+          </button>
+          <button class="menu-btn menu-btn--icon menu-btn--cart" type="button" aria-label="Корзина">
+            <span class="icon-box"><img src="../../assets/figma/header-cart.svg" alt=""></span>
+          </button>
+        </div>
+      </div>
+      <nav class="nav-row-cats" aria-label="Каталог" data-cats></nav>
+    </div>
+  </header>
+
+  <!-- ============ nav-bottom-bar (моб): белая floating-плашка ============ -->
+  <!-- состав: бургер · лого | конверт · tg · MAX · корзина (20.07: гео-пин убран, MAX добавлен).
+       Две связки, распор только МЕЖДУ ними — не россыпь по всей ширине.
+       Канон 21.07 (моб-макет Frame 1000005299, 360): поле бара 8 · кнопка 40×40, глиф 24 ·
+       лого СЛОВЕСНОЕ 91×20 (знак S в баре отменён) · правая связка ровно 160 = 4×40 БЕЗ гэпов. -->
+  <div class="nav-bottom-bar">
+    <div class="bar-group">
+      <button class="bar-btn bar-btn--burger" type="button" data-burger aria-label="Меню" aria-expanded="false">
+        <svg class="icon-burger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
+      <a class="bar-logo-link" href="#" aria-label="Simplepro — на главную"><img class="bar-logo" src="../../assets/figma/header-logo.svg" alt="Simplepro"></a>
+    </div>
+    <div class="bar-group bar-group--icons">
+      <a class="bar-btn" href="mailto:info@simple-pro.com" aria-label="Email">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+      </a>
+      <a class="bar-btn" href="#" aria-label="Telegram"><img src="../../assets/figma/icon-tg.svg" alt=""></a>
+      <a class="bar-btn" href="#" aria-label="MAX"><img src="../../assets/figma/icon-max.svg" alt=""></a>
+      <button class="bar-btn bar-btn--cart" type="button" aria-label="Корзина">
+        <img src="../../assets/figma/header-cart.svg" alt="">
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ nav-menu-sheet (моб-меню: bottom-sheet, два экрана) ============ -->
+  <div class="nav-menu-sheet" role="dialog" aria-modal="true" aria-label="Меню">
+    <div class="sheet-panel" data-panel-root>
+      <div class="sheet-search">
+        <input type="search" placeholder="Поиск">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg>
+      </div>
+      <nav class="sheet-list" aria-label="Каталог" data-root-list></nav>
+      <a class="sheet-banner" href="#">
+        <img src="../../assets/figma/adv-pic2.png" alt="">
+        <span class="banner-row">
+          Лабораторные пространства
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>
+        </span>
+      </a>
+      <nav class="sheet-secondary" aria-label="Разделы сайта" data-secondary-list></nav>
+    </div>
+    <div class="sheet-panel" data-panel-cat hidden>
+      <button class="sheet-back" type="button">
+        <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>
+        Назад
+      </button>
+      <h4 class="sheet-cat-title" data-cat-title></h4>
+      <div class="sheet-hero"><img data-cat-hero src="../../assets/figma/adv-pic1.png" alt=""></div>
+      <nav class="sheet-list" data-cat-list></nav>
+    </div>
+  </div>
+
+<main class="hub">
+
+  <!-- Фирменная графика: дуга по рецепту брендбука стр. 28 (assets/brand-arc.svg).
+       Работа у неё несущая, а не декоративная — семь разделов из девяти по 2.2–4.2
+       тыс. знаков, без дуги правая половина первого экрана остаётся пустым полем.
+       aria-hidden: смысла не несёт, скринридеру читать нечего.
+
+       ДВА УЗЛА, А НЕ ОДИН. Внешний .hub-arc-track — absolute на всю контентную
+       секцию: он и есть ограничитель, ниже которого дуге хода нет. Внутренний
+       .hub-arc — sticky внутри него, отсюда «стоит на месте при прокрутке».
+       Одним узлом это не собирается: sticky обязан быть в потоке, а бокс 756 в
+       потоке двигает грид; гасить его отрицательным margin нельзя — ограничение
+       низа считается по margin-edge, и с margin-bottom −722 дуга снова выезжала
+       на подвал (замер 04.08: перекрытие 722 из 756). Трек снимает оба условия
+       разом: место в потоке не занимает он, а границу держит его нижний край. -->
+  <div class="hub-arc-track" aria-hidden="true">
+    <div class="hub-arc"><img src="../assets/brand-arc.svg" alt=""></div>
+  </div>
+
+  <div class="hub-grid">
+
+    <!-- Колонка разделов. Все девять href — НАСТОЯЩИЕ, мёртвых пунктов нет:
+         каждый ведёт в собранную страницу этой же папки (правило затравки 04.08). -->
+    <nav class="hub-nav" aria-label="Разделы «Покупателю»">
+      <a class="hub-nav-item" href="../prices/">Цены</a>
+      <a class="hub-nav-item" href="../order/">Как заказать</a>
+      <a class="hub-nav-item" href="../dates/">Сроки</a>
+      <a class="hub-nav-item" href="../warranties/">Гарантия</a>
+      <a class="hub-nav-item is-active" href="../delivery/" aria-current="page">Доставка</a>
+      <a class="hub-nav-item" href="../certificates/">Сертификаты</a>
+      <a class="hub-nav-item" href="../manufacturing/">Производство</a>
+      <a class="hub-nav-item" href="../3d/">3D визуализация</a>
+      <a class="hub-nav-item" href="../materials/">Столешницы</a>
+    </nav>
+
+    <div class="hub-content">
+
+      <!-- Крошки — канон продуктовой (точки-разделители, чип «Вернуться»).
+           Ссылки цепочки — href="#" по конвенции дома (144 из 151 «решётки» оставлены
+           словом Антона 31.07): страниц «Главная» и «Покупателю» в сборке нет.
+           В DOM цепочка остаётся и на мобе — BreadcrumbList-семантику не теряем. -->
+      <nav class="breadcrumbs" aria-label="Хлебные крошки">
+        <a href="#" class="back"><img src="../../assets/figma/crumb-arrow-left.svg" alt="" width="12" height="12"><span class="back-label">Вернуться</span></a>
+        <a href="#" class="crumb">Главная</a>
+        <span class="sep"><img src="../../assets/figma/crumb-dot.svg" alt="" width="8" height="16"></span>
+        <a href="#" class="crumb">Покупателю</a>
+        <span class="sep"><img src="../../assets/figma/crumb-dot-dark.svg" alt="" width="8" height="16"></span>
+        <span class="current">Доставка</span>
+      </nav>
+
+      <h1>Доставка, отгрузка, приёмка</h1>
+
+      <div class="hub-body">
+        <p>Доставляем нашу мебель в любой город по России и СНГ. Организуем перевозку, страховку и ответственность за сохранность до прибытия в вашу лабораторию. Если в пути возникнут повреждения, мы <strong>бесплатно</strong> доставим и заменим поврежденные детали или изделие целиком.</p>
+
+        <p>Благодаря разборной конструкции мебель занимает небольшой объём, что сокращает стоимость доставки. Точная стоимость и срок доставки будет указан в КП. Пришлите заявку на <a href="mailto:info@simple-pro.com">info@simple-pro.com</a></p>
+
+        <!-- Калькулятор срока. Данные (город → дни) сняты с живого simple-pro.com:
+             207 городов, у каждого свой срок в data-days. Второго источника правды
+             нет — считает по разметке js/hub.js §2. -->
+        <h2>Расчёт срока доставки</h2>
+        <p>Узнать ориентировочный срок доставки можно, выбрав свой город в списке.</p>
+
+        <div class="calc">
+          <label class="calc-field">
+            <span class="lbl">Город</span>
+            <select data-delivery-city>
+              <option value="" disabled selected>Введите название города</option>
+              <option value="Адлер" data-days="9">Адлер</option>
+              <option value="Альметьевск" data-days="9">Альметьевск</option>
+              <option value="Анапа(Красн.кр.)" data-days="11">Анапа(Красн.кр.)</option>
+              <option value="Арзамас" data-days="7">Арзамас</option>
+              <option value="Артем" data-days="21">Артем</option>
+              <option value="Архангельск" data-days="7">Архангельск</option>
+              <option value="Асбест" data-days="10">Асбест</option>
+              <option value="Балаково" data-days="9">Балаково</option>
+              <option value="Балашиха" data-days="5">Балашиха</option>
+              <option value="Барнаул" data-days="11">Барнаул</option>
+              <option value="Бердск" data-days="11">Бердск</option>
+              <option value="Березники" data-days="9">Березники</option>
+              <option value="Бийск" data-days="11">Бийск</option>
+              <option value="Борисоглебск" data-days="7">Борисоглебск</option>
+              <option value="Боровичи" data-days="8">Боровичи</option>
+              <option value="Братск" data-days="15">Братск</option>
+              <option value="Брянск" data-days="4">Брянск</option>
+              <option value="Бугульма(Татарст.)" data-days="7">Бугульма(Татарст.)</option>
+              <option value="Великие Луки" data-days="7">Великие Луки</option>
+              <option value="Великий Новгород" data-days="3">Великий Новгород</option>
+              <option value="Владивосток" data-days="17">Владивосток</option>
+              <option value="Владимир" data-days="4">Владимир</option>
+              <option value="Волгоград" data-days="6">Волгоград</option>
+              <option value="Волжский" data-days="8">Волжский</option>
+              <option value="Вологда" data-days="6">Вологда</option>
+              <option value="Воркута" data-days="23">Воркута</option>
+              <option value="Воронеж" data-days="5">Воронеж</option>
+              <option value="Воскресенск" data-days="7">Воскресенск</option>
+              <option value="Воткинск(Удмуртия)" data-days="9">Воткинск(Удмуртия)</option>
+              <option value="Всеволожск" data-days="3">Всеволожск</option>
+              <option value="Выборг" data-days="3">Выборг</option>
+              <option value="Гатчина" data-days="3">Гатчина</option>
+              <option value="Глазов" data-days="8">Глазов</option>
+              <option value="Горелово(Лен.обл.)" data-days="3">Горелово(Лен.обл.)</option>
+              <option value="Грозный" data-days="9">Грозный</option>
+              <option value="Дзержинск" data-days="7">Дзержинск</option>
+              <option value="Димитровград" data-days="7">Димитровград</option>
+              <option value="Дмитров" data-days="6">Дмитров</option>
+              <option value="Домодедово" data-days="6">Домодедово</option>
+              <option value="Евпатория" data-days="11">Евпатория</option>
+              <option value="Ейск" data-days="8">Ейск</option>
+              <option value="Екатеринбург" data-days="8">Екатеринбург</option>
+              <option value="Железнодорожный" data-days="6">Железнодорожный</option>
+              <option value="Забайкальск" data-days="15">Забайкальск</option>
+              <option value="Зеленоград" data-days="6">Зеленоград</option>
+              <option value="Златоуст" data-days="9">Златоуст</option>
+              <option value="Иваново" data-days="4">Иваново</option>
+              <option value="Ижевск" data-days="8">Ижевск</option>
+              <option value="Йошкар-Ола" data-days="8">Йошкар-Ола</option>
+              <option value="Казань" data-days="6">Казань</option>
+              <option value="Калининград" data-days="15">Калининград</option>
+              <option value="Каменск-Шахтинский" data-days="6">Каменск-Шахтинский</option>
+              <option value="Кемерово" data-days="10">Кемерово</option>
+              <option value="Керчь" data-days="13">Керчь</option>
+              <option value="Киров" data-days="7">Киров</option>
+              <option value="Клин" data-days="7">Клин</option>
+              <option value="Клинцы" data-days="7">Клинцы</option>
+              <option value="Ковров" data-days="7">Ковров</option>
+              <option value="Коломна" data-days="6">Коломна</option>
+              <option value="Колпино" data-days="3">Колпино</option>
+              <option value="Комсомольск-на-Амуре" data-days="19">Комсомольск-на-Амуре</option>
+              <option value="Кострома" data-days="5">Кострома</option>
+              <option value="Котлас" data-days="8">Котлас</option>
+              <option value="Красногорск" data-days="7">Красногорск</option>
+              <option value="Краснодар" data-days="6">Краснодар</option>
+              <option value="Краснокамск" data-days="10">Краснокамск</option>
+              <option value="Красноярск" data-days="11">Красноярск</option>
+              <option value="Кумертау(Башк-н)" data-days="9">Кумертау(Башк-н)</option>
+              <option value="Курган" data-days="9">Курган</option>
+              <option value="Курск" data-days="4">Курск</option>
+              <option value="Ленинск-Кузнецкий" data-days="10">Ленинск-Кузнецкий</option>
+              <option value="Ливны" data-days="7">Ливны</option>
+              <option value="Липецк" data-days="4">Липецк</option>
+              <option value="Магнитогорск" data-days="9">Магнитогорск</option>
+              <option value="Миасс" data-days="10">Миасс</option>
+              <option value="Мичуринск" data-days="7">Мичуринск</option>
+              <option value="Москва" data-days="3">Москва</option>
+              <option value="Мурманск" data-days="7">Мурманск</option>
+              <option value="Муром" data-days="5">Муром</option>
+              <option value="Мытищи" data-days="6">Мытищи</option>
+              <option value="Набережные Челны" data-days="6">Набережные Челны</option>
+              <option value="Нальчик" data-days="9">Нальчик</option>
+              <option value="Наро-Фоминск(Моск.обл.)" data-days="6">Наро-Фоминск(Моск.обл.)</option>
+              <option value="Находка" data-days="20">Находка</option>
+              <option value="Нижнекамск" data-days="8">Нижнекамск</option>
+              <option value="Нижний Новгород" data-days="6">Нижний Новгород</option>
+              <option value="Нижний Тагил" data-days="9">Нижний Тагил</option>
+              <option value="Новокузнецк" data-days="11">Новокузнецк</option>
+              <option value="Новомосковск" data-days="7">Новомосковск</option>
+              <option value="Новороссийск" data-days="8">Новороссийск</option>
+              <option value="Новосибирск" data-days="10">Новосибирск</option>
+              <option value="Новоуральск" data-days="9">Новоуральск</option>
+              <option value="Новочеркасск" data-days="8">Новочеркасск</option>
+              <option value="Обнинск" data-days="5">Обнинск</option>
+              <option value="Озерск" data-days="9">Озерск</option>
+              <option value="Октябрьский" data-days="8">Октябрьский</option>
+              <option value="Орел" data-days="6">Орел</option>
+              <option value="Оренбург" data-days="9">Оренбург</option>
+              <option value="Орехово-Зуево" data-days="7">Орехово-Зуево</option>
+              <option value="Орск" data-days="10">Орск</option>
+              <option value="Павлово" data-days="6">Павлово</option>
+              <option value="Пенза" data-days="5">Пенза</option>
+              <option value="Пермь" data-days="8">Пермь</option>
+              <option value="Петропавловск-Камчатский" data-days="32">Петропавловск-Камчатский</option>
+              <option value="Прокопьевск" data-days="12">Прокопьевск</option>
+              <option value="Псков" data-days="3">Псков</option>
+              <option value="Пушкин" data-days="3">Пушкин</option>
+              <option value="Пушкино" data-days="6">Пушкино</option>
+              <option value="Пятигорск" data-days="7">Пятигорск</option>
+              <option value="Ржев" data-days="7">Ржев</option>
+              <option value="Рославль" data-days="7">Рославль</option>
+              <option value="Ростов-на-Дону" data-days="6">Ростов-на-Дону</option>
+              <option value="Рыбинск" data-days="7">Рыбинск</option>
+              <option value="Рязань" data-days="5">Рязань</option>
+              <option value="Самара" data-days="8">Самара</option>
+              <option value="Саратов" data-days="7">Саратов</option>
+              <option value="Севастополь" data-days="11">Севастополь</option>
+              <option value="Северодвинск" data-days="7">Северодвинск</option>
+              <option value="Серпухов" data-days="7">Серпухов</option>
+              <option value="Смоленск" data-days="5">Смоленск</option>
+              <option value="Сосновый Бор" data-days="3">Сосновый Бор</option>
+              <option value="Сочи" data-days="8">Сочи</option>
+              <option value="Ставрополь" data-days="7">Ставрополь</option>
+              <option value="Старый Оскол" data-days="7">Старый Оскол</option>
+              <option value="Ступино" data-days="7">Ступино</option>
+              <option value="Сызрань" data-days="9">Сызрань</option>
+              <option value="Сыктывкар" data-days="9">Сыктывкар</option>
+              <option value="Таганрог" data-days="8">Таганрог</option>
+              <option value="Тамбов" data-days="5">Тамбов</option>
+              <option value="Тихвин(Лен.обл.)" data-days="3">Тихвин(Лен.обл.)</option>
+              <option value="Тобольск" data-days="11">Тобольск</option>
+              <option value="Тольятти" data-days="7">Тольятти</option>
+              <option value="Томилино" data-days="5">Томилино</option>
+              <option value="Томск" data-days="11">Томск</option>
+              <option value="Туапсе" data-days="9">Туапсе</option>
+              <option value="Тула" data-days="5">Тула</option>
+              <option value="Тюмень" data-days="9">Тюмень</option>
+              <option value="Улан-Удэ" data-days="13">Улан-Удэ</option>
+              <option value="Усинск" data-days="25">Усинск</option>
+              <option value="Уссурийск" data-days="19">Уссурийск</option>
+              <option value="Ухта" data-days="10">Ухта</option>
+              <option value="Феодосия" data-days="10">Феодосия</option>
+              <option value="Хабаровск" data-days="18">Хабаровск</option>
+              <option value="Ханты-Мансийск" data-days="12">Ханты-Мансийск</option>
+              <option value="Чайковский(Перм.кр.)" data-days="9">Чайковский(Перм.кр.)</option>
+              <option value="Чебоксары" data-days="6">Чебоксары</option>
+              <option value="Челябинск" data-days="8">Челябинск</option>
+              <option value="Череповец" data-days="7">Череповец</option>
+              <option value="Чехов" data-days="7">Чехов</option>
+              <option value="Чита" data-days="14">Чита</option>
+              <option value="Шадринск" data-days="9">Шадринск</option>
+              <option value="Шахты" data-days="8">Шахты</option>
+              <option value="Шереметьево" data-days="5">Шереметьево</option>
+              <option value="Южно-Сахалинск" data-days="47">Южно-Сахалинск</option>
+              <option value="Якутск" data-days="20">Якутск</option>
+              <option value="Ялта" data-days="10">Ялта</option>
+              <option value="Ярославль" data-days="4">Ярославль</option>
+              <option value="Абакан" data-days="14">Абакан</option>
+              <option value="Ангарск" data-days="15">Ангарск</option>
+              <option value="Апатиты" data-days="8">Апатиты</option>
+              <option value="Армавир" data-days="9">Армавир</option>
+              <option value="Астрахань" data-days="8">Астрахань</option>
+              <option value="Ачинск" data-days="13">Ачинск</option>
+              <option value="Белгород" data-days="5">Белгород</option>
+              <option value="Белорецк" data-days="10">Белорецк</option>
+              <option value="Благовещенск" data-days="19">Благовещенск</option>
+              <option value="Бузулук" data-days="9">Бузулук</option>
+              <option value="Владикавказ" data-days="9">Владикавказ</option>
+              <option value="Волгодонск" data-days="8">Волгодонск</option>
+              <option value="Елец" data-days="7">Елец</option>
+              <option value="Иркутск" data-days="12">Иркутск</option>
+              <option value="Калуга" data-days="6">Калуга</option>
+              <option value="Каменск-Уральский" data-days="9">Каменск-Уральский</option>
+              <option value="Камышин" data-days="9">Камышин</option>
+              <option value="Качканар" data-days="9">Качканар</option>
+              <option value="Кирово-Чепецк" data-days="8">Кирово-Чепецк</option>
+              <option value="Кропоткин" data-days="8">Кропоткин</option>
+              <option value="Кузнецк" data-days="9">Кузнецк</option>
+              <option value="Майкоп" data-days="8">Майкоп</option>
+              <option value="Махачкала" data-days="10">Махачкала</option>
+              <option value="Невинномысск" data-days="8">Невинномысск</option>
+              <option value="Нефтекамск" data-days="9">Нефтекамск</option>
+              <option value="Нижневартовск" data-days="11">Нижневартовск</option>
+              <option value="Новочебоксарск" data-days="9">Новочебоксарск</option>
+              <option value="Новый Уренгой" data-days="12">Новый Уренгой</option>
+              <option value="Ногинск" data-days="6">Ногинск</option>
+              <option value="Ноябрьск" data-days="12">Ноябрьск</option>
+              <option value="Одинцово" data-days="6">Одинцово</option>
+              <option value="Омск" data-days="9">Омск</option>
+              <option value="Первоуральск" data-days="9">Первоуральск</option>
+              <option value="Петрозаводск" data-days="4">Петрозаводск</option>
+              <option value="Подольск" data-days="5">Подольск</option>
+              <option value="Россошь" data-days="7">Россошь</option>
+              <option value="Рубцовск" data-days="13">Рубцовск</option>
+              <option value="Салават" data-days="9">Салават</option>
+              <option value="Саранск" data-days="7">Саранск</option>
+              <option value="Сергиев Посад" data-days="7">Сергиев Посад</option>
+              <option value="Серов" data-days="9">Серов</option>
+              <option value="Симферополь" data-days="10">Симферополь</option>
+              <option value="Солнечногорск" data-days="7">Солнечногорск</option>
+              <option value="Стерлитамак" data-days="10">Стерлитамак</option>
+              <option value="Сургут" data-days="11">Сургут</option>
+              <option value="Тверь" data-days="5">Тверь</option>
+              <option value="Ульяновск" data-days="7">Ульяновск</option>
+              <option value="Усть-Кут" data-days="15">Усть-Кут</option>
+              <option value="Уфа" data-days="7">Уфа</option>
+              <option value="Энгельс" data-days="8">Энгельс</option>
+            </select>
+          </label>
+          <div class="calc-out">
+            <span class="lbl">Срок доставки</span>
+            <span class="val" data-delivery-out>—</span>
+          </div>
+        </div>
+
+        <h2>Правила отгрузки товара со склада и приёмки покупателем</h2>
+
+        <h3>Отгрузка товара со склада</h3>
+        <p>Отгрузка товара осуществляется юридическим лицам — при наличии доверенности, паспорта и печати организации. Физическим лицам — при наличии паспорта.</p>
+        <p>Отгрузка товара представителю транспортной компании, заказанной Покупателем, осуществляется на условиях самовывоза.</p>
+
+        <p>Отгрузка товара самовывозом со склада «СпецБалтМебель»:</p>
+        <ul class="hub-list">
+          <li>Самовывоз со склада «СпецБалтМебель» осуществляется представителю транспортной компании, заказанной «СпецБалтМебель» или представителю транспортной компании, заказанной Покупателем.</li>
+          <li>Отгрузка производится по адресу: г. Санкт-Петербург, пос. Шушары, Новгородский пр. 25 к 3.</li>
+          <li>Режим отгрузки: с понедельника по пятницу, с 10:00 до 16:00, обед с 12:30 до 13:00. По выходным отгрузки не осуществляются.</li>
+          <li>Подача груза осуществляется только на борт автотранспортного средства. Распределение, установка, закрепление груза в кузове осуществляется силами водителя, перевозчика или экспедитора.</li>
+        </ul>
+
+        <p>Отгрузка товара наёмным транспортом:</p>
+        <ul class="hub-list">
+          <li>Дату и время доставки Покупатель согласовывает с отделом логистики.</li>
+          <li>Доставка осуществляется до подъезда указанного при оформлении заказа адреса. Приём-передача товара осуществляется у автотранспорта Перевозчика. Выгрузка, подъём на этаж, сборка и прочее не входит в услугу доставки и осуществляется силами и за счёт покупателя.</li>
+          <li>Время ожидания водителем-экспедитором Покупателя по адресу доставки составляет не более 20 минут. Повторная доставка товара Покупателю (вне зависимости от суммы заказа) оплачивается Покупателем повторно.</li>
+        </ul>
+
+        <h3>Приёмка товара покупателем</h3>
+        <p>При получении товара Покупатель должен проверить соответствие маркировки и количество получаемого товара по накладной, а также осмотреть целостность упаковки Товара. В случае выявления несоответствий — составить коммерческий акт в присутствии представителя транспортной компании.</p>
+
+        <h3>Обратите внимание</h3>
+        <ul class="hub-list">
+          <li>«СпецБалтМебель» рекомендует в целях сохранности груза через транспортную компанию заказывать дополнительную упаковку. С перечнем товара, подлежащего обязательной дополнительной упаковке, и её стоимостью можно ознакомиться ниже.</li>
+          <li>«СпецБалтМебель» не оказывает услуги по изготовлению дополнительной упаковки и ответственности за изготовленную в транспортной компании дополнительную упаковку не несёт.</li>
+          <li>Переход прав собственности осуществляется в момент передачи товара Покупателю (получателю, экспедитору, представителю). Товар, соответствующий требованиям ГОСТов и/или ТУ, возврату и обмену не подлежит.</li>
+        </ul>
+
+        <h2>Вам также может понадобиться</h2>
+        <div class="doc-links">
+          <a href="https://simple-pro.com/upload/Pravilapriemagruza.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 11l5 5 5-5M12 4v12"/></svg> Правила приёмки груза у транспортной компании (pdf)</a>
+          <a href="https://simple-pro.com/upload/TransportirovkaHranenie.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 11l5 5 5-5M12 4v12"/></svg> Правила транспортировки и хранения (pdf)</a>
+        </div>
+
+        <h2>Перечень изделий, подлежащих дополнительной обрешётке</h2>
+        <div class="crate-cols">
+          <div class="crate-group">
+            <h3>Шкафы лабораторные (из ЛДСП)</h3>
+            <ul>
+              <li>Шкаф для реактивов ЛК-400 ШР, ЛК-800 ШР</li>
+              <li>Шкаф для лабораторной посуды ЛК-400 ШЛП, ЛК-800 ШЛП</li>
+              <li>Шкаф для приборов ЛК-400 ШП, ЛК-800 ШП</li>
+              <li>Шкаф гардеробный ЛК-400 ШГ, ЛК-800 ШГ</li>
+              <li>Шкаф для документов офисный ЛК-400 ШДО, ЛК-800 ШДО</li>
+              <li>Шкаф для реактивов кислостойкий ЛК-600 ШРП</li>
+            </ul>
+          </div>
+          <div class="crate-group">
+            <h3>Тумбы подвесные</h3>
+            <ul>
+              <li>Тумба подвесная ЛК-900 ТД (ТД-П)</li>
+              <li>Тумба подвесная ЛК-1200 ТД (ТД-П)</li>
+              <li>Тумба подвесная ЛК-1500 ТД (ТД-П)</li>
+              <li>Тумба подвесная ЛК-1800 ТД (ТД-П)</li>
+            </ul>
+          </div>
+          <div class="crate-group">
+            <h3>Мойки</h3>
+            <ul>
+              <li>Мойка ЛК-600 СМС (СМС-Г, СМС-ПВ)</li>
+              <li>Мойка ЛК-800 СМС</li>
+              <li>Мойка ЛК-900 (СМС-Г, СМС-ПВ)</li>
+              <li>Мойка ЛК-1200 СМС (СМС-Г, СМС-ПВ)</li>
+              <li>Мойка ЛК-1500 СМС-Г (СМС-ПВ)</li>
+            </ul>
+          </div>
+          <div class="crate-group">
+            <h3>Шкафы навесные</h3>
+            <ul>
+              <li>Шкаф навесной ЛК-900 ШН</li>
+              <li>Шкаф навесной ЛК-1200 ШН</li>
+              <li>Шкаф навесной ЛК-1500 ШН</li>
+              <li>Шкаф навесной ЛК-1800 ШН</li>
+            </ul>
+          </div>
+          <div class="crate-group">
+            <h3>Столы лабораторные</h3>
+            <ul>
+              <li>Стол лабораторный 900 СЛ-Т</li>
+              <li>Стол лабораторный 1200 СЛ-Т</li>
+            </ul>
+          </div>
+          <div class="crate-group">
+            <h3>Стулья лабораторные</h3>
+            <ul>
+              <li>ТЕКО</li>
+            </ul>
+          </div>
+          <div class="crate-group">
+            <h3>Стеллажи металлические СТ-12, СТ-13</h3>
+          </div>
+        </div>
+        <p>Обрешётка перечисленных изделий заказывается в случае отправки груза непрямой машиной (сборным грузом) через транспортные компании.</p>
+        <p>В случае отправки груза прямой машиной или контейнером дополнительная обрешётка не производится.</p>
+        <p>Изделия из металла и полипропилена также не нуждаются в доп. упаковке, так как уже идут в ящиках из ДСП.</p>
+
+        <h2>Карта проезда</h2>
+        <figure class="hub-figure-wide">
+          <img src="../assets/map-route.webp" width="1700" height="1280" alt="Схема проезда на склад «СпецБалтМебель»: Санкт-Петербург, пос. Шушары, Новгородский проспект, д. 25, кор. 3" loading="lazy">
+        </figure>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ═══ БЛОК 14: ФУТЕР — МОДУЛЬ (code/footer/). Разметка/стили/скрипт живут в модуле,
+     продуктовая на них ССЫЛАЕТСЯ. Врезано 21.07 взамен встроенного футера:
+     17 имён классов совпадали один-в-один, сосуществовать физически не могли. ═══ -->
+  <footer class="site-footer" id="footSection">
+    <img class="footer-watermark" src="../../assets/figma/footer-right-logo-watermark.svg" alt="">
+    <div class="footer-grid">
+      <form class="status-panel" aria-labelledby="sp-title">
+        <p class="sp-title" id="sp-title">Проверить статус заказа</p>
+        <div class="sp-fields">
+          <label class="sp-field" for="sp-order">Номер счета ( все цифры и буквы )
+            <input id="sp-order" name="order" type="text" placeholder="Ф-004143-Л01" required autocomplete="off">
+          </label>
+          <label class="sp-field" for="sp-email">Email (указанный в заказе)
+            <input id="sp-email" name="email" type="email" placeholder="Ваш email" required autocomplete="email">
+          </label>
+        </div>
+        <button class="btn btn--primary sp-btn" type="submit">Посмотреть</button>
+      </form>
+      <nav class="footer-cols" aria-label="Разделы сайта">
+        <div class="footer-col">
+          <button class="fc-title" type="button">Лабораторная мебель</button>
+          <div class="fc-list">
+            <a href="#">Вытяжные шкафы</a><a href="#">Столы лабораторные</a><a href="#">Шкафы лабораторные</a><a href="#">Мойки лабораторные</a><a href="#">Кабинеты химии / физики</a><a href="#">Тумбы</a><a href="#">Стулья лабораторные</a><a href="#">Раздевалки</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">Проекты</button>
+          <div class="fc-list">
+            <a href="#">Образование</a><a href="#">Фармацевтика</a><a href="#">Пищевая</a><a href="#">Металлургия и ГОК</a><a href="#">Нефть и газ</a><a href="#">Наука</a><a href="#">Энергетика</a><a href="#">Химическая</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">О компании</button>
+          <div class="fc-list">
+            <a href="#">Партнерам</a><a href="#">Центральный офис и завод</a><a href="#">Дилеры</a><a href="#">Где посмотреть мебель</a><a href="#">Производство</a><a href="#">Вакансии</a><a href="#">СОУТ</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">Материалы</button>
+          <div class="fc-list">
+            <a href="#">Применяемые материалы</a><a href="#">Полезное</a><a href="#">Скачать карту выставки</a><a href="#">Проектировщикам</a><a href="#">BIM модели Revit</a><a href="#">BIM модели Renga</a><a href="#">Дизайнерам 3D модели</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">Покупателю</button>
+          <div class="fc-list">
+            <a href="#">Цены</a><a href="#">Сроки изготовления</a><a href="#">Доставка</a><a href="#">Гарантийные обязательства</a><a href="#">Сертификаты</a><a href="#">Отзывы</a><a href="#">Как заказать</a>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <div class="footer-row2">
+      <p class="footer-copy">© 2002-2026 Simplepro</p>
+      <div class="footer-row2-cols">
+        <div class="footer-contacts">
+          <p class="fc-title">Контакты</p>
+          <div class="fc-pairs">
+            <div class="fc-pair"><span class="k">Email</span><span class="v">info@simple-pro.com</span></div>
+            <div class="fc-pair"><span class="k">Регионы</span><span class="v">+7 (800) 350 60 36</span></div>
+            <div class="fc-pair"><span class="k">Москва</span><span class="v">+7 (495) 646 80 57</span></div>
+            <div class="fc-pair"><span class="k">СПб</span><span class="v">+7 (812) 448 13 97</span></div>
+          </div>
+        </div>
+        <div class="footer-legal">
+          <span>ООО «СпецБалтМебель»</span><span>ИНН 7804158696</span><span>ОГРН 1027802485457</span>
+        </div>
+        <div class="footer-links">
+          <a href="#">Договор оферты</a><a href="#">Стандарт «ISO 9001»</a><a class="pd-link" href="#">Обработка персональных данных</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+<script src="../js/hub.js" defer></script>
+<script src="../../nav/nav.js"></script>
+<script src="../../footer/footer.js"></script>
+<!-- DEBUG:vw-badge — вырезать при сборке -->
+<script src="../../product-card/debug.js" defer></script>
+<!-- /DEBUG:vw-badge -->
+</body>
+</html>
