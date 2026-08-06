@@ -278,9 +278,15 @@ document.querySelectorAll("[data-copy]").forEach((btn) => {
     try {
       await navigator.clipboard.writeText(btn.dataset.copy);
       /* Канон Антона 21.07: галка держится «пару секунд». Держим ту же длительность,
-         что и копи-кнопки продуктовой (app.js) — состояние одно, значит и время одно. */
-      btn.classList.add("is-copied");
-      setTimeout(() => btn.classList.remove("is-copied"), 2000);
+         что и копи-кнопки продуктовой (app.js) — состояние одно, значит и время одно.
+         ⚠ ДВА ИМЕНИ, и это не дубль: `.is-copied` — словарь модуля, на него отвечает
+         только `.nav-header` (nav.css §КАНОН «СКОПИРОВАНО»); `copied` — общий канон
+         дома (`components.css: .copy-btn.copied`). Копи-кнопки на страницах-хозяевах
+         (хаб «Покупателю» и др.) грузят nav.js, но НЕ app.js — без второго имени галка
+         у них не рисовалась вовсе, и это ровно пункт A11 резки. Вне `.copy-btn` имя
+         инертно, поэтому в шапке ничего не меняется. */
+      btn.classList.add("is-copied", "copied");
+      setTimeout(() => btn.classList.remove("is-copied", "copied"), 2000);
     } catch { /* clipboard недоступен (http) — молча */ }
   });
 });

@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- ⛔ NOINDEX — не опция, а требование паспорта гига. Это демо-копия страниц живого
+       simple-pro.com; попав в индекс, она станет ДУБЛЕМ сайта клиента, чьё SEO ведёт
+       его собственный подрядчик. Мета стоит на КАЖДОЙ странице сборки и работает
+       независимо от того, куда её положили. Второй контур — code/robots.txt, но он
+       читается только из КОРНЯ домена: ляжет сборка в подкаталог проекта Pages —
+       робот его не увидит вовсе, и эта строка останется единственной защитой.
+       Снимать только вместе с решением «сайт уезжает клиенту как боевой». -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>Гарантийные обязательства — Simple PRO</title>
+  <meta name="description" content="Гарантийный срок эксплуатации лабораторной мебели Simple PRO — 5 лет с момента отгрузки, срок службы изделия 10 лет.">
+  <link rel="canonical" href="https://simple-pro.com/customers/warranties/">
+  <link rel="icon" href="../../assets/figma/s-logo.svg" type="image/svg+xml">
+  <!-- ТОКЕН-СЛОЙ — единый источник дома (шрифты, примитивы, семантика, rem-зум полосы).
+       Своих копий цветов/кеглей у хаба нет. -->
+  <link rel="stylesheet" href="../../product-card/css/tokens.css">
+  <!-- Кнопки/копи-канон — общий компонентный слой продуктовой, не свой дубль -->
+  <link rel="stylesheet" href="../../product-card/css/components.css">
+  <link rel="stylesheet" href="../css/customers.css">
+  <link rel="stylesheet" href="../css/mobile.css">
+  <!-- Модули nav и footer — ПОСЛЕДНИМИ и в этом порядке (как в продуктовой и листинге):
+       их em-своды обязаны выигрывать у одноимённых правил сборки при равной специфичности. -->
+  <link rel="stylesheet" href="../../nav/nav.css">
+  <link rel="stylesheet" href="../../footer/footer.css">
+  <!-- DEBUG:vw-badge — вырезать при сборке -->
+  <!-- служебная плашка ширины: КАНОН один на дом — ../../product-card/debug.* (№42, 31.07) -->
+  <link rel="stylesheet" href="../../product-card/debug.css">
+  <!-- /DEBUG:vw-badge -->
+</head>
+<body>
+
+<!-- ⚠ СТРАНИЦА СОБРАНА ШАБЛОНОМ _scratch/build.py. Разметка шапки, подвала и колонки
+     разделов одна на все девять разделов — править её здесь руками значит развести
+     эту копию с восемью остальными. Правка идёт в шаблон, потом пересборка. -->
+
+<!-- ═══ ХЕДЕР — МОДУЛЬ (code/nav/). Разметка/стили/скрипт живут в модуле, продуктовая
+     на них ССЫЛАЕТСЯ. Врезано 21.07 взамен встроенного .site-header (73 строки).
+     Режим — направленный (канон свода v8); дев-тумблер стенда СОЗНАТЕЛЬНО не перенесён,
+     nav.js без data-nav-mode сам берёт directional. Ветку «всегда полный» в модуле
+     не удаляем до слова клиента. ═══ -->
+  <header class="nav-header">
+    <!-- Лого-колонка на два ряда. На узком деске (≤ точки слома полного лого) она
+         ИСЧЕЗАЕТ целиком, а знак S уходит первым чипом в верхний ряд (см. .menu-btn--logo-s):
+         ряд категорий получает всю ширину. Состав хедера при этом не меняется. -->
+    <a class="nav-logo" href="#" aria-label="Simplepro — на главную">
+      <img src="../../assets/figma/header-logo.svg" alt="Simplepro">
+    </a>
+    <div class="nav-rows">
+      <div class="nav-row-top">
+        <div class="row-left">
+          <!-- S-квадрат: живёт ТОЛЬКО на узком деске, когда лого-колонка исчезла.
+               Высота = высоте чипа верхнего ряда (28-базис в em), стоит первым, слева от Региона. -->
+          <a class="menu-btn menu-btn--logo-s" href="#" aria-label="Simplepro — на главную">
+            <img src="../../assets/figma/s-logo.svg" alt="Simplepro">
+          </a>
+          <!-- Регион: чип + дропдаун на панели мега-меню (список перенесён с продуктовой).
+               Глиф — inline-svg на currentColor: в <img> внешний CSS не проникает,
+               а на hover бокс инвертируется и глиф обязан стать белым. -->
+          <div class="region-wrap">
+            <button class="menu-btn menu-btn--suffix" type="button" data-region-btn
+                    aria-haspopup="listbox" aria-expanded="false">
+              <span data-region-label>Регион</span>
+              <span class="suffix-box">
+                <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.75 9 11.25l4.5-4.5"/></svg>
+              </span>
+            </button>
+            <div class="nav-mega-menu" role="listbox" aria-label="Выбор региона" data-region-menu></div>
+          </div>
+        </div>
+        <nav class="row-middle" aria-label="Разделы сайта">
+          <a class="menu-btn" href="#"><span class="special-dot" aria-hidden="true"></span>Лабораторные пространства</a>
+          <a class="menu-btn" href="#">Компания</a>
+          <a class="menu-btn" href="#">Проекты</a>
+          <a class="menu-btn" href="#">Гарантии</a>
+          <a class="menu-btn" href="#">Цены</a>
+          <a class="menu-btn" href="#">Контакты</a>
+        </nav>
+        <div class="row-right">
+          <!-- поиск: hover/фокус раскрывает строку ВЛЕВО до лого; строка absolute,
+               поэтому раскладку ряда не двигает и переполнения дать не может -->
+          <div class="search-wrap" data-search>
+            <input class="search-field" type="search" placeholder="Поиск по каталогу" aria-label="Поиск по каталогу" tabindex="-1">
+            <button class="menu-btn menu-btn--icon" type="button" aria-label="Поиск" data-search-btn>
+              <span class="icon-box"><img src="../../assets/figma/header-zoom.svg" alt=""></span>
+            </button>
+          </div>
+          <!-- контакты ТЕКСТОМ с копи-кнопками на любой деск-ширине: ступени «текст→иконка» нет -->
+          <button class="menu-btn menu-btn--suffix menu-btn--tight" type="button" data-copy="+78006004069" aria-label="Скопировать телефон">
+            +7 (800) 600 40 69
+            <span class="suffix-box">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.009 12.553a1.8 1.8 0 0 1-.759-1.303V3.75c0-.825.675-1.5 1.5-1.5h7.5c.563 0 .869.289 1.125.75M5.25 7.25a2 2 0 0 1 2-2h6.5a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2h-6.5a2 2 0 0 1-2-2z"/></svg>
+            </span>
+          </button>
+          <button class="menu-btn menu-btn--suffix menu-btn--tight" type="button" data-copy="info@simple-pro.com" aria-label="Скопировать email">
+            info@simple-pro.com
+            <span class="suffix-box">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.009 12.553a1.8 1.8 0 0 1-.759-1.303V3.75c0-.825.675-1.5 1.5-1.5h7.5c.563 0 .869.289 1.125.75M5.25 7.25a2 2 0 0 1 2-2h6.5a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2h-6.5a2 2 0 0 1-2-2z"/></svg>
+            </span>
+          </button>
+          <a class="menu-btn menu-btn--icon" href="#" aria-label="Telegram" data-brand-chip="tg">
+            <img data-brand src="../../assets/figma/icon-tg.svg" alt="">
+          </a>
+          <a class="menu-btn menu-btn--icon" href="#" aria-label="MAX" data-brand-chip="max">
+            <img data-brand src="../../assets/figma/icon-max.svg" alt="">
+          </a>
+          <button class="menu-btn menu-btn--icon" type="button" aria-label="Избранное">
+            <span class="icon-box"><img src="../../assets/figma/header-heart.svg" alt=""></span>
+          </button>
+          <button class="menu-btn menu-btn--icon menu-btn--cart" type="button" aria-label="Корзина">
+            <span class="icon-box"><img src="../../assets/figma/header-cart.svg" alt=""></span>
+          </button>
+        </div>
+      </div>
+      <nav class="nav-row-cats" aria-label="Каталог" data-cats></nav>
+    </div>
+  </header>
+
+  <!-- ============ nav-bottom-bar (моб): белая floating-плашка ============ -->
+  <!-- состав: бургер · лого | конверт · tg · MAX · корзина (20.07: гео-пин убран, MAX добавлен).
+       Две связки, распор только МЕЖДУ ними — не россыпь по всей ширине.
+       Канон 21.07 (моб-макет Frame 1000005299, 360): поле бара 8 · кнопка 40×40, глиф 24 ·
+       лого СЛОВЕСНОЕ 91×20 (знак S в баре отменён) · правая связка ровно 160 = 4×40 БЕЗ гэпов. -->
+  <div class="nav-bottom-bar">
+    <div class="bar-group">
+      <button class="bar-btn bar-btn--burger" type="button" data-burger aria-label="Меню" aria-expanded="false">
+        <svg class="icon-burger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
+      <a class="bar-logo-link" href="#" aria-label="Simplepro — на главную"><img class="bar-logo" src="../../assets/figma/header-logo.svg" alt="Simplepro"></a>
+    </div>
+    <div class="bar-group bar-group--icons">
+      <a class="bar-btn" href="mailto:info@simple-pro.com" aria-label="Email">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+      </a>
+      <a class="bar-btn" href="#" aria-label="Telegram"><img src="../../assets/figma/icon-tg.svg" alt=""></a>
+      <a class="bar-btn" href="#" aria-label="MAX"><img src="../../assets/figma/icon-max.svg" alt=""></a>
+      <button class="bar-btn bar-btn--cart" type="button" aria-label="Корзина">
+        <img src="../../assets/figma/header-cart.svg" alt="">
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ nav-menu-sheet (моб-меню: bottom-sheet, два экрана) ============ -->
+  <div class="nav-menu-sheet" role="dialog" aria-modal="true" aria-label="Меню">
+    <div class="sheet-panel" data-panel-root>
+      <div class="sheet-search">
+        <input type="search" placeholder="Поиск">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg>
+      </div>
+      <nav class="sheet-list" aria-label="Каталог" data-root-list></nav>
+      <a class="sheet-banner" href="#">
+        <img src="../../assets/figma/adv-pic2.png" alt="">
+        <span class="banner-row">
+          Лабораторные пространства
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>
+        </span>
+      </a>
+      <nav class="sheet-secondary" aria-label="Разделы сайта" data-secondary-list></nav>
+    </div>
+    <div class="sheet-panel" data-panel-cat hidden>
+      <button class="sheet-back" type="button">
+        <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>
+        Назад
+      </button>
+      <h4 class="sheet-cat-title" data-cat-title></h4>
+      <div class="sheet-hero"><img data-cat-hero src="../../assets/figma/adv-pic1.png" alt=""></div>
+      <nav class="sheet-list" data-cat-list></nav>
+    </div>
+  </div>
+
+<main class="hub">
+
+  <!-- Фирменная графика: дуга по рецепту брендбука стр. 28 (assets/brand-arc.svg).
+       Работа у неё несущая, а не декоративная — семь разделов из девяти по 2.2–4.2
+       тыс. знаков, без дуги правая половина первого экрана остаётся пустым полем.
+       aria-hidden: смысла не несёт, скринридеру читать нечего.
+
+       ДВА УЗЛА, А НЕ ОДИН. Внешний .hub-arc-track — absolute на всю контентную
+       секцию: он и есть ограничитель, ниже которого дуге хода нет. Внутренний
+       .hub-arc — sticky внутри него, отсюда «стоит на месте при прокрутке».
+       Одним узлом это не собирается: sticky обязан быть в потоке, а бокс 756 в
+       потоке двигает грид; гасить его отрицательным margin нельзя — ограничение
+       низа считается по margin-edge, и с margin-bottom −722 дуга снова выезжала
+       на подвал (замер 04.08: перекрытие 722 из 756). Трек снимает оба условия
+       разом: место в потоке не занимает он, а границу держит его нижний край. -->
+  <div class="hub-arc-track" aria-hidden="true">
+    <div class="hub-arc"><img src="../assets/brand-arc.svg" alt=""></div>
+  </div>
+
+  <div class="hub-grid">
+
+    <!-- Колонка разделов. Все девять href — НАСТОЯЩИЕ, мёртвых пунктов нет:
+         каждый ведёт в собранную страницу этой же папки (правило затравки 04.08). -->
+    <nav class="hub-nav" aria-label="Разделы «Покупателю»">
+      <a class="hub-nav-item" href="../prices/">Цены</a>
+      <a class="hub-nav-item" href="../order/">Как заказать</a>
+      <a class="hub-nav-item" href="../dates/">Сроки</a>
+      <a class="hub-nav-item is-active" href="../warranties/" aria-current="page">Гарантия</a>
+      <a class="hub-nav-item" href="../delivery/">Доставка</a>
+      <a class="hub-nav-item" href="../certificates/">Сертификаты</a>
+      <a class="hub-nav-item" href="../manufacturing/">Производство</a>
+      <a class="hub-nav-item" href="../3d/">3D визуализация</a>
+      <a class="hub-nav-item" href="../materials/">Столешницы</a>
+    </nav>
+
+    <div class="hub-content">
+
+      <!-- Крошки — канон продуктовой (точки-разделители, чип «Вернуться»).
+           Ссылки цепочки — href="#" по конвенции дома (144 из 151 «решётки» оставлены
+           словом Антона 31.07): страниц «Главная» и «Покупателю» в сборке нет.
+           В DOM цепочка остаётся и на мобе — BreadcrumbList-семантику не теряем. -->
+      <nav class="breadcrumbs" aria-label="Хлебные крошки">
+        <a href="#" class="back"><img src="../../assets/figma/crumb-arrow-left.svg" alt="" width="12" height="12"><span class="back-label">Вернуться</span></a>
+        <a href="#" class="crumb">Главная</a>
+        <span class="sep"><img src="../../assets/figma/crumb-dot.svg" alt="" width="8" height="16"></span>
+        <a href="#" class="crumb">Покупателю</a>
+        <span class="sep"><img src="../../assets/figma/crumb-dot-dark.svg" alt="" width="8" height="16"></span>
+        <span class="current">Гарантии</span>
+      </nav>
+
+      <h1>Гарантийные обязательства</h1>
+
+      <div class="hub-body">
+        <p>Предприятие-изготовитель Лабораторной мебели СпецБалтМебель гарантирует соответствие изделия требованиям ГОСТ 16371-2014, ГОСТ 19917-2014 и ТО 5621-001-58905556-2014 при соблюдении правил эксплуатации, хранения, сборки (для изделий, поставляемых в разобранном виде) и транспортирования.</p>
+
+        <h2>Гарантийные обязательства</h2>
+        <ul class="hub-list">
+          <li>Гарантийный срок эксплуатации — 5 лет с момента продажи (отгрузки). Гарантийный срок эксплуатации стёкол в шкафах вытяжных (защитные экраны) и шкафах лабораторных ШЛП (верхние дверцы) — 6 месяцев.</li>
+          <li>В течение гарантийного срока эксплуатации Предприятие-изготовитель обеспечивает бесплатный ремонт в случае обнаружения производственных недостатков. Для этого Потребитель должен составить акт установленного образца о необходимости ремонта и направить Предприятию-изготовителю.</li>
+          <li>Недостатки мебели или деталей, образовавшиеся вследствие нарушения порядка или технологии сборки, не являются гарантийным случаем и устраняются за счёт Потребителя.</li>
+          <li>Все предъявляемые Потребителем рекламации по нарушению комплектации изделия принимаются в течение 14 дней с момента получения.</li>
+          <li>Срок службы изделия 10 лет.</li>
+        </ul>
+
+        <p>Если у Вас возникли вопросы по качеству нашей мебели, или Вы знаете, как сделать нашу мебель лучше — пожалуйста, отправьте своё сообщение через приведённую ниже форму. Ни одно письмо не останется без внимания! Нам очень важно знать Ваше мнение.</p>
+
+        <!-- 🔁 ПРАВАЯ КОЛОНКА (Антон 06.08): форма уехала из-под текста вправо, вровень
+             с заголовком, и едет со скроллом. Разметка осталась НА СВОЁМ МЕСТЕ в потоке
+             намеренно — посадку задаёт CSS-оверлей (customers.css §ПРАВАЯ КОЛОНКА), от
+             порядка в DOM он не зависит, а на телефоне блок обязан остаться там, где
+             стоял. Эталон — узел `3:2397` файла `UF4FxhFdqRsTJtDxF9UkLW`. -->
+        <aside class="hub-aside" aria-label="Сообщить о проблеме с мебелью">
+        <div class="hub-aside-panel">
+        <h2>Если с Вашей мебелью что-то случилось, просим незамедлительно сообщить об этом</h2>
+
+        <!-- id — якорь для кнопки «Отправить» из карточки 04 раздела «Как заказать»:
+             своей формы у той страницы нет, а кнопка без адреса была бы новым мёртвым
+             контролом (класс A6/A9 резки). Ведём в единственную форму обращения хаба. -->
+        <form class="hub-form" id="hub-form">
+          <label for="warranty-company">Наименование компании *</label>
+          <input type="text" id="warranty-company" name="company" placeholder="Наименование организации" required>
+
+          <label for="warranty-name">Представьтесь, пожалуйста *</label>
+          <input type="text" id="warranty-name" name="name" placeholder="Имя и фамилия контактного лица" required>
+
+          <label for="warranty-phone">Укажите телефон для связи *</label>
+          <input type="tel" id="warranty-phone" name="phone" placeholder="+7(___)___-__-__" required>
+
+          <label for="warranty-email">Укажите ваш email *</label>
+          <input type="email" id="warranty-email" name="email" placeholder="Email" required>
+
+          <label for="warranty-message">Дополнительные данные *</label>
+          <textarea id="warranty-message" name="message" placeholder="Пожалуйста, опишите суть вашей проблемы..." required></textarea>
+
+          <button type="submit" class="btn btn--primary">Отправить</button>
+          <p class="note">Нажимая кнопку «Отправить», вы даёте согласие на обработку своих персональных данных, <a href="https://simple-pro.com/customers/personal-data/" target="_blank" rel="noopener">согласно требованиям 152-ФЗ</a>.</p>
+        </form>
+        </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ═══ БЛОК 14: ФУТЕР — МОДУЛЬ (code/footer/). Разметка/стили/скрипт живут в модуле,
+     продуктовая на них ССЫЛАЕТСЯ. Врезано 21.07 взамен встроенного футера:
+     17 имён классов совпадали один-в-один, сосуществовать физически не могли. ═══ -->
+  <footer class="site-footer" id="footSection">
+    <img class="footer-watermark" src="../../assets/figma/footer-right-logo-watermark.svg" alt="">
+    <div class="footer-grid">
+      <form class="status-panel" aria-labelledby="sp-title">
+        <p class="sp-title" id="sp-title">Проверить статус заказа</p>
+        <div class="sp-fields">
+          <label class="sp-field" for="sp-order">Номер счета ( все цифры и буквы )
+            <input id="sp-order" name="order" type="text" placeholder="Ф-004143-Л01" required autocomplete="off">
+          </label>
+          <label class="sp-field" for="sp-email">Email (указанный в заказе)
+            <input id="sp-email" name="email" type="email" placeholder="Ваш email" required autocomplete="email">
+          </label>
+        </div>
+        <button class="btn btn--primary sp-btn" type="submit">Посмотреть</button>
+      </form>
+      <nav class="footer-cols" aria-label="Разделы сайта">
+        <div class="footer-col">
+          <button class="fc-title" type="button">Лабораторная мебель</button>
+          <div class="fc-list">
+            <a href="#">Вытяжные шкафы</a><a href="#">Столы лабораторные</a><a href="#">Шкафы лабораторные</a><a href="#">Мойки лабораторные</a><a href="#">Кабинеты химии / физики</a><a href="#">Тумбы</a><a href="#">Стулья лабораторные</a><a href="#">Раздевалки</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">Проекты</button>
+          <div class="fc-list">
+            <a href="#">Образование</a><a href="#">Фармацевтика</a><a href="#">Пищевая</a><a href="#">Металлургия и ГОК</a><a href="#">Нефть и газ</a><a href="#">Наука</a><a href="#">Энергетика</a><a href="#">Химическая</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">О компании</button>
+          <div class="fc-list">
+            <a href="#">Партнерам</a><a href="#">Центральный офис и завод</a><a href="#">Дилеры</a><a href="#">Где посмотреть мебель</a><a href="#">Производство</a><a href="#">Вакансии</a><a href="#">СОУТ</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">Материалы</button>
+          <div class="fc-list">
+            <a href="#">Применяемые материалы</a><a href="#">Полезное</a><a href="#">Скачать карту выставки</a><a href="#">Проектировщикам</a><a href="#">BIM модели Revit</a><a href="#">BIM модели Renga</a><a href="#">Дизайнерам 3D модели</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <button class="fc-title" type="button">Покупателю</button>
+          <div class="fc-list">
+            <a href="#">Цены</a><a href="#">Сроки изготовления</a><a href="#">Доставка</a><a href="#">Гарантийные обязательства</a><a href="#">Сертификаты</a><a href="#">Отзывы</a><a href="#">Как заказать</a>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <div class="footer-row2">
+      <p class="footer-copy">© 2002-2026 Simplepro</p>
+      <div class="footer-row2-cols">
+        <div class="footer-contacts">
+          <p class="fc-title">Контакты</p>
+          <div class="fc-pairs">
+            <div class="fc-pair"><span class="k">Email</span><span class="v">info@simple-pro.com</span></div>
+            <div class="fc-pair"><span class="k">Регионы</span><span class="v">+7 (800) 350 60 36</span></div>
+            <div class="fc-pair"><span class="k">Москва</span><span class="v">+7 (495) 646 80 57</span></div>
+            <div class="fc-pair"><span class="k">СПб</span><span class="v">+7 (812) 448 13 97</span></div>
+          </div>
+        </div>
+        <div class="footer-legal">
+          <span>ООО «СпецБалтМебель»</span><span>ИНН 7804158696</span><span>ОГРН 1027802485457</span>
+        </div>
+        <div class="footer-links">
+          <a href="#">Договор оферты</a><a href="#">Стандарт «ISO 9001»</a><a class="pd-link" href="#">Обработка персональных данных</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+<script src="../js/hub.js" defer></script>
+<script src="../../nav/nav.js"></script>
+<script src="../../footer/footer.js"></script>
+<!-- DEBUG:vw-badge — вырезать при сборке -->
+<script src="../../product-card/debug.js" defer></script>
+<!-- /DEBUG:vw-badge -->
+</body>
+</html>
