@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <!-- ДЕМО-сборка: публичный обход запрещён (как у _demo-block4-scroll.html). -->
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simple PRO — анимация шкафа</title>
+  <link rel="icon" href="../assets/figma/s-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="shared/tokens.css">
+<style>
+/* ============================================================
+   ДЕМО 13.10 · шкаф на главной, вариант «Г2-relats-light-nolist» из Figma
+   fresh-wip «shkaf-1310 · выноски» (кадры 413:3599…413:3887 + финал 415:3951).
+   Четыре набора кадров — 1920×960, 1440×800, 1280×720, 360×640 (ряды Figma), набор выбирается по ширине окна;
+   холст масштабируется по ширине, высота подстраивается под экран — узлы стоят по числам макета. Камера между шагами отъезжает дугой и наезжает на деталь;
+   на остановке краснеет точка, бежит точечная линия, выходит плашка.
+   Цвета — только var() из tokens.css. В бой не подключено.
+   Собирается из _scratch/shkaf-1310/demo-nolist.tpl.html (данные — из Figma).
+   ============================================================ */
+body { margin: 0; background: var(--grey-10); color: var(--grey-70); font-family: "Geologica", sans-serif; }
+.demo-spacer { height: 40vh; display: grid; place-items: center; background: var(--grey-0);
+  font-size: .875rem; color: var(--text-secondary); }
+
+.sh-scene { position: relative; height: 1100vh; }
+.sh-sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; background: var(--grey-10); }
+.sh-stage { position: absolute; left: 50%; top: 50%; width: 120rem; height: 60rem; transform-origin: 0 0; }
+
+.sh-logo { position: absolute; max-width: none; }
+.sh-img { position: absolute; left: 0; top: 0; width: 240rem; height: 240rem; max-width: none; transform-origin: 0 0;
+  will-change: transform; user-select: none; pointer-events: none; }
+.sh-layer { position: absolute; inset: 0; pointer-events: none; }
+
+/* точки общего вида — белые, в покое */
+.sh-pt { position: absolute; width: 2rem; height: 2rem; margin: -1rem 0 0 -1rem; border-radius: 50%;
+  border: 1px solid var(--grey-0); transition: opacity .3s; }
+.sh-pt::after { content: ""; position: absolute; left: 50%; top: 50%; width: .75rem; height: .75rem; margin: -.375rem 0 0 -.375rem;
+  border-radius: 50%; background: var(--grey-0); }
+.sh-pt { padding: 0; background: none; cursor: pointer; transition: opacity .3s, transform .2s ease-out; }
+.sh-pt::after { transition: background-color .2s; }
+.sh-pt::before { content: ""; position: absolute; inset: -1.5rem; border-radius: 50%; }   /* зона клика больше видимой точки */
+.sh-pt:hover, .sh-pt:focus-visible { transform: scale(1.15); outline: none; }
+.sh-pt:hover::after, .sh-pt:focus-visible::after { background: var(--red-brand); }
+.sh-pts { opacity: 0; transition: opacity .35s; }
+.sh-pts.is-on { opacity: 1; }
+.sh-pts.is-on .sh-pt { pointer-events: auto; }   /* кликабельны только на общем виде */
+
+/* активная точка шага: белое кольцо 108 + красная точка 16 */
+.sh-hot { position: absolute; width: 6.75rem; height: 6.75rem; margin: -3.375rem 0 0 -3.375rem; border-radius: 50%;
+  border: 1px solid var(--grey-0); opacity: 0; transform: scale(.5); transition: opacity .3s, transform .4s cubic-bezier(.2,.8,.2,1); }
+.sh-hot::after { content: ""; position: absolute; left: 50%; top: 50%; width: 1rem; height: 1rem; margin: -.5rem 0 0 -.5rem;
+  border-radius: 50%; background: var(--red-brand); }
+
+/* линия точками: штрих ~0 + круглые концы, как в макете (2.5 · шаг 6) */
+.sh-line { position: absolute; left: 0; top: 0; overflow: visible; }
+.sh-line line { stroke: var(--red-brand); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: .01 6; }
+.sh-line { opacity: 0; transition: opacity .25s; }
+.sh-wipe { transition: clip-path .4s ease-out; }
+
+/* плашка */
+.sh-plate { position: absolute; bottom: 3.375rem; box-sizing: border-box; padding: 2rem; border-radius: var(--r-8); background: var(--grey-0);
+  display: flex; flex-direction: column; gap: 1.5rem; opacity: 0; transform: translateY(1rem);
+  transition: opacity .3s .05s, transform .35s .05s; }
+.sh-title { font-family: "Simplepro Display", sans-serif; font-weight: 700; font-size: 3rem; line-height: 3.25rem; color: var(--grey-70); }
+.sh-cap { font-size: 1.125rem; line-height: 1.5rem; font-weight: 400; color: var(--grey-50); white-space: pre-wrap;   /* текст один в один с макетом, включая двойной пробел источника */ }
+
+.is-on .sh-hot { opacity: 1; transform: none; }
+.is-on .sh-line { opacity: 1; }
+.is-on .sh-plate { opacity: 1; transform: none; }
+/* ---------- 1440 / 1280 / телефон — числа рядов Figma «shkaf / 1440», «/ 1280», «/ 360» ---------- */
+[data-l="w1440"] .sh-plate { bottom: 2.75rem; padding: 1.25rem; gap: 1.25rem; }
+[data-l="w1440"] .sh-title { font-size: 2.5rem; line-height: 2.75rem; }
+[data-l="w1280"] .sh-plate { bottom: 2.5rem; padding: 1rem; gap: 1.25rem; }
+[data-l="w1280"] .sh-title { font-size: 2.25rem; line-height: 2.5rem; }
+[data-l="w1440"] .sh-cap, [data-l="w1280"] .sh-cap { font-size: 1rem; line-height: 1.5rem; }
+[data-l="w1440"] .sh-hot { width: 5.5rem; height: 5.5rem; margin: -2.75rem 0 0 -2.75rem; }
+[data-l="w1280"] .sh-hot { width: 5rem; height: 5rem; margin: -2.5rem 0 0 -2.5rem; }
+[data-l="w1440"] .sh-hot::after, [data-l="w1280"] .sh-hot::after { width: .75rem; height: .75rem; margin: -.375rem 0 0 -.375rem; }
+[data-l="w1440"] .sh-line line, [data-l="w1280"] .sh-line line { stroke-width: 2; stroke-dasharray: .01 5; }
+[data-l="w1440"] .sh-pt, [data-l="w1280"] .sh-pt { width: 1.75rem; height: 1.75rem; margin: -.875rem 0 0 -.875rem; }
+[data-l="w1440"] .sh-pt::after, [data-l="w1280"] .sh-pt::after { width: .625rem; height: .625rem; margin: -.3125rem 0 0 -.3125rem; }
+
+[data-l="mob"] .sh-plate { bottom: .75rem; padding: 1rem; gap: .75rem; }
+[data-l="mob"] .sh-title { font-size: 1.5rem; line-height: 1.75rem; }
+[data-l="mob"] .sh-cap { font-size: .875rem; line-height: 1.25rem; }
+[data-l="mob"] .sh-hot { width: 4rem; height: 4rem; margin: -2rem 0 0 -2rem; }
+[data-l="mob"] .sh-hot::after { width: .75rem; height: .75rem; margin: -.375rem 0 0 -.375rem; }
+[data-l="mob"] .sh-line line { stroke-width: 2; stroke-dasharray: .01 5; }
+[data-l="mob"] .sh-pt { width: 1.5rem; height: 1.5rem; margin: -.75rem 0 0 -.75rem; }
+[data-l="mob"] .sh-pt::after { width: .5rem; height: .5rem; margin: -.25rem 0 0 -.25rem; }
+[data-l="mob"] .sh-pt::before { inset: -.75rem; }   /* палец: зона касания 48 */
+</style>
+</head>
+<body>
+
+<div class="demo-spacer">Анимация шкафа · крутите вниз</div>
+
+<section class="sh-scene" id="shScene" aria-label="Устройство вытяжного шкафа">
+  <div class="sh-sticky">
+    <div class="sh-stage" id="shStage">
+      <img class="sh-logo" id="shLogo" src="assets/shkaf/logo-simplepro.svg" alt="" aria-hidden="true">
+      <img class="sh-img" id="shImg" src="assets/shkaf/shkaf-cut.webp" alt="Вытяжной шкаф Simple PRO" width="3840" height="3840">
+      <div class="sh-layer sh-pts" id="shPts"></div>
+      <div class="sh-layer" id="shStep">
+        <svg class="sh-line" id="shSvg"><g class="sh-wipe" id="shWipe"><line id="shLine"/></g></svg>
+        <span class="sh-hot" id="shHot"></span>
+        <div class="sh-plate" id="shPlate"><div class="sh-title" id="shTitle"></div><div class="sh-cap" id="shCap"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="demo-spacer">дальше — следующий блок главной</div>
+
+<script>
+/* Кадры из Figma, два набора: desk — 1920×960 (ряд «Г2-relats-light-nolist»), mob — 360×640 (ряд «shkaf / 360»).
+   K[0] общий вид, K[1…8] шаги, K[9] финал. ox/oy — левый-верх картинки шкафа 3840 в холсте, s — масштаб;
+   ring — центр точки, plate — x,y,w,h плашки; тексты — дословно из пптх Сергея (как в макете). */
+const DATA = {
+  desk:  Object.assign({ W: 1920, H: 960 }, {"K":[{"ox":461,"oy":10,"s":0.24688},{"ox":-786,"oy":96,"s":0.95,"plate":[1132,690,720,216],"title":"Срок службы вентилятора ХХ лет","cap":"Кислотостойкий вентилятор из пластика","ring":[1000.0,410.0]},{"ox":-900,"oy":-1205,"s":0.95,"plate":[1132,690,720,216],"title":"Нет коррозии от хим реактивов","cap":"Полипропиленовая капсула без металла.","ring":[1000.0,410.0]},{"ox":-121,"oy":-1804,"s":0.95,"plate":[1132,638,720,268],"title":"Кислотные испарения не стекают на рабочую поверхность","cap":"Каплесборник  со специальной емкостью для химикатов","ring":[1000.0,410.0]},{"ox":-1690,"oy":-1500,"s":0.95,"plate":[1132,690,720,216],"title":"Нет отравления персонала","cap":"Монитор воздушного потока","ring":[1000.0,410.0]},{"ox":-1690,"oy":-1632,"s":0.95,"plate":[1132,690,720,216],"title":"Нет отравления персонала","cap":"Зона зеленая, красная.","ring":[1000.0,410.0]},{"ox":-425,"oy":-1395,"s":0.95,"plate":[1132,690,720,216],"title":"Нет отравления персонала","cap":"Хорошая тяга вредного воздуха.","ring":[1000.0,410.0]},{"ox":-672,"oy":-2392,"s":0.95,"plate":[1132,742,720,164],"title":"Петли не ржавеют","cap":"Вечная полипропиленовая петля патент SimplePro","ring":[1000.0,410.0]},{"ox":-5817,"oy":-12618,"s":3.7875,"plate":[1132,742,720,164],"title":"Легко помыть пол","cap":"Тумбочки катается на колесах","ring":[906.0,607.0]},{"ox":461,"oy":10,"s":0.24688}],"points":[[925.0,91.0],[955.0,430.0],[752.0,585.0],[1160.0,506.0],[1160.0,541.0],[831.0,479.0],[896.0,738.0],[899.0,873.0]],"logo":[32,283,1857,407]}),
+  w1440: Object.assign({ W: 1440, H: 800 }, {"K":[{"ox":304,"oy":8,"s":0.20573},{"ox":-738,"oy":80,"s":0.79167,"plate":[848,584,556,172],"title":"Срок службы вентилятора ХХ лет","cap":"Кислотостойкий вентилятор из пластика","ring":[750.0,342.0]},{"ox":-833,"oy":-1004,"s":0.79167,"plate":[848,584,556,172],"title":"Нет коррозии от хим реактивов","cap":"Полипропиленовая капсула без металла.","ring":[750.0,342.0]},{"ox":-184,"oy":-1503,"s":0.79167,"plate":[848,540,556,216],"title":"Кислотные испарения не стекают на рабочую поверхность","cap":"Каплесборник  со специальной емкостью для химикатов","ring":[750.0,342.0]},{"ox":-1492,"oy":-1250,"s":0.79167,"plate":[848,584,556,172],"title":"Нет отравления персонала","cap":"Монитор воздушного потока","ring":[750.0,342.0]},{"ox":-1492,"oy":-1360,"s":0.79167,"plate":[848,584,556,172],"title":"Нет отравления персонала","cap":"Зона зеленая, красная.","ring":[750.0,342.0]},{"ox":-438,"oy":-1162,"s":0.79167,"plate":[848,584,556,172],"title":"Нет отравления персонала","cap":"Хорошая тяга вредного воздуха.","ring":[750.0,342.0]},{"ox":-643,"oy":-1993,"s":0.79167,"plate":[848,628,556,128],"title":"Петли не ржавеют","cap":"Вечная полипропиленовая петля патент SimplePro","ring":[750.0,342.0]},{"ox":-4923,"oy":-10515,"s":3.15625,"plate":[848,628,556,128],"title":"Легко помыть пол","cap":"Тумбочки катается на колесах","ring":[680.0,506.0]},{"ox":304,"oy":8,"s":0.20573}],"points":[[691.0,76.0],[716.0,358.0],[547.0,488.0],[887.0,422.0],[887.0,451.0],[612.0,399.0],[667.0,615.0],[669.0,728.0]],"logo":[24,236,1393,305]}),
+  w1280: Object.assign({ W: 1280, H: 720 }, {"K":[{"ox":266,"oy":8,"s":0.18516},{"ox":-673,"oy":72,"s":0.7125,"plate":[756,524,496,156],"title":"Срок службы вентилятора ХХ лет","cap":"Кислотостойкий вентилятор из пластика","ring":[667.0,308.0]},{"ox":-758,"oy":-904,"s":0.7125,"plate":[756,524,496,156],"title":"Нет коррозии от хим реактивов","cap":"Полипропиленовая капсула без металла.","ring":[667.0,308.0]},{"ox":-174,"oy":-1353,"s":0.7125,"plate":[756,484,496,196],"title":"Кислотные испарения не стекают на рабочую поверхность","cap":"Каплесборник  со специальной емкостью для химикатов","ring":[667.0,308.0]},{"ox":-1351,"oy":-1125,"s":0.7125,"plate":[756,524,496,156],"title":"Нет отравления персонала","cap":"Монитор воздушного потока","ring":[667.0,308.0]},{"ox":-1351,"oy":-1224,"s":0.7125,"plate":[756,524,496,156],"title":"Нет отравления персонала","cap":"Зона зеленая, красная.","ring":[667.0,308.0]},{"ox":-402,"oy":-1046,"s":0.7125,"plate":[756,524,496,156],"title":"Нет отравления персонала","cap":"Хорошая тяга вредного воздуха.","ring":[667.0,308.0]},{"ox":-587,"oy":-1794,"s":0.7125,"plate":[756,564,496,116],"title":"Петли не ржавеют","cap":"Вечная полипропиленовая петля патент SimplePro","ring":[667.0,308.0]},{"ox":-4438,"oy":-9464,"s":2.84063,"plate":[756,564,496,116],"title":"Легко помыть пол","cap":"Тумбочки катается на колесах","ring":[604.0,455.0]},{"ox":266,"oy":8,"s":0.18516}],"points":[[614.0,68.0],[636.0,322.0],[484.0,439.0],[790.0,380.0],[790.0,406.0],[543.0,359.0],[592.0,554.0],[594.0,655.0]],"logo":[21,212,1238,271]}),
+  mob:   Object.assign({ W: 360,  H: 640 }, {"K":[{"ox":-71,"oy":63,"s":0.13542},{"ox":-624,"oy":95,"s":0.4276,"plate":[12,508,336,120],"title":"Срок службы вентилятора ХХ лет","cap":"Кислотостойкий вентилятор из пластика","ring":[180.0,236.0]},{"ox":-675,"oy":-491,"s":0.4276,"plate":[12,508,336,120],"title":"Нет коррозии от хим реактивов","cap":"Полипропиленовая капсула без металла.","ring":[180.0,236.0]},{"ox":-324,"oy":-760,"s":0.4276,"plate":[12,460,336,168],"title":"Кислотные испарения не стекают на рабочую поверхность","cap":"Каплесборник  со специальной емкостью для химикатов","ring":[180.0,236.0]},{"ox":-1030,"oy":-624,"s":0.4276,"plate":[12,508,336,120],"title":"Нет отравления персонала","cap":"Монитор воздушного потока","ring":[180.0,236.0]},{"ox":-1030,"oy":-683,"s":0.4276,"plate":[12,508,336,120],"title":"Нет отравления персонала","cap":"Зона зеленая, красная.","ring":[180.0,236.0]},{"ox":-461,"oy":-576,"s":0.4276,"plate":[12,508,336,120],"title":"Нет отравления персонала","cap":"Хорошая тяга вредного воздуха.","ring":[180.0,236.0]},{"ox":-572,"oy":-1025,"s":0.4276,"plate":[12,516,336,112],"title":"Петли не ржавеют","cap":"Вечная полипропиленовая петля патент SimplePro","ring":[180.0,236.0]},{"ox":-2845,"oy":-5715,"s":1.70443,"plate":[12,536,336,92],"title":"Легко помыть пол","cap":"Тумбочки катается на колесах","ring":[180.0,236.0]},{"ox":-71,"oy":63,"s":0.13542}],"points":[[184.0,107.0],[200.0,293.0],[89.0,378.0],[312.0,334.0],[312.0,354.0],[132.0,320.0],[168.0,462.0],[169.0,536.0]],"logo":[16,284,328,72]}),
+};
+// какой набор на какой ширине: середины между брейкпоинтами гига 1920 · 1440 · 1280 · 360 (моб — порог главной, 45rem)
+const pick = () => innerWidth <= 720 ? 'mob' : innerWidth < 1360 ? 'w1280' : innerWidth < 1680 ? 'w1440' : 'desk';
+const N = 8, LEAD = 0.6, TAIL = 0.6, MOVE = 0.62, DIP = 0.35;
+const SHOW = 0.85, KEEP = 0.12;   // выноска выходит на подлёте (85% наезда) и держится, пока камера не отъедет на 12% следующего
+const LAG = 0.14;   // инерция, с: движение догоняет скролл, а не прыгает за каждым щелчком колеса
+const $ = (id) => document.getElementById(id);
+const scene = $('shScene'), stage = $('shStage'), img = $('shImg');
+const rem = (px) => px / 16 + 'rem';
+
+let V, L, K, PTS, ptEls = [], DY = 0;                        // V — текущий набор, L — его имя; DY — сдвиг под реальную высоту экрана
+function useLayout() {
+  L = pick(); V = DATA[L]; K = V.K; scene.dataset.l = L;
+  const P0 = K[0];
+  PTS = V.points.map(([x, y]) => [(x - P0.ox) / P0.s, (y - P0.oy) / P0.s]);   // точки — в координатах картинки, едут со шкафом
+  $('shPts').innerHTML = PTS.map((_, k) => `<button type="button" class="sh-pt" aria-label="${K[k + 1].cap.replace(/\s+/g, ' ')}"></button>`).join('');
+  ptEls = [...$('shPts').children];
+  bindPoints();
+  const [lx, ly, lw, lh] = V.logo;
+  Object.assign($('shLogo').style, { left: rem(lx), top: rem(ly), width: rem(lw), height: rem(lh) });
+  $('shSvg').setAttribute('viewBox', `0 0 ${V.W} ${V.H}`);
+  active = null;
+  fit();
+}
+
+function fit() {
+  // холст — по ширине окна; если окно ниже холста — по высоте (по бокам фон). Высота холста тянется под экран, сцена по центру (DY)
+  let k = innerWidth / V.W;
+  if (innerHeight / k < V.H) k = innerHeight / V.H;
+  const h = innerHeight / k;
+  DY = (h - V.H) / 2;
+  Object.assign(stage.style, { width: rem(V.W), height: rem(h), transform: `scale(${k}) translate(-50%, -50%)` });
+  $('shSvg').setAttribute('viewBox', `0 0 ${V.W} ${h}`);
+  Object.assign($('shSvg').style, { width: rem(V.W), height: rem(h) });
+  $('shLogo').style.top = rem(V.logo[1] + DY);
+}
+const ease = (t) => t * t * t * (t * (t * 6 - 15) + 10);   // smootherstep: мягкий разгон и торможение, без рывка на стыке
+const lerp = (a, b, t) => a + (b - a) * t;
+
+let active = null;
+function setState(step, overview) {   // step 1…8 — шаг; overview — общий вид
+  $('shPts').classList.toggle('is-on', overview);
+  const key = step || 0;
+  if (key === active) return; active = key;
+  $('shStep').classList.remove('is-on');
+  if (!step) return;
+  const k = K[step], [px, , pw] = k.plate, rx = k.ring[0], ry = k.ring[1] + DY;
+  const plate = $('shPlate'), mob = L === 'mob';
+  Object.assign(plate.style, { left: rem(px), width: rem(pw) });   // по вертикали плашка прижата к низу экрана (bottom в CSS)
+  $('shTitle').textContent = k.title; $('shCap').textContent = k.cap;
+  $('shHot').style.left = rem(rx); $('shHot').style.top = rem(ry);
+  const Ln = $('shLine'), top = plate.offsetTop, mid = top + plate.offsetHeight / 2;
+  Ln.setAttribute('x1', rx); Ln.setAttribute('y1', ry);
+  if (mob) { Ln.setAttribute('x2', rx); Ln.setAttribute('y2', top); }       // телефон: вниз к верху плашки
+  else { Ln.setAttribute('x2', px); Ln.setAttribute('y2', mid); }           // десктоп: к середине левого края
+  const g = $('shWipe'); g.style.transition = 'none'; g.style.clipPath = mob ? 'inset(0 0 100% 0)' : 'inset(0 100% 0 0)';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    g.style.transition = ''; g.style.clipPath = 'inset(0 0 0 0)'; $('shStep').classList.add('is-on');
+  }));
+}
+
+const TOTAL = LEAD + (N + 1) + TAIL;                        // держим вход · 9 переходов (8 шагов + финал) · держим финал
+function target() {
+  const r = scene.getBoundingClientRect(), travel = scene.offsetHeight - innerHeight;
+  return Math.min(Math.max(-r.top / travel, 0), 1) * TOTAL - LEAD;
+}
+let cur = null, last = 0, running = false;
+function tick(now) {             // сглаженная погоня за скроллом: cur → target с постоянной времени LAG
+  const goal = target();
+  if (cur === null) cur = goal;
+  const dt = last ? Math.min((now - last) / 1000, .05) : .016; last = now;
+  cur += (goal - cur) * (1 - Math.exp(-dt / LAG));
+  if (Math.abs(goal - cur) < 1e-4) cur = goal;
+  render(cur);
+  if (cur !== goal) requestAnimationFrame(tick); else { running = false; last = 0; }
+}
+function kick() { if (!running) { running = true; requestAnimationFrame(tick); } }
+
+function camera(a, b, t, far) {
+  // центр взгляда — по прямой, масштаб — по логарифму с провалом посередине (отъезд между деталями)
+  const W2 = V.W / 2, H2 = V.H / 2;
+  const cx = (k) => (W2 - k.ox) / k.s, cy = (k) => (H2 - k.oy) / k.s;
+  const s = Math.exp(lerp(Math.log(a.s), Math.log(b.s), t)) * (1 - far * Math.sin(Math.PI * t));
+  const fx = lerp(cx(a), cx(b), t), fy = lerp(cy(a), cy(b), t);
+  const ox = W2 - fx * s, oy = H2 - fy * s + DY;
+  img.style.transform = `translate3d(${rem(ox)}, ${rem(oy)}, 0) scale(${s})`;
+  ptEls.forEach((el, k) => { el.style.left = rem(ox + PTS[k][0] * s); el.style.top = rem(oy + PTS[k][1] * s); });
+}
+
+function render(p) {
+  if (jump) return;
+  let a = K[0], b = K[0], t = 0, step = 0, overview = true;
+  if (p >= N + 1) { a = b = K[N + 1]; }                       // финал
+  else if (p > 0) {
+    const i = Math.floor(p), f = p - i;
+    a = K[i]; b = K[i + 1];
+    const m = f < MOVE ? f / MOVE : 1;
+    t = ease(m);
+    overview = i + 1 > N && m >= SHOW;
+    if (m >= SHOW && i + 1 <= N) step = i + 1;              // подлёт и остановка — выноска своей детали
+    else if (m < KEEP && i >= 1) step = i;                  // камера только тронулась — прежняя ещё держится
+  }
+  camera(a, b, t, (a === K[0] || b === K[N + 1] || a === b) ? 0 : DIP);
+  setState(step, overview);
+}
+
+/* Клик по точке на общем виде: камера летит ПРЯМО к детали (без пролёта через соседние шаги),
+   а скролл тихо переставляется на остановку этого шага — дальше листается как обычно. */
+let jump = null;
+const JUMP = 1100;   // мс
+function fly(now) {
+  const m = Math.min((now - jump.t0) / JUMP, 1);
+  camera(jump.a, K[jump.k], ease(m), 0);
+  setState(m >= SHOW ? jump.k : 0, false);
+  if (m < 1) requestAnimationFrame(fly);
+  else { jump = null; cur = target(); render(cur); }
+}
+function bindPoints() {
+  // фокус кнопки в закреплённом слое заставляет браузер прокрутить страницу к её «настоящему» месту — и мышь
+  // отпускается уже мимо точки, клика нет. Фокус от мыши не нужен: глушим его на mousedown.
+  ptEls.forEach((el) => el.addEventListener('mousedown', (e) => e.preventDefault()));
+  ptEls.forEach((el, i) => el.addEventListener('click', () => {
+    const k = i + 1, travel = scene.offsetHeight - innerHeight;
+    const p = (k - 1) + MOVE + (1 - MOVE) / 2;               // середина остановки шага k
+    jump = { a: K[0], k, t0: performance.now() };
+    scrollTo({ top: scene.offsetTop + travel * (p + LEAD) / TOTAL, behavior: 'instant' });
+    requestAnimationFrame(fly);
+  }));
+}
+addEventListener('resize', () => { if (pick() !== L) useLayout(); else fit(); active = null; render(cur ?? target()); kick(); });
+addEventListener('scroll', kick, { passive: true });
+useLayout(); render(target()); kick();   // первый кадр — сразу, не дожидаясь анимационного цикла (он спит во скрытой вкладке)
+</script>
+</body>
+</html>
